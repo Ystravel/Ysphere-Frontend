@@ -1,0 +1,45 @@
+{
+  "name": "ystravel-hrms-frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "@mdi/font": "7.4.47",
+    "core-js": "^3.37.1",
+    "roboto-fontface": "*",
+    "vue": "^3.4.31",
+    "vuetify": "^3.6.11",
+    "axios": "^1.7.2",
+    "pinia-plugin-persistedstate": "^3.2.1",
+    "validator": "^13.12.0",
+    "vee-validate": "^4.13.2",
+    "vuetify-use-dialog": "^0.6.11",
+    "yup": "^1.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.5",
+    "@vue/eslint-config-standard": "^8.0.1",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-config-vuetify": "^1.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.4.0",
+    "eslint-plugin-vue": "^9.27.0",
+    "pinia": "^2.1.7",
+    "sass": "1.77.6",
+    "unplugin-auto-import": "^0.17.6",
+    "unplugin-fonts": "^1.1.1",
+    "unplugin-vue-components": "^0.27.2",
+    "unplugin-vue-router": "^0.10.0",
+    "vite": "^5.3.3",
+    "vite-plugin-vue-layouts": "^0.11.0",
+    "vite-plugin-vuetify": "^2.0.3",
+    "vue-router": "^4.4.0"
+  }
+}
