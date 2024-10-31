@@ -44,7 +44,6 @@
         </v-row>
       </v-col>
       <v-col cols="12">
-        <!--
         <v-data-table-server
           v-model:items-per-page="tableItemsPerPage"
           v-model:sort-by="tableSortBy"
@@ -62,9 +61,26 @@
           @update:sort-by="tableLoadItems(false)"
           @update:page="tableLoadItems(false)"
         >
-          <template #[`item.role`]="{ item }">
-            {{ item.role === 1 ? '管理者' : '使用者' }}
+          <!-- Email -->
+          <template #[`item.email`]="{ item }">
+            {{ item.email }}
           </template>
+
+          <!-- 姓名 -->
+          <template #[`item.name`]="{ item }">
+            {{ item.name }}
+          </template>
+
+          <!-- 部門 -->
+          <!-- <template #[`item.department.name`]="{ item }">
+            {{ item.department.name }}
+          </template> -->
+          <!-- 身分組 -->
+          <template #[`item.role`]="{ item }">
+            {{ getRoleTitle(item.role) }}
+          </template>
+
+          <!-- 操作按鈕 -->
           <template #[`item.action`]="{ item }">
             <v-btn
               class="edit-btn"
@@ -74,7 +90,6 @@
             />
           </template>
         </v-data-table-server>
-        -->
       </v-col>
     </v-row>
   </v-container>
@@ -150,7 +165,7 @@
               <v-select
                 v-model="gender.value.value"
                 :items="genderOptions"
-                :error-messages="gender.errorMessage"
+                :error-messages="gender.errorMessage.value"
                 :item-title="genderOptions.title"
                 :item-value="genderOptions.value"
                 label="性別"
@@ -160,12 +175,10 @@
               />
             </v-col>
             <v-col cols="4">
-              <v-text-field
+              <v-date-input
                 v-model="birthDate.value.value"
                 :error-messages="birthDate.errorMessage.value"
-                class="mt-2"
                 label="生日"
-                type="date"
                 variant="outlined"
                 density="compact"
                 clearable
@@ -579,9 +592,19 @@ const showPasswordConfirm = ref(false)
 const isEditing = ref(false)
 
 const roles = ref([
-  { title: '管理者', value: 1 },
-  { title: '使用者', value: 0 }
+  { title: '一般員工', value: 0 },
+  { title: '一般管理者', value: 1 },
+  { title: '最高管理者', value: 2 },
+  { title: '人資', value: 3 },
+  { title: '經理', value: 4 },
+  { title: '會計', value: 5 },
+  { title: 'IT人員', value: 6 }
 ])
+
+const getRoleTitle = (roleValue) => {
+  const role = roles.value.find((r) => r.value === roleValue)
+  return role ? role.title : '未知'
+}
 
 const employmentStatuses = ref([
   { title: '在職', value: '在職' },
@@ -615,14 +638,43 @@ const editDialog = ref({
 const editDepartmentName = ref('')
 const editDepartmentError = ref('')
 
+const formatDate = (dateString) => {
+  if (!dateString) return null
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const formatToDate = (dateString) => {
+  return dateString ? new Date(dateString) : null
+}
+
 const openDialog = (item) => {
   if (item) {
     isEditing.value = true
     dialog.value.id = item._id
     email.value.value = item.email
     name.value.value = item.name
-    department.value.value = item.department._id
+    englishName.value.value = item.englishName
+    gender.value.value = item.gender
+    IDNumber.value.value = item.IDNumber
+    address.value.value = item.address
+    birthDate.value.value = formatToDate(item.birthDate)
+    // company.value.value = item.company._id
+    // department.value.value = item.department._id
+    cellphone.value.value = item.cellphone
+    extension.value.value = item.extension
+    printNumber.value.value = item.printNumber
     role.value.value = item.role
+    employmentStatus.value.value = item.employmentStatus
+    hireDate.value.value = formatDate(item.hireDate)
+    resignationDate.value.value = formatDate(item.resignationDate)
+    emergencyName.value.value = item.emergencyName
+    emergencyCellphone.value.value = item.emergencyCellphone
+    emergencyRelationship.value.value = item.emergencyRelationship
+    note.value.value = item.note
   } else {
     isEditing.value = false
     dialog.value.id = ''
@@ -784,6 +836,9 @@ const userSchema = yup.object({
     .string(),
   birthDate: yup
     .date()
+    .nullable()
+    .transform((value, originalValue) => originalValue === '' ? null : value)
+    // originalValue 是從表單獲取的值，當 originalValue 為空字串""時，轉換為 null，若不是空字串則保持為原本的 value。
     .required('請選擇生日'),
   // company: yup
   // .string(),
@@ -808,9 +863,13 @@ const userSchema = yup.object({
     .required('請選擇任職狀態'),
   hireDate: yup
     .date()
+    .nullable()
+    .transform((value, originalValue) => originalValue === '' ? null : value)
     .required('請選擇入職日期'),
   resignationDate: yup
-    .date(),
+    .date()
+    .nullable()
+    .transform((value, originalValue) => originalValue === '' ? null : value),
   emergencyName: yup
     .string()
     .required('請輸入緊急聯絡人姓名'),
@@ -846,7 +905,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     gender: '',
     IDNumber: '',
     address: '',
-    birthDate: '',
+    birthDate: null,
     company: '',
     department: '',
     cellphone: '',
@@ -894,8 +953,24 @@ const submit = handleSubmit(async (values) => {
       await apiAuth.patch(`/user/${dialog.value.id}`, {
         email: values.email,
         name: values.name,
+        englishName: values.englishName,
+        gender: values.gender,
+        IDNumber: values.IDNumber,
+        address: values.address,
+        birthDate: values.birthDate,
+        company: values.company,
+        department: values.department, // 發送部門ID
+        cellphone: values.cellphone,
+        extension: values.extension,
+        printNumber: values.printNumber,
         role: values.role,
-        department: values.department
+        employmentStatus: values.employmentStatus,
+        hireDate: values.hireDate,
+        resignationDate: values.resignationDate,
+        emergencyName: values.emergencyName,
+        emergencyCellphone: values.emergencyCellphone,
+        emergencyRelationship: values.emergencyRelationship,
+        note: values.note
       })
       createSnackbar({
         text: '使用者更新成功',
@@ -905,7 +980,7 @@ const submit = handleSubmit(async (values) => {
       })
     } else {
       // 新增模式，發送 POST 請求
-      await api.post('/user', {
+      await apiAuth.post('/user', {
         email: values.email,
         name: values.name,
         englishName: values.englishName,
@@ -937,7 +1012,7 @@ const submit = handleSubmit(async (values) => {
       })
     }
     closeDialog() // 關閉 dialog
-    // tableLoadItems(true)
+    tableLoadItems(true)
   } catch (error) {
     console.log(error)
     createSnackbar({
@@ -950,54 +1025,54 @@ const submit = handleSubmit(async (values) => {
 })
 
 // 數據表格相關變量
-// const tableItemsPerPage = ref(10)
-// const tableSortBy = ref([
-//   { key: 'userId', order: 'asc' }
-// ])
-// const tablePage = ref(1)
-// const tableItems = ref([])
-// const tableHeaders = [
-//   { title: '使用者編號', align: 'left', sortable: true, key: 'userId' },
-//   { title: 'email', align: 'left', sortable: true, key: 'email' },
-//   { title: '姓名', align: 'left', sortable: true, key: 'name' },
-//   { title: '部門', align: 'left', sortable: true, key: 'department.name' },
-//   { title: '權限', align: 'left', sortable: true, key: 'role' },
-//   { title: '操作', align: 'left', sortable: false, key: 'action' }
-// ]
-// const tableLoading = ref(true)
-// const tableItemsLength = ref(0)
-// const tableSearch = ref('')
+const tableItemsPerPage = ref(10)
+const tableSortBy = ref([
+  { key: 'userId', order: 'asc' }
+])
+const tablePage = ref(1)
+const tableItems = ref([])
+const tableHeaders = [
+  { title: '電子郵件', align: 'left', sortable: true, key: 'email' },
+  { title: '姓名', align: 'left', sortable: true, key: 'name' },
+  { title: '部門', align: 'left', sortable: true, key: 'department.name' },
+  { title: '手機號碼', align: 'left', sortable: true, key: 'cellphone' },
+  { title: '身分組', align: 'left', sortable: true, key: 'role' },
+  { title: '操作', align: 'center', sortable: false, key: 'action' }
+]
+const tableLoading = ref(true)
+const tableItemsLength = ref(0)
+const tableSearch = ref('')
 
-// // 加載表格數據
-// const tableLoadItems = async (reset) => {
-//   if (reset) tablePage.value = 1
-//   tableLoading.value = true
-//   try {
-//     const { data } = await apiAuth.get('/user/all', {
-//       params: {
-//         page: tablePage.value,
-//         itemsPerPage: tableItemsPerPage.value,
-//         sortBy: tableSortBy.value[0]?.key || 'userId',
-//         sortOrder: tableSortBy.value[0]?.order || 'asc',
-//         search: tableSearch.value
-//       }
-//     })
-//     tableItems.value.splice(0, tableItems.value.length, ...data.result.data)
-//     tableItemsLength.value = data.result.totalItems // 使用 totalItems 作為總數
-//   } catch (error) {
-//     console.log(error)
-//     createSnackbar({
-//       text: error?.response?.data?.message || '發生錯誤',
-//       snackbarProps: {
-//         color: 'red-lighten-1'
-//       }
-//     })
-//   }
-//   tableLoading.value = false
-// }
+// 加載表格數據
+const tableLoadItems = async (reset) => {
+  if (reset) tablePage.value = 1
+  tableLoading.value = true
+  try {
+    const { data } = await apiAuth.get('/user/all', {
+      params: {
+        page: tablePage.value,
+        itemsPerPage: tableItemsPerPage.value,
+        sortBy: tableSortBy.value[0]?.key || 'userId',
+        sortOrder: tableSortBy.value[0]?.order || 'asc',
+        search: tableSearch.value
+      }
+    })
+    tableItems.value.splice(0, tableItems.value.length, ...data.result.data)
+    tableItemsLength.value = data.result.totalItems // 使用 totalItems 作為總數
+  } catch (error) {
+    console.log(error)
+    createSnackbar({
+      text: error?.response?.data?.message || '發生錯誤',
+      snackbarProps: {
+        color: 'red-lighten-1'
+      }
+    })
+  }
+  tableLoading.value = false
+}
 
-// // 初始加載表格數據
-// tableLoadItems()
+// 初始加載表格數據
+tableLoadItems()
 </script>
 
 <style lang="scss" scoped>

@@ -8,7 +8,7 @@ import { definePage } from 'vue-router/auto'
 definePage({
   meta: {
     title: '永信旅遊 | ystravel',
-    login: false,
+    login: true,
     admin: false
   }
 })

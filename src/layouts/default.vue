@@ -28,7 +28,7 @@
             {{ navItem.text }}
           </v-list-item>
           <v-divider class="my-3" /> -->
-          <template v-if="user.isAdmin">
+          <template v-if="!user.isUser">
             <v-list-item
               v-for="item in adminItems"
               :key="item.to"
@@ -81,7 +81,8 @@ const router = useRouter()
 // ]
 
 const adminItems = [
-  { to: '/user', text: '使用者', icon: 'mdi-account' }
+  { to: '/user', text: '員工管理', icon: 'mdi-account-cog' },
+  { to: '/companyAndDepartment', text: '公司及部門管理', icon: 'mdi-office-building-cog' }
 ]
 
 const logout = async () => {

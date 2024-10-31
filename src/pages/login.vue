@@ -230,7 +230,7 @@ onMounted(async () => {
       }
     })
 
-    router.push('/minutes')
+    router.push('/')
   }
 
   // 完成檢查後顯示頁面
@@ -256,3 +256,8 @@ onMounted(async () => {
 }
 
 </style>
+
+<route lang="yaml">
+  meta:
+    layout: login
+  </route>

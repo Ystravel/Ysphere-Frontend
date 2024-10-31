@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import UserRole from '@/enums/UserRole.js'
 import { useApi } from '@/composables/axios'
-import { useRouter } from 'vue-router'
 
 export const useUserStore = defineStore('user', () => {
   const { api, apiAuth } = useApi()
@@ -16,7 +15,13 @@ export const useUserStore = defineStore('user', () => {
   const userId = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
+  const isUser = computed(() => role.value === UserRole.USER)
   const isAdmin = computed(() => role.value === UserRole.ADMIN)
+  const isSuperAdmin = computed(() => role.value === UserRole.SUPER_ADMIN)
+  const isHR = computed(() => role.value === UserRole.HR)
+  const isManager = computed(() => role.value === UserRole.MANAGER)
+  const isAccountant = computed(() => role.value === UserRole.ACCOUNTANT)
+  const isIT = computed(() => role.value === UserRole.IT)
 
   const login = async (values) => {
     console.log(values)
@@ -25,6 +30,7 @@ export const useUserStore = defineStore('user', () => {
       token.value = data.result.token
       email.value = data.result.email
       role.value = data.result.role
+      userId.value = data.result.userId
       console.log(data.result)
       return '登入成功'
     } catch (error) {
@@ -36,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
   // 新增 Google 登入邏輯
   const googleLogin = () => {
     // 改用 Vue Router 來重導向
-    window.location.assign('http://localhost:4000/user/auth/google')
+    window.location.assign('http://localhost:4001/user/auth/google')
   }
 
   const profile = async () => {
@@ -83,7 +89,13 @@ export const useUserStore = defineStore('user', () => {
     role,
     userId,
     isLogin,
+    isUser,
     isAdmin,
+    isSuperAdmin,
+    isHR,
+    isManager,
+    isAccountant,
+    isIT,
     login,
     logout,
     profile,
