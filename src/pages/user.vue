@@ -1,5 +1,5 @@
 <template>
-  <v-container max-width="1400">
+  <v-container min-width="800">
     <h2 class="my-6">
       使用者管理
     </h2>
@@ -15,18 +15,22 @@
             >
               新增使用者
             </v-btn>
-            <v-btn
-              prepend-icon="mdi-account-multiple-outline"
-              class="ms-4"
+          </v-col>
+          <v-col cols="2">
+            <v-select
+              v-model="roleFilter"
+              :items="[{ title: '全部', value: '' }, ...roles]"
+              label="身份別"
+              item-title="title"
+              item-value="value"
               variant="outlined"
-              color="blue-grey-darken-1"
-              @click="openDepartmentDialog"
-            >
-              部門管理
-            </v-btn>
+              density="compact"
+              clearable
+              @update:model-value="tableLoadItems(true)"
+            />
           </v-col>
           <v-col
-            cols="3"
+            cols="2"
             class="d-flex justify-end"
           >
             <v-text-field
@@ -38,7 +42,7 @@
               variant="outlined"
               density="compact"
               max-width="240"
-              @keydown.enter="tableLoadItems(true)"
+              clearable
             />
           </v-col>
         </v-row>
@@ -71,10 +75,10 @@
             {{ item.name }}
           </template>
 
-          <!-- 部門 -->
-          <!-- <template #[`item.department.name`]="{ item }">
-            {{ item.department.name }}
-          </template> -->
+          <template #[`item.department.companyId`]="{ item }">
+            {{ getCompanyName(item.department.companyId) }}
+          </template>
+
           <!-- 身分組 -->
           <template #[`item.role`]="{ item }">
             {{ getRoleTitle(item.role) }}
@@ -86,6 +90,7 @@
               class="edit-btn"
               icon="mdi-pencil"
               variant="plain"
+              color="teal"
               @click="openDialog(item)"
             />
           </template>
@@ -110,7 +115,7 @@
         </v-card-title>
         <v-card-text class="mt-3 pa-3">
           <v-row>
-            <v-col cols="4">
+            <v-col cols="6">
               <v-text-field
                 v-model="email.value.value"
                 :error-messages="email.errorMessage.value"
@@ -122,6 +127,21 @@
                 clearable
               />
             </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model="IDNumber.value.value"
+                :error-messages="IDNumber.errorMessage.value"
+                class="mt-2"
+                label="身分證號碼"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+          </v-row>
+
+          <v-row>
             <v-col cols="4">
               <v-text-field
                 v-model="name.value.value"
@@ -146,21 +166,6 @@
                 clearable
               />
             </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="4">
-              <v-text-field
-                v-model="IDNumber.value.value"
-                :error-messages="IDNumber.errorMessage.value"
-                class="mt-2"
-                label="身分證號碼"
-                type="text"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
             <v-col cols="4">
               <v-select
                 v-model="gender.value.value"
@@ -174,20 +179,9 @@
                 class="mt-2"
               />
             </v-col>
-            <v-col cols="4">
-              <v-date-input
-                v-model="birthDate.value.value"
-                :error-messages="birthDate.errorMessage.value"
-                label="生日"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
           </v-row>
-
           <v-row>
-            <v-col cols="6">
+            <v-col cols="12">
               <v-text-field
                 v-model="address.value.value"
                 :error-messages="address.errorMessage.value"
@@ -199,21 +193,39 @@
                 clearable
               />
             </v-col>
-            <v-col cols="6">
-              <!-- <v-select
-                v-model="company.value.value"
-                :error-messages="company.errorMessage.value"
-                :items="companies"
-                item-title="name"
-                item-value="_id"
-                label="所屬公司"
+          </v-row>
+          <v-row>
+            <v-col cols="4">
+              <v-date-input
+                v-model="birthDate.value.value"
+                :error-messages="birthDate.errorMessage.value"
+                label="生日"
                 variant="outlined"
                 density="compact"
                 clearable
-              /> -->
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-date-input
+                v-model="hireDate.value.value"
+                :error-messages="hireDate.errorMessage.value"
+                label="入職日期"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-date-input
+                v-model="resignationDate.value.value"
+                :error-messages="resignationDate.errorMessage.value"
+                label="離職日期"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
             </v-col>
           </v-row>
-
           <v-row>
             <v-col cols="4">
               <v-text-field
@@ -254,20 +266,35 @@
           </v-row>
 
           <v-row>
-            <v-col cols="6">
-              <!-- <v-select
+            <v-col cols="4">
+              <v-select
+                v-model="selectedCompany"
+                :error-messages="company.errorMessage.value"
+                :items="companyList"
+                label="所屬公司"
+                item-title="name"
+                item-value="id"
+                variant="outlined"
+                density="compact"
+                clearable
+              >
+                />
+              </v-select>
+            </v-col>
+            <v-col cols="4">
+              <v-select
                 v-model="department.value.value"
+                :items="filteredDepartments"
                 :error-messages="department.errorMessage.value"
-                :items="departments"
                 item-title="name"
                 item-value="_id"
                 label="選擇部門"
                 variant="outlined"
                 density="compact"
                 clearable
-              /> -->
+              />
             </v-col>
-            <v-col cols="6">
+            <v-col cols="4">
               <v-select
                 v-model="role.value.value"
                 :error-messages="role.errorMessage.value"
@@ -296,34 +323,10 @@
                 clearable
               />
             </v-col>
-            <v-col cols="6">
-              <v-text-field
-                v-model="hireDate.value.value"
-                :error-messages="hireDate.errorMessage.value"
-                class="mt-2"
-                label="入職日期"
-                type="date"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                v-model="resignationDate.value.value"
-                :error-messages="resignationDate.errorMessage.value"
-                class="mt-2"
-                label="離職日期"
-                type="date"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-            <v-col cols="6">
+            <v-col
+              cols="6"
+              class="pt-1"
+            >
               <v-text-field
                 v-model="note.value.value"
                 :error-messages="note.errorMessage.value"
@@ -431,147 +434,15 @@
       </v-card>
     </v-form>
   </v-dialog>
-
-  <!-- 部門管理對話框 -->
-  <v-dialog
-    v-model="departmentDialog.open"
-    persistent
-    width="400"
-  >
-    <v-card class="rounded-lg">
-      <v-card-title class="ms-2 mt-4">
-        部門管理
-      </v-card-title>
-
-      <v-card-text>
-        <v-list>
-          <div>
-            <v-chip
-              v-for="(department, index) in departments"
-              :key="index"
-              class="mb-2 me-4"
-              color="amber-darken-4"
-              label
-            >
-              {{ department.name }}
-              <v-btn
-                icon
-                size="18"
-                elevation="2"
-                class="ms-2"
-                @click="openEditDialog(department)"
-              >
-                <v-icon
-                  size="14"
-                  color="blue-lighten-1"
-                >
-                  mdi-pen
-                </v-icon>
-              </v-btn>
-              <v-btn
-                icon
-                size="18"
-                elevation="2"
-                class="ms-2"
-                @click="confirmDelete(department)"
-              >
-                <v-icon
-                  size="14"
-                  color="red-lighten-1"
-                >
-                  mdi-delete
-                </v-icon>
-              </v-btn>
-            </v-chip>
-          </div>
-        </v-list>
-
-        <v-text-field
-          v-model="newDepartmentName"
-          class="mt-4"
-          label="新增部門名稱"
-          variant="outlined"
-          density="compact"
-          clearable
-        />
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="red-darken-1"
-            variant="outlined"
-            size="small"
-            @click="closeDepartmentDialog"
-          >
-            關閉
-          </v-btn>
-          <v-btn
-            color="teal-lighten-1"
-            variant="outlined"
-            size="small"
-            @click="addDepartment"
-          >
-            新增
-          </v-btn>
-        </v-card-actions>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog
-    v-model="editDialog.open"
-    persistent
-    width="400"
-  >
-    <v-card class="rounded-lg">
-      <v-card-title class="ms-2 mt-4">
-        編輯部門
-      </v-card-title>
-
-      <v-card-text>
-        <v-text-field
-          v-model="editDepartmentName"
-          class="mt-4"
-          label="部門名稱"
-          variant="outlined"
-          density="compact"
-          clearable
-          :error-messages="editDepartmentError"
-        />
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="red-darken-1"
-            variant="outlined"
-            size="small"
-            @click="closeEditDialog"
-          >
-            取消
-          </v-btn>
-          <v-btn
-            color="teal-lighten-1"
-            variant="outlined"
-            size="small"
-            @click="submitEditDepartment"
-          >
-            更新
-          </v-btn>
-        </v-card-actions>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
-
-  <ConfirmDeleteDialog
-    v-model="isDeleteDialogOpen"
-    :message="`確定要刪除 ${selectedDepartment?.name} 嗎？`"
-    @confirm="deleteDepartmentConfirmed"
-  />
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import debounce from 'lodash/debounce'
 import * as yup from 'yup'
 import { definePage } from 'vue-router/auto'
 import { useForm, useField } from 'vee-validate'
+import { companyNames } from '@/enums/Company'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 // import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
@@ -584,12 +455,23 @@ definePage({
   }
 })
 
-const { api, apiAuth } = useApi()
+const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
 
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const isEditing = ref(false)
+const roleFilter = ref('')
+
+// 公司的選項列表
+const companyList = Object.entries(companyNames).map(([id, name]) => ({
+  id: Number(id),
+  name
+}))
+
+// 用於存儲所選公司和篩選後的部門列表
+const selectedCompany = ref(1)
+const filteredDepartments = ref([])
 
 const roles = ref([
   { title: '一般員工', value: 0 },
@@ -622,29 +504,37 @@ const dialog = ref({
   id: ''
 })
 
-const departmentDialog = ref({ open: false })
 const departments = ref([])
-const newDepartmentName = ref('')
 
-// 確認刪除對話框的狀態
-const isDeleteDialogOpen = ref(false)
-const selectedDepartment = ref(null) // 被選中的部門
+const getCompanyName = (companyId) => {
+  return companyNames[companyId] || '未知公司' // 若找不到則顯示"未知公司"
+}
 
-// 編輯對話框
-const editDialog = ref({
-  open: false,
-  id: ''
-})
-const editDepartmentName = ref('')
-const editDepartmentError = ref('')
+// 載入選定公司下的部門
+const fetchDepartments = async () => {
+  if (!selectedCompany.value) {
+    filteredDepartments.value = []
+    return
+  }
 
-const formatDate = (dateString) => {
-  if (!dateString) return null
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+  try {
+    const response = await apiAuth.get('/department/all', {
+      params: { companyId: selectedCompany.value }
+    })
+
+    // 檢查後端返回的數據並加載部門列表
+    if (response.data && response.data.result && response.data.result.data) {
+      filteredDepartments.value = response.data.result.data.filter(
+        dept => dept.companyId === selectedCompany.value
+      )
+    } else {
+      console.warn('No departments found for selected company.')
+      filteredDepartments.value = []
+    }
+  } catch (error) {
+    console.error('部門加載失敗:', error)
+    filteredDepartments.value = []
+  }
 }
 
 const formatToDate = (dateString) => {
@@ -662,15 +552,17 @@ const openDialog = (item) => {
     IDNumber.value.value = item.IDNumber
     address.value.value = item.address
     birthDate.value.value = formatToDate(item.birthDate)
-    // company.value.value = item.company._id
-    // department.value.value = item.department._id
+    hireDate.value.value = formatToDate(item.hireDate)
+    resignationDate.value.value = formatToDate(item.resignationDate)
+    selectedCompany.value = item.department?.companyId || 1
+    fetchDepartments().then(() => {
+      department.value.value = item.department?._id
+    })
     cellphone.value.value = item.cellphone
     extension.value.value = item.extension
     printNumber.value.value = item.printNumber
     role.value.value = item.role
     employmentStatus.value.value = item.employmentStatus
-    hireDate.value.value = formatDate(item.hireDate)
-    resignationDate.value.value = formatDate(item.resignationDate)
     emergencyName.value.value = item.emergencyName
     emergencyCellphone.value.value = item.emergencyCellphone
     emergencyRelationship.value.value = item.emergencyRelationship
@@ -678,20 +570,21 @@ const openDialog = (item) => {
   } else {
     isEditing.value = false
     dialog.value.id = ''
+    selectedCompany.value = 1
+    fetchDepartments() // 加載預設公司部門
     resetForm()
+    // 新增模式：預設入職日期為今天
+    hireDate.value.value = new Date()
   }
   dialog.value.open = true
 }
 
 const closeDialog = () => {
   dialog.value.open = false
+  selectedCompany.value = null
+  filteredDepartments.value = []
   resetForm()
 }
-
-// 初始化時載入部門列表
-onMounted(async () => {
-  await loadDepartments()
-})
 
 // 加載部門列表的函數
 const loadDepartments = async () => {
@@ -703,114 +596,6 @@ const loadDepartments = async () => {
     createSnackbar({
       text: '加載部門失敗',
       snackbarProps: { color: 'red-lighten-1' }
-    })
-  }
-}
-
-// 打開部門管理對話框
-const openDepartmentDialog = () => {
-  departmentDialog.value.open = true
-}
-
-// 關閉對話框
-const closeDepartmentDialog = () => {
-  departmentDialog.value.open = false
-  newDepartmentName.value = ''
-}
-
-// 新增部門
-const addDepartment = async () => {
-  if (!newDepartmentName.value) return
-  try {
-    await apiAuth.post('/department', { name: newDepartmentName.value })
-    createSnackbar({
-      text: '部門新增成功',
-      snackbarProps: { color: 'teal-darken-1' }
-    })
-    await loadDepartments() // 重新載入部門列表
-    newDepartmentName.value = ''
-  } catch (error) {
-    console.error('新增部門失敗', error)
-    createSnackbar({
-      text: '新增部門失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  }
-}
-
-// 打開確認刪除對話框
-const confirmDelete = (department) => {
-  selectedDepartment.value = department
-  isDeleteDialogOpen.value = true
-}
-
-// 確認刪除的回調
-const deleteDepartmentConfirmed = async () => {
-  if (selectedDepartment.value) {
-    try {
-      await apiAuth.delete(`/department/${selectedDepartment.value._id}`)
-      createSnackbar({
-        text: '部門刪除成功',
-        snackbarProps: {
-          color: 'teal-darken-1'
-        }
-      })
-      await loadDepartments() // 刪除成功後重新加載部門列表
-    } catch (error) {
-      console.log(error)
-      createSnackbar({
-        text: error?.response?.data?.message || '刪除失敗',
-        snackbarProps: {
-          color: 'red-lighten-1'
-        }
-      })
-    }
-  }
-}
-
-// 打開編輯對話框
-const openEditDialog = (department) => {
-  editDepartmentName.value = department.name
-  editDialog.value.id = department._id
-  editDialog.value.open = true
-}
-
-// 關閉編輯對話框
-const closeEditDialog = () => {
-  editDialog.value.open = false
-  editDepartmentName.value = ''
-  editDepartmentError.value = ''
-}
-
-// 提交編輯部門
-const submitEditDepartment = async () => {
-  if (!editDepartmentName.value) {
-    editDepartmentError.value = '部門名稱不能為空'
-    return
-  }
-
-  try {
-    await apiAuth.patch(`/department/${editDialog.value.id}`, {
-      name: editDepartmentName.value
-    })
-    createSnackbar({
-      text: '部門更新成功',
-      snackbarProps: {
-        color: 'teal-darken-1'
-      }
-    })
-
-    // 更新成功後重新加載部門列表
-    await loadDepartments()
-    tableLoadItems()
-    closeEditDialog()
-  } catch (error) {
-    console.log(error)
-    createSnackbar({
-      text: error?.response?.data?.message || '更新失敗',
-      snackbarProps: {
-        color: 'red-lighten-1'
-      }
     })
   }
 }
@@ -840,12 +625,13 @@ const userSchema = yup.object({
     .transform((value, originalValue) => originalValue === '' ? null : value)
     // originalValue 是從表單獲取的值，當 originalValue 為空字串""時，轉換為 null，若不是空字串則保持為原本的 value。
     .required('請選擇生日'),
-  // company: yup
-  // .string(),
-  // .required('請選擇所屬公司'),
-  // department: yup
-  // .string(),
-  // .required('請選擇部門'),
+  company: yup
+    .number()
+    .nullable()
+    .required('請選擇公司'),
+  department: yup
+    .string()
+    .required('請選擇部門'),
   cellphone: yup
     .string()
     .required('請輸入手機號碼'),
@@ -906,15 +692,15 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     IDNumber: '',
     address: '',
     birthDate: null,
-    company: '',
+    company: 1,
     department: '',
     cellphone: '',
     extension: '',
     printNumber: '',
     role: 0,
-    employmentStatus: '',
-    hireDate: '',
-    resignationDate: '',
+    employmentStatus: '在職',
+    hireDate: new Date(),
+    resignationDate: null,
     emergencyName: '',
     emergencyCellphone: '',
     emergencyRelationship: '',
@@ -1032,11 +818,14 @@ const tableSortBy = ref([
 const tablePage = ref(1)
 const tableItems = ref([])
 const tableHeaders = [
+  { title: '員工編號', align: 'left', sortable: true, key: 'userId' },
   { title: '電子郵件', align: 'left', sortable: true, key: 'email' },
   { title: '姓名', align: 'left', sortable: true, key: 'name' },
+  { title: '所屬公司', align: 'left', sortable: true, key: 'department.companyId' },
   { title: '部門', align: 'left', sortable: true, key: 'department.name' },
   { title: '手機號碼', align: 'left', sortable: true, key: 'cellphone' },
-  { title: '身分組', align: 'left', sortable: true, key: 'role' },
+  { title: '身分別', align: 'left', sortable: true, key: 'role' },
+  { title: '任職狀態', align: 'left', sortable: true, key: 'employmentStatus' },
   { title: '操作', align: 'center', sortable: false, key: 'action' }
 ]
 const tableLoading = ref(true)
@@ -1054,7 +843,8 @@ const tableLoadItems = async (reset) => {
         itemsPerPage: tableItemsPerPage.value,
         sortBy: tableSortBy.value[0]?.key || 'userId',
         sortOrder: tableSortBy.value[0]?.order || 'asc',
-        search: tableSearch.value
+        search: tableSearch.value,
+        role: roleFilter.value
       }
     })
     tableItems.value.splice(0, tableItems.value.length, ...data.result.data)
@@ -1073,6 +863,50 @@ const tableLoadItems = async (reset) => {
 
 // 初始加載表格數據
 tableLoadItems()
+
+// 建立一個 debounced 的搜尋函數
+const debouncedSearch = debounce((value) => {
+  tableLoadItems(true)
+}, 300) // 300ms 的延遲
+
+// 監聽搜尋值的變化
+watch(tableSearch, (newVal) => {
+  debouncedSearch(newVal)
+})
+
+// 監聽 selectedCompany 的變化並更新部門列表
+// 監聽 selectedCompany 的變化並更新部門列表
+watch(selectedCompany, async (newVal) => {
+  if (newVal !== null && newVal !== undefined) {
+    // 更新 company 欄位並載入部門列表
+    company.value.value = newVal // 將選擇的公司同步到 company 欄位
+    department.value.value = null // 重置部門欄位的值
+    await fetchDepartments() // 根據新選擇的公司重新加載部門
+  } else {
+    // 若公司欄位被清空，清空部門列表並重置 department 欄位值
+    company.value.value = null
+    department.value.value = null
+    filteredDepartments.value = [] // 清空部門列表
+  }
+})
+
+watch(company.value, (newVal) => {
+  if (newVal && newVal.value !== null && newVal.value !== undefined) {
+    selectedCompany.value = newVal.value
+  }
+})
+// 初始化時載入部門列表
+onMounted(async () => {
+  await loadDepartments()
+})
+onMounted(async () => {
+  await fetchDepartments() // 根據預設的 selectedCompany 值加載部門
+})
+
+// 在組件卸載時取消 debounce
+onUnmounted(() => {
+  debouncedSearch.cancel()
+})
 </script>
 
 <style lang="scss" scoped>

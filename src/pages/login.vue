@@ -87,18 +87,24 @@
             cols="12"
             class="text-center"
           >
-            <v-btn
-              block
-              elevation="2"
-              color="red darken-1"
-              @click="googleLogin"
+            <GoogleLogin
+              :callback="googleLoginCallback"
+              :client-id="googleClientId"
+              prompt
+              class="w-100"
             >
-              <v-icon
-                icon="mdi-google-plus"
-                size="24"
-                class="me-2"
-              />Google 登入
-            </v-btn>
+              <v-btn
+                block
+                elevation="2"
+                color="red darken-1"
+              >
+                <v-icon
+                  icon="mdi-google-plus"
+                  size="24"
+                  class="me-2"
+                />Google 登入
+              </v-btn>
+            </GoogleLogin>
           </v-col>
         </v-row>
       </v-form>
@@ -117,6 +123,7 @@
 import { definePage } from 'vue-router/auto'
 // import validator from 'validator'
 import { ref, onMounted, nextTick } from 'vue'
+import { GoogleLogin } from 'vue3-google-login'
 import * as yup from 'yup'
 import { useUserStore } from '@/stores/user'
 import { useSnackbar } from 'vuetify-use-dialog'
@@ -155,8 +162,44 @@ const { handleSubmit, isSubmitting } = useForm({
 
 const email = useField('email')
 const password = useField('password')
+
+// Google Client ID
+const googleClientId = '890205288379-2bm447qt1rj7jkooc7luqej83if9inp4.apps.googleusercontent.com'
 // 綁定到 Google 登入方法
-const googleLogin = user.googleLogin
+// Google 登入回調
+// Google 登入回調
+const googleLoginCallback = async (response) => {
+  try {
+    console.log('Google Response:', response)
+
+    // 檢查是否收到 code
+    if (!response.code) {
+      throw new Error('未收到 Google 授權碼')
+    }
+
+    // 修改 user store 中的 googleLogin 方法以發送 code 而不是 idToken
+    const result = await user.googleLogin(response.code)
+
+    if (result === '登入成功') {
+      createSnackbar({
+        text: '登入成功',
+        snackbarProps: { color: 'teal-darken-1' }
+      })
+      router.push('/')
+    } else {
+      createSnackbar({
+        text: result,
+        snackbarProps: { color: 'red-lighten-1' }
+      })
+    }
+  } catch (error) {
+    console.error('Google 登入錯誤:', error)
+    createSnackbar({
+      text: 'Google 登入失敗,請稍後再試',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  }
+}
 
 const submit = handleSubmit(async (values) => {
   if (rememberMe.value) {
@@ -185,11 +228,10 @@ const submit = handleSubmit(async (values) => {
 })
 
 onMounted(async () => {
-// 檢查是否有儲存的 email 並自動填入
   const savedEmail = localStorage.getItem('savedEmail')
   if (savedEmail) {
-    email.value.value = savedEmail // 自動填入已保存的 email
-    rememberMe.value = true // 自動勾選“記住我”
+    email.value.value = savedEmail
+    rememberMe.value = true
   }
 
   const params = new URLSearchParams(window.location.search)
@@ -198,9 +240,8 @@ onMounted(async () => {
   const avatar = params.get('avatar')
   const name = params.get('name')
   const role = parseInt(params.get('role'), 10)
-  const errorMessage = params.get('message') // 抓取錯誤訊息
+  const errorMessage = params.get('message')
 
-  // 如果有錯誤訊息，顯示錯誤 Snackbar 並保持在登入頁面
   if (errorMessage) {
     createSnackbar({
       text: errorMessage,
@@ -222,18 +263,15 @@ onMounted(async () => {
     })
 
     await nextTick()
-
     createSnackbar({
       text: '登入成功',
       snackbarProps: {
         color: 'teal-darken-1'
       }
     })
-
     router.push('/')
   }
 
-  // 完成檢查後顯示頁面
   isChecking.value = false
 })
 </script>
@@ -242,7 +280,7 @@ onMounted(async () => {
 #background {
   width: 100%;
   height: 100%;
-  background-image: url(/src/assets/image/aurora_bg.jpg);
+  background-image: url(/src/assets/image/bg_login.png);
   background-size: cover;
 }
 
@@ -253,6 +291,7 @@ onMounted(async () => {
   font-family: "微軟正黑體";
   font-size: 20px;
   font-weight: 600;
+  box-shadow: 0 0 20px 4px rgba(0,0,0,0.2);
 }
 
 </style>

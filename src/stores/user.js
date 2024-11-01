@@ -40,9 +40,26 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 新增 Google 登入邏輯
-  const googleLogin = () => {
-    // 改用 Vue Router 來重導向
-    window.location.assign('http://localhost:4001/user/auth/google')
+  const googleLogin = async (code) => {
+    console.log('授權碼:', code)
+    try {
+      const response = await api.post('/user/google-login', {
+        code // 改為發送 code
+      })
+
+      if (response.data.success) {
+        token.value = response.data.result.token
+        email.value = response.data.result.email
+        role.value = response.data.result.role
+        userId.value = response.data.result.userId
+        return '登入成功'
+      } else {
+        throw new Error(response.data.message)
+      }
+    } catch (error) {
+      console.log('Google登入失敗:', error.message)
+      return '此Email尚未註冊，請聯絡人資'
+    }
   }
 
   const profile = async () => {

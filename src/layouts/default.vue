@@ -82,7 +82,7 @@ const router = useRouter()
 
 const adminItems = [
   { to: '/user', text: '員工管理', icon: 'mdi-account-cog' },
-  { to: '/companyAndDepartment', text: '公司及部門管理', icon: 'mdi-office-building-cog' }
+  { to: '/companyAndDepartment', text: '公司部門管理', icon: 'mdi-office-building-cog' }
 ]
 
 const logout = async () => {

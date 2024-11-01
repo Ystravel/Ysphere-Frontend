@@ -11,6 +11,7 @@ import '@/styles/main.scss'
 
 // Composables
 import { createVuetify } from 'vuetify'
+import { zhHant } from 'vuetify/locale'
 import { VCalendar } from 'vuetify/labs/VCalendar'
 import { VDateInput } from 'vuetify/labs/VDateInput'
 
@@ -18,6 +19,11 @@ import { VDateInput } from 'vuetify/labs/VDateInput'
 export default createVuetify({
   theme: {
     defaultTheme: 'light'
+  },
+  locale: {
+    locale: 'zhHant',
+    fallback: 'en',
+    messages: { zhHant }
   },
   components: {
     VCalendar,
