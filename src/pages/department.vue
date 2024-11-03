@@ -173,7 +173,7 @@ import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
 
 definePage({
   meta: {
-    title: '公司部門 | ystravel',
+    title: '公司部門管理 | ystravel',
     login: true,
     admin: true
   }

@@ -22,9 +22,8 @@
 
     <v-navigation-drawer
       v-if="smAndUp"
-
       v-model="drawer"
-      :rail="!xlAndUp && rail"
+      :rail="rail"
       permanent
     >
       <v-list class="h-100 d-flex flex-column justify-space-between">
@@ -113,17 +112,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
 
-const { smAndUp, xlAndUp } = useDisplay()
+const { smAndUp, xlAndUp, name: breakpoint } = useDisplay()
 
 const drawer = ref(true)
 const mdDrawer = ref(false)
-const rail = ref(true)
+const rail = ref(false)
 const user = useUserStore()
 const createSnackbar = useSnackbar()
 const router = useRouter()
@@ -133,14 +132,37 @@ const adminItems = [
   { to: '/department', text: '公司部門管理', icon: 'mdi-office-building-cog' }
 ]
 
+// 監聽螢幕尺寸變化
+watch(() => breakpoint.value, (newBreakpoint) => {
+  if (xlAndUp.value) {
+    // XL 以上，預設展開
+    rail.value = false
+  } else if (smAndUp.value) {
+    // SM 到 XL 之間，預設收合（只顯示圖示）
+    rail.value = true
+  }
+}, { immediate: true })
+
 // 控制抽屜展開的函數
+// 改進的 toggleDrawer 函數
 const toggleDrawer = () => {
-  if (smAndUp.value) {
-    rail.value = xlAndUp.value ? false : !rail.value // xl以上展開全部，否則切換 rail 模式
+  if (!smAndUp.value) {
+    // SM 以下，切換 mdDrawer
+    mdDrawer.value = !mdDrawer.value
   } else {
-    mdDrawer.value = !mdDrawer.value // 小螢幕上切換 mdDrawer 的顯示狀態
+    // SM 以上，切換 rail 狀態
+    rail.value = !rail.value
   }
 }
+
+// 組件掛載時設置初始狀態
+onMounted(() => {
+  if (xlAndUp.value) {
+    rail.value = false // XL 以上，預設展開
+  } else if (smAndUp.value) {
+    rail.value = true // SM 到 XL 之間，預設收合
+  }
+})
 
 const logout = async () => {
   await user.logout()

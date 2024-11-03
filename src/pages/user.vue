@@ -103,9 +103,10 @@
           </v-col>
           <v-col cols="12">
             <v-data-table-server
+              :key="tableKey"
               v-model:items-per-page="tableItemsPerPage"
               v-model:sort-by="tableSortBy"
-              v-model:page="tablePage"
+              :page="tablePage"
               density="compact"
               class="rounded-ts-lg rounded-te-lg py-3"
               :items-per-page-options="[10, 20 ,50]"
@@ -118,7 +119,7 @@
               hover
               @update:items-per-page="tableLoadItems(false)"
               @update:sort-by="tableLoadItems(false)"
-              @update:page="tableLoadItems(false)"
+              @update:page="onUpdatePage"
             >
               <template #item="{ item, index }">
                 <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
@@ -518,12 +519,11 @@ import { useDisplay } from 'vuetify'
 import { companyNames } from '@/enums/Company'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
-import { errorMessages } from 'vue/compiler-sfc'
 // import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
 
 definePage({
   meta: {
-    title: '使用者 | ystravel',
+    title: '員工管理 | ystravel',
     login: true,
     admin: true
   }
@@ -540,6 +540,7 @@ const showPasswordConfirm = ref(false)
 const isEditing = ref(false)
 const roleFilter = ref('')
 const originalData = ref(null)
+const currentPage = ref(1)
 const headerProps = {
   class: 'header-bg' // 設置自定義的 CSS 類名
 }
@@ -623,10 +624,12 @@ const formatToDate = (dateString) => {
 }
 
 const openDialog = (item) => {
+  currentPage.value = tablePage.value
   if (item) {
     isEditing.value = true
     dialog.value.id = item._id
-
+    // 保存當前頁碼到 localStorage
+    localStorage.setItem('userTablePage', tablePage.value.toString())
     // 儲存原始數據，對可選欄位使用空字串
     originalData.value = {
       email: item.email,
@@ -933,7 +936,11 @@ const passwordConfirm = useField('passwordConfirm')
 const submit = handleSubmit(async (values) => {
   try {
     if (isEditing.value) {
-      await apiAuth.patch(`/user/${dialog.value.id}`, {
+      // 保存當前頁碼
+      const currentPageNumber = tablePage.value
+
+      // 更新用戶數據
+      const { data: updateResponse } = await apiAuth.patch(`/user/${dialog.value.id}`, {
         email: values.email,
         name: values.name,
         englishName: values.englishName,
@@ -942,7 +949,7 @@ const submit = handleSubmit(async (values) => {
         address: values.address,
         birthDate: values.birthDate,
         company: values.company,
-        department: values.department, // 發送部門ID
+        department: values.department,
         cellphone: values.cellphone,
         extension: values.extension,
         printNumber: values.printNumber,
@@ -955,6 +962,23 @@ const submit = handleSubmit(async (values) => {
         emergencyRelationship: values.emergencyRelationship,
         note: values.note
       })
+
+      // 獲取更新後的部門信息
+      const { data: departmentResponse } = await apiAuth.get(`/department/${values.department}`)
+
+      // 在表格中更新該筆資料
+      const index = tableItems.value.findIndex(item => item._id === dialog.value.id)
+      if (index !== -1) {
+        tableItems.value[index] = {
+          ...updateResponse.result,
+          department: departmentResponse.result
+        }
+      }
+
+      // 儲存當前頁碼並重新加載該頁數據
+      localStorage.setItem('userTablePage', currentPageNumber.toString())
+      await tableLoadItems(false, currentPageNumber)
+
       createSnackbar({
         text: '使用者更新成功',
         snackbarProps: {
@@ -962,7 +986,7 @@ const submit = handleSubmit(async (values) => {
         }
       })
     } else {
-      // 新增模式，發送 POST 請求
+      // 新增用戶
       await apiAuth.post('/user', {
         email: values.email,
         name: values.name,
@@ -972,7 +996,7 @@ const submit = handleSubmit(async (values) => {
         address: values.address,
         birthDate: values.birthDate,
         company: values.company,
-        department: values.department, // 發送部門ID
+        department: values.department,
         cellphone: values.cellphone,
         extension: values.extension,
         printNumber: values.printNumber,
@@ -987,6 +1011,10 @@ const submit = handleSubmit(async (values) => {
         password: values.password
       })
 
+      // 新增後回到第一頁
+      localStorage.setItem('userTablePage', '1')
+      await tableLoadItems(true)
+
       createSnackbar({
         text: '使用者新增成功',
         snackbarProps: {
@@ -994,8 +1022,8 @@ const submit = handleSubmit(async (values) => {
         }
       })
     }
-    closeDialog() // 關閉 dialog
-    tableLoadItems(true)
+
+    closeDialog()
   } catch (error) {
     console.log(error)
     createSnackbar({
@@ -1007,6 +1035,16 @@ const submit = handleSubmit(async (values) => {
   }
 })
 
+const onUpdatePage = (page) => {
+  if (page < 1) page = 1
+  const maxPage = Math.ceil(tableItemsLength.value / tableItemsPerPage.value)
+  if (page > maxPage) page = maxPage
+
+  if (tablePage.value !== page) {
+    tablePage.value = page
+    tableLoadItems(false)
+  }
+}
 // 數據表格相關變量
 const tableItemsPerPage = ref(10)
 const tableSortBy = ref([
@@ -1014,6 +1052,7 @@ const tableSortBy = ref([
 ])
 const tablePage = ref(1)
 const tableItems = ref([])
+const tableKey = ref(0)
 const tableHeaders = [
   { title: '員編', align: 'left', sortable: true, key: 'userId' },
   { title: 'Email', align: 'left', sortable: true, key: 'email' },
@@ -1048,13 +1087,20 @@ const tableItemsLength = ref(0)
 const tableSearch = ref('')
 
 // 加載表格數據
-const tableLoadItems = async (reset) => {
-  if (reset) tablePage.value = 1
+const tableLoadItems = async (reset, page) => {
+  console.log('Loading items:', { reset, page, currentPage: tablePage.value })
   tableLoading.value = true
+  if (reset) {
+    tablePage.value = 1
+  } else if (page) {
+    tablePage.value = page
+  }
+  // 確保頁碼至少為 1
+  tablePage.value = Math.max(1, tablePage.value)
   try {
     const { data } = await apiAuth.get('/user/all', {
       params: {
-        page: tablePage.value,
+        page: tablePage.value, // 將 tablePage.value 傳遞給後端
         itemsPerPage: tableItemsPerPage.value,
         sortBy: tableSortBy.value[0]?.key || 'userId',
         sortOrder: tableSortBy.value[0]?.order || 'asc',
@@ -1062,18 +1108,43 @@ const tableLoadItems = async (reset) => {
         role: roleFilter.value
       }
     })
-    tableItems.value.splice(0, tableItems.value.length, ...data.result.data)
-    tableItemsLength.value = data.result.totalItems // 使用 totalItems 作為總數
+    // 更新表格數據
+    const { data: users, totalItems } = data.result
+    tableItems.value = users
+    tableItemsLength.value = totalItems
+
+    // 計算最大頁數
+    const maxPage = Math.ceil(totalItems / tableItemsPerPage.value)
+
+    // 檢查當前頁碼是否有效
+    if (tablePage.value > maxPage) {
+      console.log('Current page exceeds max page, adjusting...')
+      tablePage.value = Math.max(1, maxPage)
+      // 如果頁碼無效，重新加載正確的頁
+      if (maxPage > 0) {
+        return tableLoadItems(false, tablePage.value)
+      }
+    }
+
+    // 更新 localStorage 中的頁碼
+    if (!reset) {
+      localStorage.setItem('userTablePage', tablePage.value.toString())
+    }
   } catch (error) {
-    console.log(error)
+    console.error('Error loading items:', error)
     createSnackbar({
-      text: error?.response?.data?.message || '發生錯誤',
+      text: error?.response?.data?.message || '載入資料時發生錯誤',
       snackbarProps: {
         color: 'red-lighten-1'
       }
     })
+    // 發生錯誤時重置到第一頁
+    tableItems.value = []
+    tableItemsLength.value = 0
+    tablePage.value = 1
+  } finally {
+    tableLoading.value = false
   }
-  tableLoading.value = false
 }
 
 // 初始加載表格數據
@@ -1110,11 +1181,19 @@ watch(company.value, (newVal) => {
   }
 })
 // 初始化時載入部門列表
+// 根據預設的 selectedCompany 值加載部門
 onMounted(async () => {
+  const storedPage = localStorage.getItem('userTablePage')
+  if (storedPage) {
+    tablePage.value = parseInt(storedPage)
+    tableKey.value++
+    await tableLoadItems(false, tablePage.value) // 加載存儲的頁面數據
+  } else {
+    await tableLoadItems() // 加載第一頁數據
+  }
+
   await loadDepartments()
-})
-onMounted(async () => {
-  await fetchDepartments() // 根據預設的 selectedCompany 值加載部門
+  await fetchDepartments()
 })
 
 // 在組件卸載時取消 debounce
