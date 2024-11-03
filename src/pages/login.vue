@@ -5,7 +5,7 @@
     class="d-flex justify-center align-center"
   >
     <v-container
-      width="380"
+      width="360"
       height="470"
       class="login-wrapper"
     >
@@ -185,7 +185,7 @@ const googleLoginCallback = async (response) => {
         text: '登入成功',
         snackbarProps: { color: 'teal-darken-1' }
       })
-      router.push('/')
+      router.push('/user')
     } else {
       createSnackbar({
         text: result,
@@ -216,7 +216,7 @@ const submit = handleSubmit(async (values) => {
         color: 'teal-darken-1'
       }
     })
-    router.push('/')
+    router.push('/user')
   } else {
     createSnackbar({
       text: result,
@@ -285,7 +285,7 @@ onMounted(async () => {
 }
 
 .login-wrapper {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.85);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   font-family: "微軟正黑體";

@@ -1,8 +1,6 @@
 <template>
   <v-container max-width="1400">
-    <h2 class="my-6">
-      公司部門管理
-    </h2>
+    <h2 class="my-6" />
     <v-row>
       <v-col>
         <v-row>
@@ -30,7 +28,7 @@
             />
           </v-col>
           <v-col
-            cols="3"
+            cols="2"
             class="d-flex justify-end"
           >
             <v-text-field
@@ -168,9 +166,18 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import debounce from 'lodash/debounce'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
+import { definePage } from 'vue-router/auto'
 import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
+
+definePage({
+  meta: {
+    title: '公司部門 | ystravel',
+    login: true,
+    admin: true
+  }
+})
 
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
