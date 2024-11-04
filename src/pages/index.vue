@@ -1,5 +1,5 @@
 <template>
-  123
+  This is home page.
 </template>
 
 <script setup>

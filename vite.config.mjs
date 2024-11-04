@@ -24,28 +24,28 @@ export default defineConfig({
     Vuetify({
       autoImport: true,
       styles: {
-        configFile: 'src/styles/settings.scss',
-      },
+        configFile: 'src/styles/settings.scss'
+      }
     }),
     Components(),
     Fonts({
       google: {
         families: [{
           name: 'Roboto',
-          styles: 'wght@100;300;400;500;700;900',
-        }],
-      },
+          styles: 'wght@100;300;400;500;700;900'
+        }]
+      }
     }),
     AutoImport({
       imports: [
         'vue',
-        'vue-router',
+        'vue-router'
       ],
       eslintrc: {
-        enabled: true,
+        enabled: true
       },
-      vueTemplate: true,
-    }),
+      vueTemplate: true
+    })
   ],
   define: { 'process.env': {} },
   resolve: {
@@ -59,10 +59,10 @@ export default defineConfig({
       '.mjs',
       '.ts',
       '.tsx',
-      '.vue',
-    ],
+      '.vue'
+    ]
   },
   server: {
-    port: 3000,
-  },
+    port: 3000
+  }
 })

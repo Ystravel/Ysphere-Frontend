@@ -9,9 +9,9 @@
         cols="12"
         class="ps-3 pb-6"
       >
-        <h2>
+        <h3>
           員工管理
-        </h2>
+        </h3>
       </v-col>
       <v-col cols="12">
         <v-row>
@@ -248,12 +248,24 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="12">
+            <v-col cols="8">
               <v-text-field
                 v-model="address.value.value"
                 :error-messages="address.errorMessage.value"
                 class="mt-2"
                 label="地址"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model="jobTitle.value.value"
+                :error-messages="jobTitle.errorMessage.value"
+                class="mt-2"
+                label="*職稱"
                 type="text"
                 variant="outlined"
                 density="compact"
@@ -644,6 +656,7 @@ const openDialog = (item) => {
       cellphone: item.cellphone,
       extension: item.extension,
       printNumber: item.printNumber,
+      jobTitle: item.jobTitle,
       role: item.role,
       employmentStatus: item.employmentStatus,
       hireDate: formatToDate(item.hireDate),
@@ -671,6 +684,7 @@ const openDialog = (item) => {
     cellphone.value.value = item.cellphone
     extension.value.value = item.extension
     printNumber.value.value = item.printNumber
+    jobTitle.value.value = item.jobTitle
     role.value.value = item.role
     employmentStatus.value.value = item.employmentStatus
     emergencyName.value.value = item.emergencyName
@@ -708,6 +722,7 @@ const hasChanges = computed(() => {
     cellphone: cellphone.value.value,
     extension: extension.value.value,
     printNumber: printNumber.value.value,
+    jobTitle: jobTitle.value.value,
     role: role.value.value,
     employmentStatus: employmentStatus.value.value,
     hireDate: hireDate.value.value,
@@ -804,6 +819,9 @@ const userSchema = yup.object({
   printNumber: yup
     .string()
     .required('請輸入列印編號'),
+  jobTitle: yup
+    .string()
+    .required('請輸入職稱'),
   role: yup
     .number()
     .required('請選擇使用者身分別'),
@@ -876,6 +894,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     cellphone: '',
     extension: '',
     printNumber: '',
+    jobTitle: '',
     role: 0,
     employmentStatus: '在職',
     hireDate: new Date(),
@@ -915,6 +934,7 @@ const department = useField('department', undefined, {
 const cellphone = useField('cellphone')
 const extension = useField('extension')
 const printNumber = useField('printNumber')
+const jobTitle = useField('jobTitle')
 const role = useField('role')
 const employmentStatus = useField('employmentStatus')
 const hireDate = useField('hireDate')
@@ -953,6 +973,7 @@ const submit = handleSubmit(async (values) => {
         cellphone: values.cellphone,
         extension: values.extension,
         printNumber: values.printNumber,
+        jobTitle: values.jobTitle,
         role: values.role,
         employmentStatus: values.employmentStatus,
         hireDate: values.hireDate,
@@ -1000,6 +1021,7 @@ const submit = handleSubmit(async (values) => {
         cellphone: values.cellphone,
         extension: values.extension,
         printNumber: values.printNumber,
+        jobTitle: values.jobTitle,
         role: values.role,
         employmentStatus: values.employmentStatus,
         hireDate: values.hireDate,

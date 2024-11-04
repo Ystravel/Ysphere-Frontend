@@ -9,10 +9,15 @@ export const useUserStore = defineStore('user', () => {
   const token = ref('')
   const email = ref('')
   const name = ref('')
+  const englishName = ref('')
   const department = ref('')
   const avatar = ref('')
   const role = ref(UserRole.USER)
   const userId = ref('')
+  const jobTitle = ref('')
+  const birthDate = ref('')
+  const cellphone = ref('')
+  const address = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
   const isUser = computed(() => role.value === UserRole.USER)
@@ -31,6 +36,8 @@ export const useUserStore = defineStore('user', () => {
       email.value = data.result.email
       role.value = data.result.role
       userId.value = data.result.userId
+      jobTitle.value = data.result.jobTitle
+      name.value = data.result.name
       console.log(data.result)
       return '登入成功'
     } catch (error) {
@@ -52,6 +59,8 @@ export const useUserStore = defineStore('user', () => {
         email.value = response.data.result.email
         role.value = response.data.result.role
         userId.value = response.data.result.userId
+        name.value = response.data.result.name
+        jobTitle.value = response.data.result.jobTitle
         return '登入成功'
       } else {
         throw new Error(response.data.message)
@@ -68,19 +77,66 @@ export const useUserStore = defineStore('user', () => {
     try {
       const { data } = await apiAuth.get('/user/profile')
       role.value = data.result.role
-      avatar.value = data.result.avatar
       name.value = data.result.name
+      englishName.value = data.result.englishName
+      cellphone.value = data.result.cellphone
       department.value = data.result.department
       userId.value = data.result.userId
-      email.value = data.result.email
+      jobTitle.value = data.result.jobTitle
+      birthDate.value = data.result.birthDate
+      address.value = data.result.address
     } catch (error) {
       console.log(error)
       token.value = ''
       role.value = UserRole.USER
-      avatar.value = ''
+      department.value = ''
+      jobTitle.value = ''
       name.value = ''
+      englishName.value = ''
+      cellphone.value = ''
       userId.value = ''
-      email.value = ''
+      birthDate.value = ''
+      address.value = ''
+    }
+  }
+
+  const updateProfile = async (profile) => {
+    try {
+      const { data } = await apiAuth.patch('/user/profile', profile)
+      name.value = data.result.name
+      englishName.value = data.result.englishName
+      role.value = data.result.role
+      userId.value = data.result.userId
+      address.value = data.result.address
+      cellphone.value = data.result.cellphone
+      birthDate.value = data.result.birthDate
+      // 返回更新後的數據以便在 Vue 組件中使用
+      return data.result
+    } catch (error) {
+      console.log(error)
+      throw error // 拋出錯誤以便在組件中處理
+    }
+  }
+
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      const { data } = await apiAuth.patch('/user/change-password', {
+        currentPassword,
+        newPassword
+      })
+
+      if (!data.success) {
+        throw new Error(data.message || '密碼更新失敗')
+      }
+
+      return {
+        success: true,
+        message: data.message || '密碼更新成功'
+      }
+    } catch (error) {
+      // 統一錯誤格式
+      const errorMessage = error.response?.data?.message || error.message || '密碼更新失敗'
+      throw new Error(errorMessage)
     }
   }
 
@@ -92,8 +148,9 @@ export const useUserStore = defineStore('user', () => {
     }
     token.value = ''
     email.value = ''
-    avatar.value = ''
-    role.value = UserRole.USER
+    jobTitle.value = ''
+    name.value = ''
+    role.value = ''
     userId.value = ''
   }
 
@@ -101,10 +158,15 @@ export const useUserStore = defineStore('user', () => {
     token,
     email,
     name,
+    englishName,
+    cellphone,
     department,
     avatar,
     role,
+    jobTitle,
     userId,
+    birthDate,
+    address,
     isLogin,
     isUser,
     isAdmin,
@@ -116,7 +178,9 @@ export const useUserStore = defineStore('user', () => {
     login,
     logout,
     profile,
-    googleLogin
+    googleLogin,
+    updateProfile,
+    changePassword
   }
 }, {
   persist: {
