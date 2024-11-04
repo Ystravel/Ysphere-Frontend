@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container max-width="1200">
     <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10">
       <v-col cols="12">
         <h3>
@@ -100,9 +100,10 @@
           </v-row>
           <v-row class="px-4 py-10">
             <v-btn
-              color="teal-darken-1"
+              color="blue-grey-darken-2"
+              prepend-icon="mdi-pencil"
               variant="outlined"
-              height="32"
+              height="36"
               @click="showPasswordDialog = true"
             >
               修改密碼
@@ -170,7 +171,7 @@
       <v-card-actions class="me-4 mb-3">
         <v-spacer />
         <v-btn
-          color="grey"
+          color="grey-darken-1"
           variant="outlined"
           height="32"
           @click="closePasswordDialog"

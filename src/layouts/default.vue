@@ -46,7 +46,8 @@
             elevation="0"
             rounded="0"
             height="172"
-            class="pa-0 mb-2 card-bg"
+            width="260"
+            class="pa-0 card-bg"
             to="/profile"
           >
             <div class="card-blur pt-2 pb-4 px-2">
@@ -88,6 +89,7 @@
             <v-list-item
               v-for="userItem in userItems"
               :key="userItem.to"
+              class="mt-2"
               :to="userItem.to"
             >
               <template #prepend>
@@ -96,12 +98,17 @@
               <v-list-item-title>{{ userItem.text }}</v-list-item-title>
             </v-list-item>
           </template>
-          <v-divider class="my-3" />
+          <v-divider
+            color="blue-grey-darken-4"
+            opacity="0.3"
+            class="my-2"
+          />
           <template v-if="!user.isUser">
             <v-list-item
               v-for="item in adminItems"
               :key="item.to"
               :to="item.to"
+              class="mb-2"
             >
               <template #prepend>
                 <v-icon>{{ item.icon }}</v-icon>
@@ -306,6 +313,6 @@ const logout = async () => {
   background-size: cover;
 }
 .card-blur {
-  background: linear-gradient(135deg, #37474F 30%, rgba(255,255,255,0));
+  background: linear-gradient(135deg, #37474F 32%, rgba(255,255,255,0));
 }
 </style>
