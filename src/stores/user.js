@@ -8,16 +8,22 @@ export const useUserStore = defineStore('user', () => {
 
   const token = ref('')
   const email = ref('')
+  const IDNumber = ref('')
+  const gender = ref('')
   const name = ref('')
   const englishName = ref('')
+  const cellphone = ref('')
+  const extension = ref('')
+  const birthDate = ref('')
+  const address = ref('')
   const department = ref('')
-  const avatar = ref('')
+  const jobTitle = ref('')
   const role = ref(UserRole.USER)
   const userId = ref('')
-  const jobTitle = ref('')
-  const birthDate = ref('')
-  const cellphone = ref('')
-  const address = ref('')
+  const hireDate = ref('')
+  const emergencyName = ref('')
+  const emergencyCellphone = ref('')
+  const printNumber = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
   const isUser = computed(() => role.value === UserRole.USER)
@@ -76,45 +82,43 @@ export const useUserStore = defineStore('user', () => {
 
     try {
       const { data } = await apiAuth.get('/user/profile')
-      role.value = data.result.role
+      email.value = data.result.email
+      IDNumber.value = data.result.idNumber
+      gender.value = data.result.gender
       name.value = data.result.name
       englishName.value = data.result.englishName
       cellphone.value = data.result.cellphone
-      department.value = data.result.department
-      userId.value = data.result.userId
-      jobTitle.value = data.result.jobTitle
+      extension.value = data.result
       birthDate.value = data.result.birthDate
       address.value = data.result.address
+      department.value = data.result.department
+      jobTitle.value = data.result.jobTitle
+      role.value = data.result.role
+      userId.value = data.result.userId
+      hireDate.value = data.result.hireDate
+      emergencyName.value = data.result.emergencyName
+      emergencyCellphone.value = data.result.emergencyCellphone
+      printNumber.value = data.result.printNumber
     } catch (error) {
       console.log(error)
       token.value = ''
-      role.value = UserRole.USER
-      department.value = ''
-      jobTitle.value = ''
+      email.value = ''
+      IDNumber.value = ''
+      gender.value = ''
       name.value = ''
       englishName.value = ''
       cellphone.value = ''
-      userId.value = ''
+      extension.value = ''
       birthDate.value = ''
       address.value = ''
-    }
-  }
-
-  const updateProfile = async (profile) => {
-    try {
-      const { data } = await apiAuth.patch('/user/profile', profile)
-      name.value = data.result.name
-      englishName.value = data.result.englishName
-      role.value = data.result.role
-      userId.value = data.result.userId
-      address.value = data.result.address
-      cellphone.value = data.result.cellphone
-      birthDate.value = data.result.birthDate
-      // 返回更新後的數據以便在 Vue 組件中使用
-      return data.result
-    } catch (error) {
-      console.log(error)
-      throw error // 拋出錯誤以便在組件中處理
+      department.value = ''
+      jobTitle.value = ''
+      role.value = UserRole.USER
+      userId.value = ''
+      hireDate.value = ''
+      emergencyName.value = ''
+      emergencyCellphone.value = ''
+      printNumber.value = ''
     }
   }
 
@@ -157,16 +161,22 @@ export const useUserStore = defineStore('user', () => {
   return {
     token,
     email,
+    IDNumber,
+    gender,
     name,
     englishName,
     cellphone,
-    department,
-    avatar,
-    role,
-    jobTitle,
-    userId,
+    extension,
     birthDate,
     address,
+    department,
+    jobTitle,
+    role,
+    userId,
+    hireDate,
+    emergencyName,
+    emergencyCellphone,
+    printNumber,
     isLogin,
     isUser,
     isAdmin,
@@ -179,7 +189,6 @@ export const useUserStore = defineStore('user', () => {
     logout,
     profile,
     googleLogin,
-    updateProfile,
     changePassword
   }
 }, {

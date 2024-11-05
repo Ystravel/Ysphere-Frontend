@@ -20,6 +20,18 @@
         />
       </router-link>
       <v-spacer />
+      <v-icon
+        icon="mdi-email-outline"
+        size="22"
+        color="blue-grey-darken-3"
+        class="me-6"
+      />
+      <v-icon
+        icon="mdi-bell-outline"
+        size="22"
+        color="blue-grey-darken-3"
+        class="me-8"
+      />
       <v-btn
         v-if="user.isLogin && smAndUp"
         prepend-icon="mdi-account-arrow-right"

@@ -21,7 +21,7 @@
                 <v-btn
                   prepend-icon="mdi-account-plus"
                   variant="outlined"
-                  color="blue-grey-darken-2"
+                  color="teal-darken-2"
                   @click="openDialog(null)"
                 >
                   新增使用者
@@ -146,7 +146,7 @@
                   <td>
                     <v-btn
                       icon
-                      color="teal-darken-3"
+                      color="light-blue-darken-4"
                       variant="plain"
                       width="28"
                       height="40"

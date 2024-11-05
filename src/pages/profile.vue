@@ -1,104 +1,68 @@
 <template>
-  <v-container max-width="1200">
-    <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10">
-      <v-col cols="12">
-        <h3>
-          個人資料管理
-        </h3>
-      </v-col>
-      <v-col>
-        <v-divider class="mb-8" />
-      </v-col>
-      <v-col cols="12">
-        <v-form
-          v-if="mdAndUp"
-          :disabled="isSubmitting"
-          @submit.prevent="openConfirmDialog"
-        >
-          <v-row
-            style="font-size: 14px;"
-            class="text-blue-grey-darken-2"
+  <v-container max-width="2200">
+    <v-row>
+      <v-col
+        v-if="xlAndUp"
+        md="3"
+      >
+        <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-10">
+          <v-card
+            width="100%"
+            elevation="0"
           >
-            <v-col
-              class="px-4 py-0"
-              cols="4"
-            >
-              姓名 <span style="color: #d9534f;">*</span> :
-            </v-col>
-            <v-col class="px-4 py-0">
-              英文名 <span style="color: #d9534f;">*</span> :
-            </v-col>
-            <v-col class="px-4 py-0">
-              生日 <span style="color: #d9534f;">*</span> :
-            </v-col>
-          </v-row>
-          <v-row class="mt-4">
-            <v-col class="pt-1">
-              <v-text-field
-                v-model="name.value.value"
-                :error-messages="name.errorMessage.value"
-                density="compact"
-                variant="outlined"
-                clearable
-              />
-            </v-col>
-            <v-col class="pt-1">
-              <v-text-field
-                v-model="englishName.value.value"
-                density="compact"
-                variant="outlined"
-                hide-details
-                clearable
-              />
-            </v-col>
-            <v-col class="pt-1">
-              <v-date-input
-                v-model="birthDate.value.value"
-                :error-messages="birthDate.errorMessage.value"
-                density="compact"
-                variant="outlined"
-                clearable
-              />
-            </v-col>
-          </v-row>
-          <v-row
-            class="mt-4 text-blue-grey-darken-2"
-            style="font-size: 14px;"
+            <v-row class="text-center">
+              <v-col cols="12">
+                <v-avatar
+                  size="100"
+                >
+                  <v-img
+                    :src="avatar"
+                  />
+                </v-avatar>
+              </v-col>
+              <v-col>
+                <div
+                  class="text-h6 mb-3 opacity-90"
+                >
+                  {{ user.name }}
+                </div>
+                <div
+                  class="text-subtitle-2 mb-4 opacity-70"
+                >
+                  {{ user.userId }}
+                </div>
+                <div
+                  style="font-size: 15px; font-weight: 500;"
+                  class="opacity-90 mb-12"
+                >
+                  {{ user.jobTitle }}
+                </div>
+                <v-btn
+                  prepend-icon="mdi-camera-outline"
+                  color="blue-grey-darken-2"
+                  variant="outlined"
+                >
+                  更換大頭貼
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card>
+        </v-row>
+      </v-col>
+      <v-col
+        xl="9"
+      >
+        <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 ms-xl-0 me-xl-10">
+          <v-col
+            cols="12"
+            class="d-flex justify-space-between"
           >
-            <v-col
-              class="px-4 py-0"
-              cols="4"
-            >
-              手機號碼 <span style="color: #d9534f;">*</span> :
-            </v-col>
-            <v-col class="px-4 py-0">
-              地址 :
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="4">
-              <v-text-field
-                v-model="cellphone.value.value"
-                :error-messages="cellphone.errorMessage.value"
-                density="compact"
-                variant="outlined"
-                maxlength="10"
-                clearable
-              />
-            </v-col>
-
-            <v-col cols="8">
-              <v-text-field
-                v-model="address.value.value"
-                :error-messages="address.errorMessage.value"
-                density="compact"
-                variant="outlined"
-                hide-details
-                clearable
-              />
-            </v-col>
-          </v-row>
-          <v-row class="px-4 py-10">
+            <h3>
+              個人資料管理&nbsp;&nbsp;&nbsp;<span
+                v-if="mdAndUp"
+                class="text-subtitle-2 opacity-80"
+              >* 若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
+            </h3>
             <v-btn
               color="blue-grey-darken-2"
               prepend-icon="mdi-pencil"
@@ -108,20 +72,463 @@
             >
               修改密碼
             </v-btn>
-            <v-spacer />
-            <v-btn
-              color="orange-darken-4"
-              variant="outlined"
-              height="32"
-              class="ms-1"
-              :loading="isSubmitting"
-              :disabled="!hasChanges"
-              @click="openConfirmDialog"
+          </v-col>
+          <v-col
+            v-if="!mdAndUp"
+            cols="12"
+          >
+            <span
+              class="text-subtitle-2 opacity-80"
+            >* 若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
+          </v-col>
+          <v-col>
+            <v-divider class="mb-8" />
+          </v-col>
+          <v-col cols="12">
+            <v-row
+              class="text-blue-grey-darken-3 mb-10"
             >
-              儲存
-            </v-btn>
-          </v-row>
-        </v-form>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    姓名 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.name }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    英文名 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.englishName }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    生日 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ formatToDate(user.birthDate) }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    Email :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.email }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    手機號碼 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.cellphone }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    員工編號 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.userId }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    所屬公司 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                      :value="getCompanyName(user.department.companyId)"
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    部門 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.department.name }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    分機號碼 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.extension.extension }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    性別 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.gender }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    住址 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.address }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    入職日期 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ formatToDate(user.hireDate) }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    列印編號 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.printNumber }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    緊急聯絡人 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.emergencyName }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0 "
+                  >
+                    緊急連絡人電話 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.emergencyCellphone }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
   </v-container>
@@ -190,16 +597,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-
-  <!-- 確認對話框 -->
-  <ConfirmDialog
-    v-model="showConfirmDialog"
-    title="確認更新"
-    message="您確定要更新個人資料嗎？"
-    confirm-button-color="teal-darken-1"
-    cancel-button-color="red-lighten-1"
-    @confirm="submitProfile"
-  />
 </template>
 
 <script setup>
@@ -207,19 +604,25 @@ import { definePage } from 'vue-router/auto'
 import { onMounted, computed, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useSnackbar } from 'vuetify-use-dialog'
-import * as yup from 'yup'
-import { useForm, useField } from 'vee-validate'
-import validator from 'validator'
 import { useDisplay } from 'vuetify'
-import ConfirmDialog from '../components/ConfirmDeleteDialog.vue'
+import { companyNames } from '@/enums/Company'
 
-const { mdAndUp } = useDisplay()
+const { smAndUp, mdAndUp, lgAndUp, xlAndUp } = useDisplay()
+
 definePage({
   meta: {
     title: '個人資料管理 | ystravel',
     login: true,
     admin: false
   }
+})
+
+const getCompanyName = (companyId) => {
+  return companyNames[companyId] || '未知公司'
+}
+
+const avatar = computed(() => {
+  return `https://api.multiavatar.com/${user.userId}.png`
 })
 
 const showPasswordDialog = ref(false)
@@ -240,14 +643,16 @@ const createSnackbar = useSnackbar()
 const originalData = ref(null)
 
 const formatToDate = (dateString) => {
-  return dateString ? new Date(dateString) : null
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
 }
 
 const showConfirmDialog = ref(false)
-
-const openConfirmDialog = () => {
-  showConfirmDialog.value = true
-}
 
 const validatePasswordForm = () => {
   let isValid = true
@@ -315,48 +720,6 @@ const closePasswordDialog = () => {
   confirmPasswordError.value = ''
 }
 
-const schema = yup.object({
-  name: yup
-    .string()
-    .required('請輸入姓名'),
-  englishName: yup
-    .string().nullable(),
-  birthDate: yup
-    .date()
-    .required('請輸入生日'),
-  cellphone: yup
-    .string()
-    .required('請輸入手機號碼')
-    .min(10, '請輸入10碼手機號碼')
-    .test(
-      'isMobilePhone', '請輸入正確的手機號碼格式',
-      (value) => {
-        return validator.isMobilePhone(value)
-      }
-    ),
-  address: yup
-    .string()
-    .nullable()
-})
-
-const { handleSubmit, setValues, isSubmitting } = useForm({
-  validationSchema: schema,
-  initialValues: {
-    name: '',
-    englishName: '',
-    birthDate: '',
-    cellphone: '',
-    email: '',
-    address: ''
-  }
-})
-
-const name = useField('name')
-const englishName = useField('englishName')
-const birthDate = useField('birthDate')
-const cellphone = useField('cellphone')
-const address = useField('address')
-
 const loadProfile = async () => {
   await user.profile()
   originalData.value = {
@@ -366,85 +729,17 @@ const loadProfile = async () => {
     cellphone: user.cellphone,
     address: user.address
   }
-  setValues({
-    name: user.name,
-    englishName: user.englishName,
-    birthDate: formatToDate(user.birthDate),
-    cellphone: user.cellphone,
-    address: user.address
-  })
 }
-
-const hasChanges = computed(() => {
-  if (!originalData.value) return false
-
-  return (
-    originalData.value.name !== name.value.value ||
-    originalData.value.englishName !== englishName.value.value ||
-    formatToDate(originalData.value.birthDate)?.toISOString() !== birthDate.value.value?.toISOString() ||
-    originalData.value.cellphone !== cellphone.value.value ||
-    originalData.value.address !== address.value.value
-  )
-})
 
 onMounted(loadProfile)
 
-const saveProfile = async (values) => {
-  console.log(values)
-  try {
-    const updatedProfile = await user.updateProfile({
-      ...values
-    })
-    setValues({
-      ...updatedProfile,
-      birthDate: formatToDate(updatedProfile.birthDate)
-    })
-    createSnackbar({
-      text: '資料更新成功',
-      snackbarProps: { color: 'teal-darken-1' }
-    })
-  } catch (error) {
-    createSnackbar({
-      text: error?.response?.data?.message || '發生錯誤',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  }
-}
-
-const submitProfile = handleSubmit(saveProfile)
 </script>
 
 <style lang="scss" scoped>
-  @import '/src/styles/settings.scss';
-  #profile-form-sm {
-    :deep(.v-field__input) {
-    min-height: 28px !important;
-    padding: 0 4px !important;
-    font-size: 14px;
-    text-align: center;
-    }
-    .avatar {
-    border: 1px solid #039199;
-    border-radius: 50%;
-    position: relative;
-    max-width: 200px;
-    max-height: 200px;
-    }
-
-    .camera-icon {
-      position: absolute;
-      cursor: pointer;
-      background-color: white;
-      border-radius: 50%;
-      padding: 5px;
-      right: 4px;
-      bottom: 4px;
-    }
-
-    .userId {
-      font-size: 14px;
-      font-weight: 400;
-    }
+.v-col-sm-12 {
+  font-size: 14px;
+  @media (min-width: 600px) {
+    font-size: 16px;
   }
-
+}
 </style>
