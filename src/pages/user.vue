@@ -21,7 +21,7 @@
                 <v-btn
                   prepend-icon="mdi-account-plus"
                   variant="outlined"
-                  color="teal-darken-2"
+                  color="cyan-darken-3"
                   @click="openDialog(null)"
                 >
                   新增使用者
@@ -142,6 +142,9 @@
                   </td>
                   <td v-if="smAndUp">
                     {{ item.employmentStatus }}
+                  </td>
+                  <td v-if="xlAndUp">
+                    {{ item.note }}
                   </td>
                   <td>
                     <v-btn
@@ -542,7 +545,7 @@ definePage({
 })
 
 // sm 600px, md 960px, lg 1280px
-const { smAndUp, mdAndUp, lgAndUp, name: currentBreakpoint } = useDisplay()
+const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint } = useDisplay()
 
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
@@ -1084,24 +1087,28 @@ const tableHeaders = [
   { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
   { title: '身分別', align: 'left', sortable: true, key: 'role' },
   { title: '狀態', align: 'left', sortable: true, key: 'employmentStatus' },
+  { title: '備註', align: 'left', sortable: true, key: 'note' },
   { title: '操作', align: 'left', sortable: false, key: 'action' }
 ]
 // 根據斷點條件動態生成標題
 const filteredHeaders = computed(() => {
-  // 在 'lg' 和 'xl' 顯示全部欄位
-  if (['lg', 'xl', 'xxl'].includes(currentBreakpoint.value)) {
+  if (['xl', 'xxl'].includes(currentBreakpoint.value)) {
     return tableHeaders
+  }
+  // 在 'lg' 和 'xl' 顯示全部欄位
+  if (['lg'].includes(currentBreakpoint.value)) {
+    return tableHeaders.filter(header => header.key !== 'note')
   }
   if (['md'].includes(currentBreakpoint.value)) {
     // 在 'md' 斷點隱藏 "公司" 欄位
-    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email')
+    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'note')
   }
   if (['sm'].includes(currentBreakpoint.value)) {
     // 在 'sm' 斷點隱藏 "公司" 和 "部門" 欄位
-    return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email')
+    return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'note')
   }
   // 其他斷點隱藏 "手機號碼" 欄位
-  return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus')
+  return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus' && header.key !== 'note')
 })
 
 const tableLoading = ref(true)

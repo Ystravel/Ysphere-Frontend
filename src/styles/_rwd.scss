@@ -1,0 +1,32 @@
+// 定義一組斷點變數
+@mixin sm {
+	@media (min-width: $breakpoint-sm) {
+		@content;
+	}
+}
+@mixin md {
+	@media (min-width: $breakpoint-md) {
+		@content;
+	}
+}
+
+@mixin lg {
+	@media (min-width: $breakpoint-lg) {
+		@content;
+	}
+}
+@mixin lgm {
+	@media (min-width: $breakpoint-lgm) {
+		@content;
+	}
+}
+@mixin xl {
+	@media (min-width: $breakpoint-xl) {
+		@content;
+	}
+}
+@mixin xxl {
+	@media (min-width: $breakpoint-xxl) {
+		@content;
+	}
+}

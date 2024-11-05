@@ -2,7 +2,7 @@
   <v-container max-width="2200">
     <v-row>
       <v-col
-        v-if="xlAndUp"
+        v-if="isLgmUp"
         md="3"
       >
         <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-10">
@@ -52,7 +52,7 @@
       <v-col
         xl="9"
       >
-        <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 ms-xl-0 me-xl-10">
+        <v-row class="elevation-4 rounded-xl pt-8 pb-0 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 ms-xl-0 me-xl-10">
           <v-col
             cols="12"
             class="d-flex justify-space-between"
@@ -61,17 +61,58 @@
               個人資料管理&nbsp;&nbsp;&nbsp;<span
                 v-if="mdAndUp"
                 class="text-subtitle-2 opacity-80"
-              >* 若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
+              ><span class="text-red-darken-2">* </span>若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
             </h3>
-            <v-btn
-              color="blue-grey-darken-2"
-              prepend-icon="mdi-pencil"
-              variant="outlined"
-              height="36"
-              @click="showPasswordDialog = true"
-            >
-              修改密碼
-            </v-btn>
+            <div>
+              <v-btn
+                v-if="mdAndUp"
+
+                color="blue-grey-darken-2"
+                prepend-icon="mdi-pencil"
+                variant="outlined"
+                height="36"
+                @click="showPasswordDialog = true"
+              >
+                修改密碼
+              </v-btn>
+              <v-btn
+                v-if="!mdAndUp"
+                color="blue-grey-darken-2"
+                prepend-icon="mdi-pencil"
+                variant="outlined"
+                size="small"
+                height="32"
+                @click="showPasswordDialog = true"
+              >
+                修改密碼
+              </v-btn>
+              <v-btn
+                v-if="!mdAndUp"
+                color="blue-grey-darken-2"
+                class="ms-4"
+                size="24"
+                elevation="0"
+                rounded="xl"
+              >
+                <v-icon
+                  icon="mdi-camera-outline"
+                  size="14"
+                />
+              </v-btn>
+              <v-btn
+                v-if="!isLgmUp && mdAndUp"
+                color="blue-grey-darken-2"
+                class="ms-4"
+                size="28"
+                elevation="0"
+                rounded="xl"
+              >
+                <v-icon
+                  icon="mdi-camera-outline"
+                  size="16"
+                />
+              </v-btn>
+            </div>
           </v-col>
           <v-col
             v-if="!mdAndUp"
@@ -79,7 +120,7 @@
           >
             <span
               class="text-subtitle-2 opacity-80"
-            >* 若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
+            ><span class="text-red-darken-2">* </span>若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
           </v-col>
           <v-col>
             <v-divider class="mb-8" />
@@ -607,7 +648,8 @@ import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
 import { companyNames } from '@/enums/Company'
 
-const { smAndUp, mdAndUp, lgAndUp, xlAndUp } = useDisplay()
+const { mdAndUp, width } = useDisplay()
+const isLgmUp = computed(() => width.value >= 1500)
 
 definePage({
   meta: {
@@ -651,8 +693,6 @@ const formatToDate = (dateString) => {
     day: '2-digit'
   })
 }
-
-const showConfirmDialog = ref(false)
 
 const validatePasswordForm = () => {
   let isValid = true

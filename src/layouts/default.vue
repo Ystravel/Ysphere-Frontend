@@ -33,7 +33,7 @@
         class="me-8"
       />
       <v-btn
-        v-if="user.isLogin && smAndUp"
+        v-if="user.isLogin && mdAndUp"
         prepend-icon="mdi-account-arrow-right"
         variant="outlined"
         rounded="0"
@@ -46,7 +46,7 @@
     </v-app-bar>
 
     <v-navigation-drawer
-      v-if="smAndUp"
+      v-if="mdAndUp"
       v-model="drawer"
       :rail="rail"
       permanent
@@ -143,7 +143,7 @@
       </v-list>
     </v-navigation-drawer>
     <v-navigation-drawer
-      v-if="!smAndUp"
+      v-if="!mdAndUp"
       v-model="mdDrawer"
       border="0"
       class=" rounded-be-xl"
@@ -251,7 +251,7 @@ import { useRouter } from 'vue-router'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
 
-const { smAndUp, xlAndUp, name: breakpoint } = useDisplay()
+const { smAndUp, mdAndUp, xlAndUp, name: breakpoint } = useDisplay()
 
 const drawer = ref(true)
 const mdDrawer = ref(false)
@@ -278,7 +278,7 @@ watch(() => breakpoint.value, (newBreakpoint) => {
   if (xlAndUp.value) {
     // XL 以上，預設展開
     rail.value = false
-  } else if (smAndUp.value) {
+  } else if (mdAndUp.value) {
     // SM 到 XL 之間，預設收合（只顯示圖示）
     rail.value = true
   }
@@ -287,7 +287,7 @@ watch(() => breakpoint.value, (newBreakpoint) => {
 // 控制抽屜展開的函數
 // 改進的 toggleDrawer 函數
 const toggleDrawer = () => {
-  if (!smAndUp.value) {
+  if (!mdAndUp.value) {
     // SM 以下，切換 mdDrawer
     mdDrawer.value = !mdDrawer.value
   } else {
@@ -300,7 +300,7 @@ const toggleDrawer = () => {
 onMounted(() => {
   if (xlAndUp.value) {
     rail.value = false // XL 以上，預設展開
-  } else if (smAndUp.value) {
+  } else if (mdAndUp.value) {
     rail.value = true // SM 到 XL 之間，預設收合
   }
 })
