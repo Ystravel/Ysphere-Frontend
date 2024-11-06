@@ -16,7 +16,6 @@
           class="mx-4"
           elevation="4"
           rounded="xl"
-          width="450"
         >
           <EmployeeDoughnut ref="chartRef" />
         </v-card>
@@ -220,20 +219,22 @@
         </v-card-title>
         <v-row class="py-4">
           <v-col
-            cols="5"
-            class="d-flex align-center ps-6"
+            cols="4"
+            md="5"
+            class="d-flex align-center ps-6 "
           >
             <v-divider />
           </v-col>
           <v-col
-            cols="2"
-            class="text-center"
-            style="letter-spacing: 4px;"
+            cols="4"
+            md="2"
+            class="personal-info-title px-0 "
           >
             基本資料
           </v-col>
           <v-col
-            cols="5"
+            cols="4"
+            md="5"
             class="d-flex align-center pe-6"
           >
             <v-divider />
@@ -446,22 +447,24 @@
               cols="12"
               class="pa-0"
             >
-              <v-row class="py-4">
+              <v-row class="py-4 mb-3">
                 <v-col
-                  cols="5"
+                  cols="4"
+                  md="5"
                   class="d-flex align-center ps-6"
                 >
                   <v-divider />
                 </v-col>
                 <v-col
-                  cols="2"
-                  class="text-center"
-                  style="letter-spacing: 4px;"
+                  cols="4"
+                  md="2"
+                  class="job-info-title"
                 >
-                  工作資訊
+                  任職資訊
                 </v-col>
                 <v-col
-                  cols="5"
+                  cols="4"
+                  md="5"
                   class="d-flex align-center pe-6"
                 >
                   <v-divider />
@@ -861,7 +864,22 @@ const formatToDate = (dateString) => {
   return dateString ? new Date(dateString) : null
 }
 
+const hasEditPermission = computed(() => {
+  return user.isSuperAdmin || user.isHR || user.isAdmin
+})
+
 const openDialog = (item) => {
+  // 檢查是否沒有編輯權限
+  if (!hasEditPermission.value) {
+    createSnackbar({
+      text: '權限不足',
+      snackbarProps: {
+        color: 'red-lighten-1'
+      }
+    })
+    return
+  }
+
   currentPage.value = tablePage.value
   if (item) {
     isEditing.value = true
@@ -1478,6 +1496,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@import '/src/styles/settings.scss';
+
 :deep(.header-bg)  {
   background-color: #455A64;
   color: white;
@@ -1489,5 +1509,31 @@ onUnmounted(() => {
 
 .even-row {
   background-color: rgb(255, 250, 240);
+}
+
+.personal-info-title {
+  text-align: center;
+  letter-spacing: 2px;
+  font-size: 14px;
+}
+
+.job-info-title {
+  text-align: center;
+  letter-spacing: 2px;
+  font-size: 14px;
+}
+
+@include md {
+  .personal-info-title {
+  text-align: center;
+  letter-spacing: 4px;
+  font-size: 15px;
+}
+
+.job-info-title {
+  text-align: center;
+  letter-spacing: 4px;
+  font-size: 15px;
+}
 }
 </style>

@@ -1,102 +1,117 @@
 <template>
   <v-container max-width="1400">
-    <h2 class="my-6" />
-    <v-row>
-      <v-col>
+    <v-row
+      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10"
+    >
+      <v-col
+        cols="12"
+        class="ps-3 pb-6"
+      >
+        <h3>部門管理</h3>
+      </v-col>
+      <v-col cols="12">
         <v-row>
           <v-col>
-            <v-btn
-              prepend-icon="mdi-account-multiple-plus"
-              variant="outlined"
-              color="orange-darken-2"
-              @click="openDepartmentDialog"
+            <v-row>
+              <v-col>
+                <v-btn
+                  prepend-icon="mdi-account-multiple-plus"
+                  variant="outlined"
+                  color="cyan-darken-3"
+                  @click="openDepartmentDialog"
+                >
+                  新增部門
+                </v-btn>
+              </v-col>
+              <v-col
+                cols="3"
+                lg="2"
+              >
+                <v-select
+                  v-model="companyFilter"
+                  :items="[{ name: '全部', id: '' }, ...companyOptions]"
+                  label="選擇公司"
+                  item-title="name"
+                  item-value="id"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  clearable
+                  @update:model-value="loadDepartments(true)"
+                />
+              </v-col>
+              <v-col
+                cols="3"
+                lg="2"
+                class="d-flex justify-end"
+              >
+                <v-text-field
+                  v-model="tableSearch"
+                  label="搜尋"
+                  append-inner-icon="mdi-magnify"
+                  base-color="#666"
+                  color="blue-grey-darken-3"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  clearable
+                />
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col cols="12">
+            <v-data-table-server
+              v-model:items-per-page="tableItemsPerPage"
+              v-model:sort-by="tableSortBy"
+              v-model:page="tablePage"
+              :headers="tableHeaders"
+              :items="departments"
+              :header-props="headerProps"
+              :items-length="tableItemsLength"
+              :items-per-page-options="[10, 20, 50]"
+              :loading="tableLoading"
+              :search="tableSearch"
+              class="rounded-ts-lg rounded-te-lg py-3"
+              hover
+              density="compact"
+              @update:options="loadDepartments(true)"
             >
-              新增部門
-            </v-btn>
-          </v-col>
-          <v-col cols="2">
-            <v-select
-              v-model="companyFilter"
-              :items="[{ name: '全部', id: '' }, ...companyOptions]"
-              label="選擇公司"
-              item-title="name"
-              item-value="id"
-              variant="outlined"
-              density="compact"
-              clearable
-              @update:model-value="loadDepartments(true)"
-            />
-          </v-col>
-          <v-col
-            cols="2"
-            class="d-flex justify-end"
-          >
-            <v-text-field
-              v-model="tableSearch"
-              label="搜尋"
-              append-inner-icon="mdi-magnify"
-              base-color="#666"
-              color="blue-grey-darken-3"
-              variant="outlined"
-              density="compact"
-              max-width="240"
-            />
+              <template #item="{ item, index }">
+                <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
+                  <td>{{ companyNames[item.companyId] || '未知公司' }}</td>
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.memberCount || 0 }} 人</td>
+                  <td class="text-center">
+                    <v-btn
+                      icon
+                      color="light-blue-darken-4"
+                      variant="plain"
+                      width="28"
+                      height="40"
+                      :ripple="false"
+                      @click="openEditDepartment(item)"
+                    >
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
+                      color="red-lighten-1"
+                      variant="plain"
+                      width="28"
+                      height="40"
+                      :ripple="false"
+                      @click="confirmDeleteDepartment(item)"
+                    >
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </td>
+                </tr>
+              </template>
+            </v-data-table-server>
           </v-col>
         </v-row>
       </v-col>
     </v-row>
-
-    <!-- 部門列表 -->
-    <v-data-table-server
-      v-model:items-per-page="tableItemsPerPage"
-      v-model:sort-by="tableSortBy"
-      v-model:page="tablePage"
-      :headers="tableHeaders"
-      :items="departments"
-      :items-length="tableItemsLength"
-      :items-per-page-options="[10, 20, 50]"
-      :loading="tableLoading"
-      :search="tableSearch"
-      class="mt-4"
-      hover
-      density="comfortable"
-      @update:options="loadDepartments(true)"
-    >
-      <!-- 公司名稱 -->
-      <template #[`item.companyId`]="{ item }">
-        {{ item.companyName }}
-      </template>
-
-      <!-- 部門名稱 -->
-      <template #[`item.name`]="{ item }">
-        {{ item.name }}
-      </template>
-
-      <!-- 部門人數 -->
-      <template #[`item.memberCount`]="{ item }">
-        {{ item.memberCount || 0 }} 人
-      </template>
-
-      <!-- 操作按鈕 -->
-      <template #[`item.actions`]="{ item }">
-        <v-btn
-          icon
-          variant="plain"
-          color="blue"
-          @click="openEditDepartment(item)"
-        >
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn
-          icon
-          variant="plain"
-          color="red"
-          @click="confirmDeleteDepartment(item)"
-        >
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
-      </template>
-    </v-data-table-server>
 
     <!-- 新增/編輯部門對話框 -->
     <v-dialog
@@ -106,7 +121,9 @@
     >
       <v-form @submit.prevent="submitDepartment">
         <v-card class="rounded-lg pa-4 pt-6">
-          <v-card-title>{{ dialog.id ? '編輯部門' : '新增部門' }}</v-card-title>
+          <v-card-title style="font-size: 18px;">
+            {{ dialog.id ? '編輯部門' : '新增部門' }}
+          </v-card-title>
           <v-card-text class="px-3">
             <v-select
               v-model="departmentCompanyId.value.value"
@@ -134,7 +151,8 @@
             <v-btn
               color="red-lighten-1"
               variant="outlined"
-              size="small"
+              height="32"
+              :loading="isSubmitting"
               @click="closeDialog"
             >
               取消
@@ -142,8 +160,9 @@
             <v-btn
               color="teal-darken-1"
               variant="outlined"
-              size="small"
               type="submit"
+              height="32"
+              class="ms-1"
               :loading="isSubmitting"
             >
               送出
@@ -195,6 +214,12 @@ const companyOptions = [
 ]
 
 const companyFilter = ref('')
+
+// 表格樣式設定
+const headerProps = {
+  class: 'header-bg'
+}
+
 // 表格相關
 const tableLoading = ref(false)
 const tableItemsPerPage = ref(10)
@@ -232,6 +257,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
 const departmentName = useField('name')
 const departmentCompanyId = useField('companyId')
 const companyNames = Object.fromEntries(companyOptions.map(company => [company.id, company.name]))
+
 // 載入部門列表
 const loadDepartments = async (reset = false) => {
   if (reset) tablePage.value = 1
@@ -244,22 +270,20 @@ const loadDepartments = async (reset = false) => {
         sortBy: tableSortBy.value[0]?.key || 'companyId',
         sortOrder: tableSortBy.value[0]?.order || 'asc',
         search: tableSearch.value,
-        companyId: companyFilter.value // 新增公司篩選條件
+        companyId: companyFilter.value
       }
     })
-    console.log('返回的部門資料:', data) // 檢查返回的資料
 
-    // 更新表格資料，加入防呆處理以防公司ID不匹配
     departments.value = data.result.data.map((dept) => ({
       ...dept,
-      companyName: companyNames[dept.companyId] || '未知公司' // 防止未定義公司名稱
+      companyName: companyNames[dept.companyId] || '未知公司'
     }))
     tableItemsLength.value = data.result.totalItems
   } catch (error) {
-    console.error('loadDepartments error:', error) // 加入錯誤日誌
+    console.error('loadDepartments error:', error)
     createSnackbar({
       text: error?.response?.data?.message || '載入部門列表失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
   tableLoading.value = false
@@ -305,17 +329,18 @@ const submitDepartment = handleSubmit(async (values) => {
     closeDialog()
     createSnackbar({
       text: `部門${dialog.value.id ? '修改' : '新增'}成功`,
-      snackbarProps: { color: 'success' }
+      snackbarProps: { color: 'teal-darken-1' }
     })
   } catch (error) {
     const errorMessage = error?.response?.data?.message || '操作失敗'
     createSnackbar({
       text: errorMessage.includes('相同名稱') ? errorMessage : '操作失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
   tableLoading.value = false
 })
+
 // 刪除部門
 const deleteDepartment = async () => {
   tableLoading.value = true
@@ -324,12 +349,12 @@ const deleteDepartment = async () => {
     await loadDepartments()
     createSnackbar({
       text: '部門刪除成功',
-      snackbarProps: { color: 'success' }
+      snackbarProps: { color: 'teal-darken-1' }
     })
   } catch (error) {
     createSnackbar({
       text: error?.response?.data?.message || '刪除失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
   deleteDialog.value = false
@@ -354,3 +379,20 @@ onUnmounted(() => {
   debouncedSearch.cancel()
 })
 </script>
+
+<style lang="scss" scoped>
+@import '/src/styles/settings.scss';
+
+:deep(.header-bg)  {
+  background-color: #455A64;
+  color: white;
+}
+
+.odd-row {
+  background-color: #f5f5f5;
+}
+
+.even-row {
+  background-color: rgb(252, 255, 247);
+}
+</style>

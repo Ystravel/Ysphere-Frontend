@@ -96,7 +96,7 @@
               <v-btn
                 block
                 elevation="2"
-                color="red darken-1"
+                color="red-darken-1"
               >
                 <v-icon
                   icon="mdi-google-plus"

@@ -117,7 +117,7 @@
           />
           <template v-if="!user.isUser">
             <v-list-item
-              v-for="item in adminItems"
+              v-for="item in filteredAdminItems"
               :key="item.to"
               :to="item.to"
               class="mb-2"
@@ -205,7 +205,7 @@
           </template>
           <template v-if="!user.isUser">
             <v-list-item
-              v-for="item in adminItems"
+              v-for="item in filteredAdminItems"
               :key="item.to"
               :to="item.to"
             >
@@ -265,9 +265,49 @@ const userItems = [
 ]
 
 const adminItems = [
-  { to: '/user', text: '員工管理', icon: 'mdi-account-cog' },
-  { to: '/department', text: '公司部門管理', icon: 'mdi-office-building-cog' }
+  {
+    to: '/user',
+    text: '員工管理',
+    icon: 'mdi-account-cog',
+    roles: ['SUPER_ADMIN', 'HR', 'ACCOUNTANT'] // 只有最高管理者和人資可以看到
+  },
+  {
+    to: '/department',
+    text: '公司部門管理',
+    icon: 'mdi-office-building-cog',
+    roles: ['SUPER_ADMIN', 'HR', 'MANAGER'] // 最高管理者、人資和經理可以看到
+  },
+  {
+    to: '/asset',
+    text: '設備管理',
+    icon: 'mdi-desktop-tower-monitor',
+    roles: ['SUPER_ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
+  }
 ]
+
+// 新增一個計算屬性來過濾可見的選單項目
+const filteredAdminItems = computed(() => {
+  return adminItems.filter(item => {
+    return item.roles.some(role => {
+      switch (role) {
+        case 'SUPER_ADMIN':
+          return user.isSuperAdmin
+        case 'HR':
+          return user.isHR
+        case 'MANAGER':
+          return user.isManager
+        case 'IT':
+          return user.isIT
+        case 'ACCOUNTANT':
+          return user.isAccountant
+        case 'ADMIN':
+          return user.isAdmin
+        default:
+          return false
+      }
+    })
+  })
+})
 
 const avatar = computed(() => {
   return `https://api.multiavatar.com/${user.userId}.png`

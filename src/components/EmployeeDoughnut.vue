@@ -5,7 +5,6 @@
         <v-card
           class="mx-auto pa-8 pb-4"
           width="460"
-          elevation="4"
           rounded="xl"
         >
           <h6 style="font-size: 15px;">
@@ -141,9 +140,6 @@ const initChart = (companyData) => {
             pointStyle: 'circle',
             boxWidth: 6,
             boxHeight: 6
-          },
-          padding: { // 這裡是關鍵，增加圖例與圖表之間的距離
-            top: 80// 增加圖例上方的空間
           }
         },
         tooltip: {
