@@ -1,5 +1,7 @@
 <template>
-  <v-container max-width="2200">
+  <v-container
+    max-width="2200"
+  >
     <v-row>
       <v-col
         v-if="isLgmUp"
@@ -433,7 +435,7 @@
                     sm="12"
                     class="align-self-center py-0"
                   >
-                    住址 :
+                    戶籍地址 :
                   </v-col>
                   <v-col
                     cols="9"
@@ -445,7 +447,7 @@
                       hide-details
                       readonly
                     >
-                      {{ user.address }}
+                      {{ user.permanentAddress }}
                     </v-text-field>
                   </v-col>
                 </v-row>
@@ -519,7 +521,7 @@
                   <v-col
                     cols="3"
                     sm="12"
-                    class="align-self-center py-0"
+                    class="align-self-center py-0 pe-0"
                   >
                     緊急聯絡人 :
                   </v-col>
@@ -642,7 +644,7 @@
 
 <script setup>
 import { definePage } from 'vue-router/auto'
-import { onMounted, computed, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
@@ -682,7 +684,6 @@ const confirmPasswordError = ref('')
 
 const user = useUserStore()
 const createSnackbar = useSnackbar()
-const originalData = ref(null)
 
 const formatToDate = (dateString) => {
   if (!dateString) return ''
@@ -760,26 +761,13 @@ const closePasswordDialog = () => {
   confirmPasswordError.value = ''
 }
 
-const loadProfile = async () => {
-  await user.profile()
-  originalData.value = {
-    name: user.name,
-    englishName: user.englishName,
-    birthDate: user.birthDate,
-    cellphone: user.cellphone,
-    address: user.address
-  }
-}
-
-onMounted(loadProfile)
-
 </script>
 
 <style lang="scss" scoped>
 .v-col-sm-12 {
-  font-size: 14px;
+  font-size: 13px;
   @media (min-width: 600px) {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 </style>

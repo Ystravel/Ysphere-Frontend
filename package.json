@@ -10,6 +10,7 @@
   "dependencies": {
     "@mdi/font": "7.4.47",
     "axios": "^1.7.2",
+    "chart.js": "^4.4.6",
     "core-js": "^3.37.1",
     "pinia-plugin-persistedstate": "^3.2.1",
     "roboto-fontface": "*",

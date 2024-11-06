@@ -251,7 +251,7 @@ import { useRouter } from 'vue-router'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
 
-const { smAndUp, mdAndUp, xlAndUp, name: breakpoint } = useDisplay()
+const { mdAndUp, xlAndUp, name: breakpoint } = useDisplay()
 
 const drawer = ref(true)
 const mdDrawer = ref(false)

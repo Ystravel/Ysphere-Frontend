@@ -2,6 +2,42 @@
   <v-container
     max-width="2500"
   >
+    <!-- 上方圖表與統計資訊區域 -->
+    <v-row
+      v-if="mdAndUp"
+      class="rounded-xl py-0 mt-2 ma-sm-6"
+    >
+      <!-- 左側圖表，固定寬度 -->
+      <v-col
+        cols="auto"
+        class="pa-0"
+      >
+        <v-card
+          class="mx-4"
+          elevation="4"
+          rounded="xl"
+          width="450"
+        >
+          <EmployeeDoughnut ref="chartRef" />
+        </v-card>
+      </v-col>
+
+      <!-- 右側統計資訊，自適應寬度 -->
+      <v-col class="pa-0">
+        <v-card
+          class="mx-4 d-flex"
+          elevation="4"
+          rounded="xl"
+          height="100%"
+        >
+          <!-- 這裡放置您的統計資訊內容 -->
+          <v-card-text class="d-flex justify-center align-center text-h2 opacity-60">
+            待開發
+            <!-- 統計資訊內容 -->
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
     <v-row
       class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10"
     >
@@ -172,7 +208,7 @@
   <v-dialog
     v-model="dialog.open"
     persistent
-    width="800"
+    :width="dialogWidth"
   >
     <v-form
       :disabled="isSubmitting"
@@ -182,41 +218,39 @@
         <v-card-title style="font-size: 18px;">
           {{ dialog.id ? '員工資料編輯' : '新增員工' }}
         </v-card-title>
+        <v-row class="py-4">
+          <v-col
+            cols="5"
+            class="d-flex align-center ps-6"
+          >
+            <v-divider />
+          </v-col>
+          <v-col
+            cols="2"
+            class="text-center"
+            style="letter-spacing: 4px;"
+          >
+            基本資料
+          </v-col>
+          <v-col
+            cols="5"
+            class="d-flex align-center pe-6"
+          >
+            <v-divider />
+          </v-col>
+        </v-row>
         <v-card-text class="mt-3 pa-3">
           <v-row>
-            <v-col cols="6">
-              <v-text-field
-                v-model="email.value.value"
-                :error-messages="email.errorMessage.value"
-                class="mt-2"
-                label="*Email"
-                type="email"
-                variant="outlined"
-                density="compact"
-                clearable
-                autocomplete="username"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                v-model="IDNumber.value.value"
-                :error-messages="IDNumber.errorMessage.value"
-                class="mt-2"
-                label="*身分證號碼"
-                type="text"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="4">
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-text-field
                 v-model="name.value.value"
                 :error-messages="name.errorMessage.value"
-                class="mt-2"
                 label="*姓名"
                 type="text"
                 variant="outlined"
@@ -224,11 +258,16 @@
                 clearable
               />
             </v-col>
-            <v-col cols="4">
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-text-field
                 v-model="englishName.value.value"
                 :error-messages="englishName.errorMessage.value"
-                class="mt-2"
                 label="*英文名"
                 type="text"
                 variant="outlined"
@@ -236,48 +275,30 @@
                 clearable
               />
             </v-col>
-            <v-col cols="4">
-              <v-select
-                v-model="gender.value.value"
-                :items="genderOptions"
-                :error-messages="gender.errorMessage.value"
-                :item-title="genderOptions.title"
-                :item-value="genderOptions.value"
-                label="*性別"
-                variant="outlined"
-                density="compact"
-                class="mt-2"
-              />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="8">
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-text-field
-                v-model="address.value.value"
-                :error-messages="address.errorMessage.value"
-                class="mt-2"
-                label="地址"
+                v-model="IDNumber.value.value"
+                :error-messages="IDNumber.errorMessage.value"
+                label="*身分證號碼"
                 type="text"
                 variant="outlined"
                 density="compact"
                 clearable
               />
             </v-col>
-            <v-col cols="4">
-              <v-text-field
-                v-model="jobTitle.value.value"
-                :error-messages="jobTitle.errorMessage.value"
-                class="mt-2"
-                label="*職稱"
-                type="text"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="4">
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-date-input
                 v-model="birthDate.value.value"
                 :error-messages="birthDate.errorMessage.value"
@@ -288,34 +309,34 @@
                 clearable
               />
             </v-col>
-            <v-col cols="4">
-              <v-date-input
-                v-model="hireDate.value.value"
-                :error-messages="hireDate.errorMessage.value"
-                label="*入職日期"
-                prepend-icon
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-select
+                v-model="gender.value.value"
+                :items="genderOptions"
+                :error-messages="gender.errorMessage.value"
+                :item-title="genderOptions.title"
+                :item-value="genderOptions.value"
+                label="*性別"
                 variant="outlined"
                 density="compact"
-                clearable
               />
             </v-col>
-            <v-col cols="4">
-              <v-date-input
-                v-model="resignationDate.value.value"
-                label="離職日期"
-                prepend-icon
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="4">
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-text-field
                 v-model="cellphone.value.value"
                 :error-messages="cellphone.errorMessage.value"
-                class="mt-2"
                 label="*手機號碼"
                 type="text"
                 variant="outlined"
@@ -323,34 +344,137 @@
                 clearable
               />
             </v-col>
-            <v-col cols="4">
+            <v-col
+              cols="12"
+              sm="6"
+              class="pb-0"
+            >
               <v-text-field
-                v-model="extension.value.value"
-                :error-messages="extension.errorMessage.value"
-                class="mt-2"
-                label="*分機號碼"
+                v-model="email.value.value"
+                :error-messages="email.errorMessage.value"
+                label="*Email"
+                type="email"
+                variant="outlined"
+                density="compact"
+                clearable
+                autocomplete="username"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="permanentAddress.value.value"
+                :error-messages="permanentAddress.errorMessage.value"
+                label="*戶籍地址"
                 type="text"
                 variant="outlined"
                 density="compact"
                 clearable
               />
             </v-col>
-            <v-col cols="4">
+            <v-col
+              cols="12"
+              sm="6"
+              class="pb-0"
+            >
               <v-text-field
-                v-model="printNumber.value.value"
-                :error-messages="printNumber.errorMessage.value"
-                class="mt-2"
-                label="*列印編號"
+                v-model="contactAddress.value.value"
+                :error-messages="contactAddress.errorMessage.value"
+                label="*聯絡地址"
                 type="text"
                 variant="outlined"
                 density="compact"
                 clearable
               />
             </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="4">
+            <v-col
+              v-if="mdAndUp && !lgAndUp"
+              cols="6"
+            />
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="emergencyName.value.value"
+                :error-messages="emergencyName.errorMessage.value"
+                label="*緊急聯絡人姓名"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="emergencyCellphone.value.value"
+                :error-messages="emergencyCellphone.errorMessage.value"
+                label="*緊急聯絡人電話"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="emergencyRelationship.value.value"
+                :error-messages="emergencyRelationship.errorMessage.value"
+                label="緊急聯絡人關係"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="pa-0"
+            >
+              <v-row class="py-4">
+                <v-col
+                  cols="5"
+                  class="d-flex align-center ps-6"
+                >
+                  <v-divider />
+                </v-col>
+                <v-col
+                  cols="2"
+                  class="text-center"
+                  style="letter-spacing: 4px;"
+                >
+                  工作資訊
+                </v-col>
+                <v-col
+                  cols="5"
+                  class="d-flex align-center pe-6"
+                >
+                  <v-divider />
+                </v-col>
+              </v-row>
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-select
                 v-model="selectedCompany"
                 :error-messages="company.errorMessage.value"
@@ -365,7 +489,14 @@
                 />
               </v-select>
             </v-col>
-            <v-col cols="4">
+
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-select
                 v-model="department.value.value"
                 :items="filteredDepartments"
@@ -378,7 +509,49 @@
                 clearable
               />
             </v-col>
-            <v-col cols="4">
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="jobTitle.value.value"
+                :error-messages="jobTitle.errorMessage.value"
+                label="*職稱"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              v-if="user.isHR || user.isSuperAdmin"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="salary.value.value"
+                :error-messages="salary.errorMessage.value"
+                label="*基本薪資"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              v-if="user.isHR || user.isSuperAdmin"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-select
                 v-model="role.value.value"
                 :error-messages="role.errorMessage.value"
@@ -391,10 +564,64 @@
                 clearable
               />
             </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="6">
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-date-input
+                v-model="hireDate.value.value"
+                :error-messages="hireDate.errorMessage.value"
+                label="*入職日期"
+                prepend-icon
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="extension.value.value"
+                :error-messages="extension.errorMessage.value"
+                label="*分機號碼"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="printNumber.value.value"
+                :error-messages="printNumber.errorMessage.value"
+                label="*列印編號"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
               <v-select
                 v-model="employmentStatus.value.value"
                 :error-messages="employmentStatus.errorMessage.value"
@@ -408,13 +635,15 @@
               />
             </v-col>
             <v-col
-              cols="6"
-              class="pt-1"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
             >
               <v-text-field
                 v-model="note.value.value"
                 :error-messages="note.errorMessage.value"
-                class="mt-2"
                 label="備註"
                 type="text"
                 variant="outlined"
@@ -422,40 +651,17 @@
                 clearable
               />
             </v-col>
-          </v-row>
-
-          <v-row>
-            <v-col cols="4">
-              <v-text-field
-                v-model="emergencyName.value.value"
-                :error-messages="emergencyName.errorMessage.value"
-                class="mt-2"
-                label="*緊急聯絡人姓名"
-                type="text"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-            <v-col cols="4">
-              <v-text-field
-                v-model="emergencyCellphone.value.value"
-                :error-messages="emergencyCellphone.errorMessage.value"
-                class="mt-2"
-                label="*緊急聯絡人電話"
-                type="text"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-            <v-col cols="4">
-              <v-text-field
-                v-model="emergencyRelationship.value.value"
-                :error-messages="emergencyRelationship.errorMessage.value"
-                class="mt-2"
-                label="緊急聯絡人關係"
-                type="text"
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-date-input
+                v-model="resignationDate.value.value"
+                label="離職日期"
+                prepend-icon
                 variant="outlined"
                 density="compact"
                 clearable
@@ -464,11 +670,14 @@
           </v-row>
 
           <v-row v-if="!dialog.id">
-            <v-col cols="6">
+            <v-col
+              cols="12"
+              sm="6"
+              class="pb-0"
+            >
               <v-text-field
                 v-model="password.value.value"
                 :error-messages="password.errorMessage.value"
-                class="mt-2"
                 label="*密碼"
                 variant="outlined"
                 density="compact"
@@ -479,11 +688,14 @@
                 @click:append-inner="showPassword = !showPassword"
               />
             </v-col>
-            <v-col cols="6">
+            <v-col
+              cols="12"
+              sm="6"
+              class="pb-0"
+            >
               <v-text-field
                 v-model="passwordConfirm.value.value"
                 :error-messages="passwordConfirm.errorMessage.value"
-                class="mt-2"
                 label="*確認密碼"
                 :type="showPasswordConfirm ? 'text' : 'password'"
                 :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
@@ -531,9 +743,11 @@ import * as yup from 'yup'
 import { definePage } from 'vue-router/auto'
 import { useForm, useField } from 'vee-validate'
 import { useDisplay } from 'vuetify'
+import { useUserStore } from '@/stores/user'
 import { companyNames } from '@/enums/Company'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
+import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
 // import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
 
 definePage({
@@ -548,6 +762,7 @@ definePage({
 const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint } = useDisplay()
 
 const { apiAuth } = useApi()
+const user = useUserStore()
 const createSnackbar = useSnackbar()
 
 const showPassword = ref(false)
@@ -559,7 +774,7 @@ const currentPage = ref(1)
 const headerProps = {
   class: 'header-bg' // 設置自定義的 CSS 類名
 }
-
+const chartRef = ref(null)
 // 公司的選項列表
 const companyList = Object.entries(companyNames).map(([id, name]) => ({
   id: Number(id),
@@ -599,6 +814,14 @@ const genderOptions = ref([
 const dialog = ref({
   open: false,
   id: ''
+})
+
+const dialogWidth = computed(() => {
+  if (xlAndUp.value) return '1200'
+  if (lgAndUp.value) return '900'
+  if (mdAndUp.value) return '800'
+  if (smAndUp.value) return '600'
+  return '100%'
 })
 
 const departments = ref([])
@@ -652,11 +875,13 @@ const openDialog = (item) => {
       englishName: item.englishName,
       gender: item.gender,
       IDNumber: item.IDNumber,
-      address: item.address ?? '', // 使用空值合併運算符
+      permanentAddress: item.permanentAddress,
+      contactAddress: item.contactAddress,
       birthDate: formatToDate(item.birthDate),
       company: item.department?.companyId || 1,
       department: item.department?._id,
       cellphone: item.cellphone,
+      salary: item.salary,
       extension: item.extension,
       printNumber: item.printNumber,
       jobTitle: item.jobTitle,
@@ -676,7 +901,8 @@ const openDialog = (item) => {
     englishName.value.value = item.englishName
     gender.value.value = item.gender
     IDNumber.value.value = item.IDNumber
-    address.value.value = item.address ?? ''
+    permanentAddress.value.value = item.permanentAddress
+    contactAddress.value.value = item.contactAddress
     birthDate.value.value = formatToDate(item.birthDate)
     hireDate.value.value = formatToDate(item.hireDate)
     resignationDate.value.value = formatToDate(item.resignationDate)
@@ -685,6 +911,7 @@ const openDialog = (item) => {
       department.value.value = item.department?._id
     })
     cellphone.value.value = item.cellphone
+    salary.value.value = item.salary
     extension.value.value = item.extension
     printNumber.value.value = item.printNumber
     jobTitle.value.value = item.jobTitle
@@ -718,11 +945,13 @@ const hasChanges = computed(() => {
     englishName: englishName.value.value,
     gender: gender.value.value,
     IDNumber: IDNumber.value.value,
-    address: address.value.value ?? '', // 使用空值合併運算符
+    permanentAddress: permanentAddress.value.value,
+    contactAddress: contactAddress.value.value,
     birthDate: birthDate.value.value,
     company: selectedCompany.value,
     department: department.value.value,
     cellphone: cellphone.value.value,
+    salary: salary.value.value,
     extension: extension.value.value,
     printNumber: printNumber.value.value,
     jobTitle: jobTitle.value.value,
@@ -739,7 +968,7 @@ const hasChanges = computed(() => {
   // 比較每個欄位
   return Object.keys(originalData.value).some(key => {
     // 對於可選欄位，將 null 或 undefined 轉換為空字串
-    if (['address', 'note', 'emergencyRelationship'].includes(key)) {
+    if (['note', 'emergencyRelationship'].includes(key)) {
       const originalValue = originalData.value[key] ?? ''
       const currentValue = currentValues[key] ?? ''
       return originalValue !== currentValue
@@ -797,8 +1026,12 @@ const userSchema = yup.object({
   IDNumber: yup
     .string()
     .required('請輸入身分證號碼'),
-  address: yup
-    .string(),
+  permanentAddress: yup
+    .string()
+    .required('請輸入戶籍地址'),
+  contactAddress: yup
+    .string()
+    .required('請輸入聯絡地址'),
   birthDate: yup
     .date()
     .nullable()
@@ -816,6 +1049,9 @@ const userSchema = yup.object({
     .min(10, '手機號碼需為10位數字')
     .max(10, '手機號碼勿超過10位數字')
     .required('請輸入手機號碼'),
+  salary: yup
+    .string()
+    .required('請輸入基本薪資'),
   extension: yup
     .string()
     .required('請輸入分機號碼'),
@@ -890,11 +1126,13 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     englishName: '',
     gender: '',
     IDNumber: '',
-    address: '',
+    permanentAddress: '',
+    contactAddress: '',
     birthDate: null,
     company: 1,
     department: '',
     cellphone: '',
+    salary: '',
     extension: '',
     printNumber: '',
     jobTitle: '',
@@ -924,10 +1162,8 @@ const name = useField('name')
 const englishName = useField('englishName')
 const gender = useField('gender')
 const IDNumber = useField('IDNumber')
-const address = useField('address', undefined, {
-  validateOnValueUpdate: false,
-  transform: (value) => value ?? '' // 將 null 或 undefined 轉換為空字串
-})
+const permanentAddress = useField('permanentAddress')
+const contactAddress = useField('contactAddress')
 const birthDate = useField('birthDate')
 const company = useField('company')
 // 修改 department 欄位的 useField 設置
@@ -935,6 +1171,7 @@ const department = useField('department', undefined, {
   validateOnValueUpdate: false // 添加這個選項，只在提交時驗證
 })
 const cellphone = useField('cellphone')
+const salary = useField('salary')
 const extension = useField('extension')
 const printNumber = useField('printNumber')
 const jobTitle = useField('jobTitle')
@@ -969,11 +1206,13 @@ const submit = handleSubmit(async (values) => {
         englishName: values.englishName,
         gender: values.gender,
         IDNumber: values.IDNumber,
-        address: values.address,
+        permanentAddress: values.permanentAddress,
+        contactAddress: values.contactAddress,
         birthDate: values.birthDate,
         company: values.company,
         department: values.department,
         cellphone: values.cellphone,
+        salary: values.salary,
         extension: values.extension,
         printNumber: values.printNumber,
         jobTitle: values.jobTitle,
@@ -1003,8 +1242,11 @@ const submit = handleSubmit(async (values) => {
       localStorage.setItem('userTablePage', currentPageNumber.toString())
       await tableLoadItems(false, currentPageNumber)
 
+      // 更新圖表
+      await chartRef.value?.refreshChart()
+
       createSnackbar({
-        text: '使用者更新成功',
+        text: '員工資料更新成功',
         snackbarProps: {
           color: 'teal-darken-1'
         }
@@ -1017,11 +1259,13 @@ const submit = handleSubmit(async (values) => {
         englishName: values.englishName,
         gender: values.gender,
         IDNumber: values.IDNumber,
-        address: values.address,
+        permanentAddress: values.permanentAddress,
+        contactAddress: values.contactAddress,
         birthDate: values.birthDate,
         company: values.company,
         department: values.department,
         cellphone: values.cellphone,
+        salary: values.salary,
         extension: values.extension,
         printNumber: values.printNumber,
         jobTitle: values.jobTitle,
@@ -1040,8 +1284,10 @@ const submit = handleSubmit(async (values) => {
       localStorage.setItem('userTablePage', '1')
       await tableLoadItems(true)
 
+      await chartRef.value?.refreshChart()
+
       createSnackbar({
-        text: '使用者新增成功',
+        text: '員工新增成功',
         snackbarProps: {
           color: 'teal-darken-1'
         }

@@ -13,9 +13,11 @@ export const useUserStore = defineStore('user', () => {
   const name = ref('')
   const englishName = ref('')
   const cellphone = ref('')
+  const salary = ref('')
   const extension = ref('')
   const birthDate = ref('')
-  const address = ref('')
+  const permanentAddress = ref('')
+  const contactAddress = ref('')
   const department = ref('')
   const jobTitle = ref('')
   const role = ref(UserRole.USER)
@@ -88,9 +90,11 @@ export const useUserStore = defineStore('user', () => {
       name.value = data.result.name
       englishName.value = data.result.englishName
       cellphone.value = data.result.cellphone
+      salary.value = data.result.salary
       extension.value = data.result
       birthDate.value = data.result.birthDate
-      address.value = data.result.address
+      permanentAddress.value = data.result.permanentAddress
+      contactAddress.value = data.result.contactAddress
       department.value = data.result.department
       jobTitle.value = data.result.jobTitle
       role.value = data.result.role
@@ -108,9 +112,11 @@ export const useUserStore = defineStore('user', () => {
       name.value = ''
       englishName.value = ''
       cellphone.value = ''
+      salary.value = ''
       extension.value = ''
       birthDate.value = ''
-      address.value = ''
+      permanentAddress.value = ''
+      contactAddress.value = ''
       department.value = ''
       jobTitle.value = ''
       role.value = UserRole.USER
@@ -166,9 +172,11 @@ export const useUserStore = defineStore('user', () => {
     name,
     englishName,
     cellphone,
+    salary,
     extension,
     birthDate,
-    address,
+    permanentAddress,
+    contactAddress,
     department,
     jobTitle,
     role,
