@@ -131,7 +131,7 @@
             class="mt-3 mb-6 text-center text-blue-grey-darken-3"
           >
             <div>
-              《 基本資料 》</ㄎ>
+              《 基本資料 》
             </div>
           </v-col>
           <v-col cols="12">

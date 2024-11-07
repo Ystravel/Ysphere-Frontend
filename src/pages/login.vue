@@ -42,6 +42,20 @@
           </v-col>
           <v-col
             cols="12"
+            class="pt-0 d-flex justify-end"
+          >
+            <v-btn
+              variant="text"
+              color="blue-darken-1"
+              density="compact"
+              class="text-caption"
+              to="./forgotPassword"
+            >
+              忘記密碼？
+            </v-btn>
+          </v-col>
+          <v-col
+            cols="12"
             class="text-center"
           >
             <v-btn
