@@ -68,7 +68,6 @@
             <div>
               <v-btn
                 v-if="mdAndUp"
-
                 color="blue-grey-darken-2"
                 prepend-icon="mdi-pencil"
                 variant="outlined"
@@ -125,11 +124,19 @@
             ><span class="text-red-darken-2">* </span>若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
           </v-col>
           <v-col>
-            <v-divider class="mb-8" />
+            <v-divider />
+          </v-col>
+          <v-col
+            cols="12"
+            class="mt-3 mb-6 text-center text-blue-grey-darken-3"
+          >
+            <div>
+              《 基本資料 》</ㄎ>
+            </div>
           </v-col>
           <v-col cols="12">
             <v-row
-              class="text-blue-grey-darken-3 mb-10"
+              class="text-blue-grey-darken-3"
             >
               <v-col
                 class="py-0 mb-6"
@@ -231,7 +238,7 @@
                     sm="12"
                     class="align-self-center py-0"
                   >
-                    Email :
+                    性別 :
                   </v-col>
                   <v-col
                     cols="9"
@@ -243,7 +250,7 @@
                       hide-details
                       readonly
                     >
-                      {{ user.email }}
+                      {{ user.gender }}
                     </v-text-field>
                   </v-col>
                 </v-row>
@@ -289,6 +296,162 @@
                     sm="12"
                     class="align-self-center py-0"
                   >
+                    Email :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.email }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                md="6"
+                lg="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    戶籍地址 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.permanentAddress }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                md="6"
+                lg="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    聯絡地址 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.contactAddress }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0 pe-0"
+                  >
+                    緊急聯絡人 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.emergencyName }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0 "
+                  >
+                    緊急連絡人電話 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.emergencyCellphone }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+            <v-col
+              cols="12"
+              class="mt-3 mb-6 text-center text-blue-grey-darken-3"
+            >
+              <div>《 任職資料 》</div>
+            </v-col>
+            <v-col cols="12" />
+            <v-row
+              class="text-blue-grey-darken-3"
+            >
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
                     員工編號 :
                   </v-col>
                   <v-col
@@ -306,7 +469,6 @@
                   </v-col>
                 </v-row>
               </v-col>
-
               <v-col
                 class="py-0 mb-6"
                 cols="12"
@@ -376,94 +538,6 @@
                     sm="12"
                     class="align-self-center py-0"
                   >
-                    分機號碼 :
-                  </v-col>
-                  <v-col
-                    cols="9"
-                    sm="12"
-                  >
-                    <v-text-field
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      readonly
-                    >
-                      {{ user.extension.extension }}
-                    </v-text-field>
-                  </v-col>
-                </v-row>
-              </v-col>
-
-              <v-col
-                class="py-0 mb-6"
-                cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-row>
-                  <v-col
-                    cols="3"
-                    sm="12"
-                    class="align-self-center py-0"
-                  >
-                    性別 :
-                  </v-col>
-                  <v-col
-                    cols="9"
-                    sm="12"
-                  >
-                    <v-text-field
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      readonly
-                    >
-                      {{ user.gender }}
-                    </v-text-field>
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-col
-                class="py-0 mb-6"
-                cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-row>
-                  <v-col
-                    cols="3"
-                    sm="12"
-                    class="align-self-center py-0"
-                  >
-                    戶籍地址 :
-                  </v-col>
-                  <v-col
-                    cols="9"
-                    sm="12"
-                  >
-                    <v-text-field
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      readonly
-                    >
-                      {{ user.permanentAddress }}
-                    </v-text-field>
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-col
-                class="py-0 mb-6"
-                cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-row>
-                  <v-col
-                    cols="3"
-                    sm="12"
-                    class="align-self-center py-0"
-                  >
                     入職日期 :
                   </v-col>
                   <v-col
@@ -481,7 +555,35 @@
                   </v-col>
                 </v-row>
               </v-col>
-
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    分機號碼 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.extension.extension }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
               <v-col
                 class="py-0 mb-6"
                 cols="12"
@@ -521,9 +623,9 @@
                   <v-col
                     cols="3"
                     sm="12"
-                    class="align-self-center py-0 pe-0"
+                    class="align-self-center py-0"
                   >
-                    緊急聯絡人 :
+                    領隊證 :
                   </v-col>
                   <v-col
                     cols="9"
@@ -534,38 +636,8 @@
                       density="compact"
                       hide-details
                       readonly
-                    >
-                      {{ user.emergencyName }}
-                    </v-text-field>
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-col
-                class="py-0 mb-6"
-                cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-row>
-                  <v-col
-                    cols="3"
-                    sm="12"
-                    class="align-self-center py-0 "
-                  >
-                    緊急連絡人電話 :
-                  </v-col>
-                  <v-col
-                    cols="9"
-                    sm="12"
-                  >
-                    <v-text-field
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      readonly
-                    >
-                      {{ user.emergencyCellphone }}
-                    </v-text-field>
+                      :value="guideLicenseDisplay"
+                    />
                   </v-col>
                 </v-row>
               </v-col>
@@ -652,12 +724,14 @@ import { companyNames } from '@/enums/Company'
 
 const { mdAndUp, width } = useDisplay()
 const isLgmUp = computed(() => width.value >= 1500)
+const guideLicenseDisplay = computed(() => {
+  return user.guideLicense ? '有' : '無'
+})
 
 definePage({
   meta: {
     title: '個人資料管理 | ystravel',
-    login: true,
-    admin: false
+    login: true
   }
 })
 

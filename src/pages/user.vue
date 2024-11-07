@@ -10,15 +10,9 @@
       <!-- 左側圖表，固定寬度 -->
       <v-col
         cols="auto"
-        class="pa-0"
+        class="ps-4 py-0"
       >
-        <v-card
-          class="mx-4"
-          elevation="4"
-          rounded="xl"
-        >
-          <EmployeeDoughnut ref="chartRef" />
-        </v-card>
+        <EmployeeDoughnut ref="chartRef" />
       </v-col>
 
       <!-- 右側統計資訊，自適應寬度 -->
@@ -56,7 +50,9 @@
                 <v-btn
                   prepend-icon="mdi-account-plus"
                   variant="outlined"
-                  color="cyan-darken-3"
+                  color="blue-grey-darken-2"
+                  :size="buttonSize"
+                  :height="buttonHeight"
                   @click="openDialog(null)"
                 >
                   新增使用者
@@ -228,7 +224,7 @@
           <v-col
             cols="4"
             md="2"
-            class="personal-info-title px-0 "
+            class="personal-info-title px-0 text-blue-grey-darken-2 font-weight-medium"
           >
             基本資料
           </v-col>
@@ -287,6 +283,7 @@
                 v-model="IDNumber.value.value"
                 :error-messages="IDNumber.errorMessage.value"
                 label="*身分證號碼"
+                maxlength="10"
                 type="text"
                 variant="outlined"
                 density="compact"
@@ -339,6 +336,7 @@
                 v-model="cellphone.value.value"
                 :error-messages="cellphone.errorMessage.value"
                 label="*手機號碼"
+                maxlength="10"
                 type="text"
                 variant="outlined"
                 density="compact"
@@ -389,7 +387,23 @@
                 variant="outlined"
                 density="compact"
                 clearable
-              />
+              >
+                <template #append-inner>
+                  <v-tooltip
+                    location="top"
+                    close-delay="200"
+                  >
+                    <template #activator="{ props }">
+                      <v-icon
+                        v-bind="props"
+                        icon="mdi-content-copy"
+                        @click="copyPermanentAddress"
+                      />
+                    </template>
+                    複製戶籍地址
+                  </v-tooltip>
+                </template>
+              </v-text-field>
             </v-col>
             <v-col
               v-if="mdAndUp && !lgAndUp"
@@ -447,7 +461,7 @@
               cols="12"
               class="pa-0"
             >
-              <v-row class="py-4 mb-3">
+              <v-row class="py-4 mb-2">
                 <v-col
                   cols="4"
                   md="5"
@@ -458,7 +472,7 @@
                 <v-col
                   cols="4"
                   md="2"
-                  class="job-info-title"
+                  class="job-info-title text-blue-grey-darken-2 font-weight-medium"
                 >
                   任職資訊
                 </v-col>
@@ -626,6 +640,22 @@
               class="pb-0"
             >
               <v-select
+                v-model="guideLicense.value.value"
+                :items="guideLicenseOptions"
+                :error-messages="guideLicense.errorMessage.value"
+                label="領隊證"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-select
                 v-model="employmentStatus.value.value"
                 :error-messages="employmentStatus.errorMessage.value"
                 :items="employmentStatuses"
@@ -655,6 +685,7 @@
               />
             </v-col>
             <v-col
+              v-if="resignationDate.value.value"
               cols="12"
               sm="6"
               md="4"
@@ -716,7 +747,8 @@
           <v-btn
             color="red-lighten-1"
             variant="outlined"
-            height="32"
+            :height="buttonHeight"
+            :size="buttonSize"
             :loading="isSubmitting"
             @click="closeDialog"
           >
@@ -726,8 +758,9 @@
             color="teal-darken-1"
             variant="outlined"
             type="submit"
-            height="32"
             class="ms-1"
+            :height="buttonHeight"
+            :size="buttonSize"
             :loading="isSubmitting"
             :disabled="isEditing && !hasChanges"
           >
@@ -737,6 +770,12 @@
       </v-card>
     </v-form>
   </v-dialog>
+  <!-- 離職日期對話框取消時重置任職狀態 -->
+  <ResignationDateDialog
+    v-model="resignationDateDialog"
+    @confirm="(date) => { resignationDate.value.value = date }"
+    @cancel="employmentStatus.value.value = '在職'"
+  />
 </template>
 
 <script setup>
@@ -747,17 +786,19 @@ import { definePage } from 'vue-router/auto'
 import { useForm, useField } from 'vee-validate'
 import { useDisplay } from 'vuetify'
 import { useUserStore } from '@/stores/user'
+import UserRole, { roleNames } from '@/enums/UserRole'
 import { companyNames } from '@/enums/Company'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
+import ResignationDateDialog from '../components/ResignationDateDialog.vue'
 // import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
 
 definePage({
   meta: {
     title: '員工管理 | ystravel',
     login: true,
-    admin: true
+    roles: [UserRole.SUPER_ADMIN, UserRole.HR, UserRole.ADMIN]
   }
 })
 
@@ -777,6 +818,15 @@ const currentPage = ref(1)
 const headerProps = {
   class: 'header-bg' // 設置自定義的 CSS 類名
 }
+const resignationDateDialog = ref(false) // 離職日期對話框
+// 按鈕大小斷點設置
+const buttonSize = computed(() => {
+  return smAndUp.value ? 'default' : 'small'
+})
+const buttonHeight = computed(() => {
+  return smAndUp.value ? '35' : '32'
+})
+
 const chartRef = ref(null)
 // 公司的選項列表
 const companyList = Object.entries(companyNames).map(([id, name]) => ({
@@ -788,19 +838,16 @@ const companyList = Object.entries(companyNames).map(([id, name]) => ({
 const selectedCompany = ref(1)
 const filteredDepartments = ref([])
 
-const roles = ref([
-  { title: '一般員工', value: 0 },
-  { title: '一般管理者', value: 1 },
-  { title: '最高管理者', value: 2 },
-  { title: '人資', value: 3 },
-  { title: '經理', value: 4 },
-  { title: '會計', value: 5 },
-  { title: 'IT人員', value: 6 }
-])
+const roles = ref(
+  Object.entries(roleNames).map(([value, title]) => ({
+    value: Number(value),
+    title
+  }))
+)
 
+// 修改 getRoleTitle 函數
 const getRoleTitle = (roleValue) => {
-  const role = roles.value.find((r) => r.value === roleValue)
-  return role ? role.title : '未知'
+  return roleNames[roleValue] || '未知'
 }
 
 const employmentStatuses = ref([
@@ -814,6 +861,12 @@ const genderOptions = ref([
   { title: '男性', value: '男性' },
   { title: '女性', value: '女性' }
 ])
+
+const guideLicenseOptions = ref([
+  { title: '有', value: true },
+  { title: '無', value: false }
+])
+
 const dialog = ref({
   open: false,
   id: ''
@@ -868,7 +921,10 @@ const hasEditPermission = computed(() => {
   return user.isSuperAdmin || user.isHR || user.isAdmin
 })
 
+const isInitializingStatus = ref(false)
+
 const openDialog = (item) => {
+  isInitializingStatus.value = true
   // 檢查是否沒有編輯權限
   if (!hasEditPermission.value) {
     createSnackbar({
@@ -884,6 +940,7 @@ const openDialog = (item) => {
   if (item) {
     isEditing.value = true
     dialog.value.id = item._id
+    employmentStatus.value.value = item.employmentStatus // 將 employmentStatus 賦值
     // 保存當前頁碼到 localStorage
     localStorage.setItem('userTablePage', tablePage.value.toString())
     // 儲存原始數據，對可選欄位使用空字串
@@ -902,6 +959,7 @@ const openDialog = (item) => {
       salary: item.salary,
       extension: item.extension,
       printNumber: item.printNumber,
+      guideLicense: item.guideLicense,
       jobTitle: item.jobTitle,
       role: item.role,
       employmentStatus: item.employmentStatus,
@@ -932,6 +990,7 @@ const openDialog = (item) => {
     salary.value.value = item.salary
     extension.value.value = item.extension
     printNumber.value.value = item.printNumber
+    guideLicense.value.value = item.guideLicense
     jobTitle.value.value = item.jobTitle
     role.value.value = item.role
     employmentStatus.value.value = item.employmentStatus
@@ -949,6 +1008,10 @@ const openDialog = (item) => {
     hireDate.value.value = new Date()
   }
   dialog.value.open = true
+  // 在對話框完全打開之後，將 isInitializingStatus 設置回 false
+  setTimeout(() => {
+    isInitializingStatus.value = false
+  }, 300) // 等待對話框完全開啟
 }
 
 // 添加一個計算屬性來判斷是否有更改
@@ -972,6 +1035,7 @@ const hasChanges = computed(() => {
     salary: salary.value.value,
     extension: extension.value.value,
     printNumber: printNumber.value.value,
+    guideLicense: guideLicense.value.value,
     jobTitle: jobTitle.value.value,
     role: role.value.value,
     employmentStatus: employmentStatus.value.value,
@@ -1013,6 +1077,12 @@ const closeDialog = () => {
   resetForm()
 }
 
+const copyPermanentAddress = () => {
+  if (permanentAddress.value.value) {
+    contactAddress.value.value = permanentAddress.value.value
+  }
+}
+
 // 加載部門列表的函數
 const loadDepartments = async () => {
   try {
@@ -1043,6 +1113,7 @@ const userSchema = yup.object({
     .required('請選擇姓別'),
   IDNumber: yup
     .string()
+    .matches(/^[A-Za-z][12]\d{8}$/, '身分證號碼格式錯誤')
     .required('請輸入身分證號碼'),
   permanentAddress: yup
     .string()
@@ -1076,6 +1147,8 @@ const userSchema = yup.object({
   printNumber: yup
     .string()
     .required('請輸入列印編號'),
+  guideLicense: yup
+    .boolean(),
   jobTitle: yup
     .string()
     .required('請輸入職稱'),
@@ -1153,6 +1226,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     salary: '',
     extension: '',
     printNumber: '',
+    guideLicense: false,
     jobTitle: '',
     role: 0,
     employmentStatus: '在職',
@@ -1192,6 +1266,7 @@ const cellphone = useField('cellphone')
 const salary = useField('salary')
 const extension = useField('extension')
 const printNumber = useField('printNumber')
+const guideLicense = useField('guideLicense')
 const jobTitle = useField('jobTitle')
 const role = useField('role')
 const employmentStatus = useField('employmentStatus')
@@ -1233,6 +1308,7 @@ const submit = handleSubmit(async (values) => {
         salary: values.salary,
         extension: values.extension,
         printNumber: values.printNumber,
+        guideLicense: values.guideLicense,
         jobTitle: values.jobTitle,
         role: values.role,
         employmentStatus: values.employmentStatus,
@@ -1286,6 +1362,7 @@ const submit = handleSubmit(async (values) => {
         salary: values.salary,
         extension: values.extension,
         printNumber: values.printNumber,
+        guideLicense: values.guideLicense,
         jobTitle: values.jobTitle,
         role: values.role,
         employmentStatus: values.employmentStatus,
@@ -1471,6 +1548,16 @@ watch(selectedCompany, async (newVal) => {
 watch(company.value, (newVal) => {
   if (newVal && newVal.value !== null && newVal.value !== undefined) {
     selectedCompany.value = newVal.value
+  }
+})
+
+watch(employmentStatus.value, (newVal) => {
+  if (isInitializingStatus.value) return // 初始化期間跳過監聽
+  if (newVal === '離職') {
+    resignationDateDialog.value = true
+  } else {
+    resignationDateDialog.value = false
+    resignationDate.value.value = null
   }
 })
 // 初始化時載入部門列表

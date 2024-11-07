@@ -17,8 +17,9 @@ export function registerPlugins (app) {
       snackbar: {
         showCloseButton: false,
         snackbarProps: {
-          timeout: 2000,
-          variant: 'flat'
+          timeout: 3000,
+          location: 'top',
+          rounded: 'lg'
         }
       }
     })

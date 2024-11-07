@@ -7,7 +7,7 @@
         cols="12"
         class="ps-3 pb-6"
       >
-        <h3>部門管理</h3>
+        <h3>公司部門管理</h3>
       </v-col>
       <v-col cols="12">
         <v-row>
@@ -17,7 +17,7 @@
                 <v-btn
                   prepend-icon="mdi-account-multiple-plus"
                   variant="outlined"
-                  color="cyan-darken-3"
+                  color="blue-grey-darken-2"
                   @click="openDepartmentDialog"
                 >
                   新增部門
@@ -186,15 +186,16 @@ import debounce from 'lodash/debounce'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { definePage } from 'vue-router/auto'
+import UserRole from '../enums/UserRole'
 import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
 
 definePage({
   meta: {
-    title: '公司部門管理 | ystravel',
+    title: '員工管理 | ystravel',
     login: true,
-    admin: true
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
   }
 })
 

@@ -26,6 +26,7 @@ export const useUserStore = defineStore('user', () => {
   const emergencyName = ref('')
   const emergencyCellphone = ref('')
   const printNumber = ref('')
+  const guideLicense = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
   const isUser = computed(() => role.value === UserRole.USER)
@@ -103,6 +104,7 @@ export const useUserStore = defineStore('user', () => {
       emergencyName.value = data.result.emergencyName
       emergencyCellphone.value = data.result.emergencyCellphone
       printNumber.value = data.result.printNumber
+      guideLicense.value = data.result.guideLicense
     } catch (error) {
       console.log(error)
       token.value = ''
@@ -125,6 +127,7 @@ export const useUserStore = defineStore('user', () => {
       emergencyName.value = ''
       emergencyCellphone.value = ''
       printNumber.value = ''
+      guideLicense.value = ''
     }
   }
 
@@ -185,6 +188,7 @@ export const useUserStore = defineStore('user', () => {
     emergencyName,
     emergencyCellphone,
     printNumber,
+    guideLicense,
     isLogin,
     isUser,
     isAdmin,

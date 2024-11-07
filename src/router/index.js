@@ -51,7 +51,8 @@ router.beforeEach(async (to, from, next) => {
     next('/')
   } else if (to.meta.login && !user.isLogin) {
     next('/login')
-  } else if (to.meta.admin && user.isUser) {
+  } else if (to.meta.roles && !to.meta.roles.includes(user.role)) {
+    // 檢查使用者角色是否匹配路由的角色要求
     next('/')
   } else {
     next()

@@ -4,8 +4,22 @@
   font-size: 20px;
 }
 
-.v-field__input {
-  font-size: 14px;
+.v-field .v-field__input {
+    font-size: 13px;
+    height: 36px !important;
+    padding-top: 4px !important;
+  @media #{map-get(vuetify.$display-breakpoints, 'sm-and-up')} {
+    font-size: 14px;
+    height: 40px !important;
+    padding-top: 8px !important;
+  }
+}
+
+.v-field__field {
+  height: 36px !important;
+  @media #{map-get(vuetify.$display-breakpoints, 'sm-and-up')} {
+    height: 40px !important;
+  }
 }
 
 .v-card-title {
@@ -18,10 +32,10 @@ h1,h2,h3,h4,h5,h6 {
 
 .v-data-table {
   .v-field__field {
-    height: 32px ;
+    height: 32px !important;
   }
   .v-field__input {
-    padding-top: 2px ;
+    padding-top: 2px !important;
   }
   .v-data-table-footer {
     margin-top: 16px ;

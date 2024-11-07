@@ -4,7 +4,8 @@
       <v-col cols="12">
         <v-card
           class="mx-auto pa-8 pb-4"
-          width="460"
+          width="400"
+          elevation="4"
           rounded="xl"
         >
           <h6 style="font-size: 15px;">
@@ -177,7 +178,6 @@ onUnmounted(() => {
   box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
 }
 
-/* 新增的樣式 */
 .chart-container {
   height: 320px;
 }

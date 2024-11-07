@@ -148,13 +148,14 @@
       border="0"
       class=" rounded-be-xl"
     >
-      <v-list class="h-100 d-flex flex-column justify-space-between pa-0">
+      <v-list class="h-100 pa-0">
         <div>
           <v-card
             elevation="0"
             rounded="0"
             height="172"
             class="pa-0 card-bg"
+            to="/profile"
           >
             <div class="card-blur pt-2 pb-4 px-2">
               <v-card-title class="ps-5 pb-3">
@@ -196,6 +197,7 @@
               v-for="userItem in userItems"
               :key="userItem.to"
               :to="userItem.to"
+              class="mt-4"
             >
               <template #prepend>
                 <v-icon>{{ userItem.icon }}</v-icon>
@@ -203,11 +205,13 @@
               <v-list-item-title>{{ userItem.text }}</v-list-item-title>
             </v-list-item>
           </template>
+          <v-divider class="mt-4" />
           <template v-if="!user.isUser">
             <v-list-item
               v-for="item in filteredAdminItems"
               :key="item.to"
               :to="item.to"
+              class="mt-4"
             >
               <template #prepend>
                 <v-icon>{{ item.icon }}</v-icon>
@@ -216,10 +220,12 @@
             </v-list-item>
           </template>
         </div>
+        <v-divider class="mt-4" />
         <div>
           <v-list-item
             v-if="!user.isLogin"
             to="/login"
+            class="mt-4"
           >
             <template #prepend>
               <v-icon>mdi-account-arrow-left</v-icon>
@@ -228,6 +234,7 @@
           </v-list-item>
           <v-list-item
             v-if="user.isLogin"
+            class="mt-4"
             @click="logout"
           >
             <template #prepend>
@@ -269,19 +276,19 @@ const adminItems = [
     to: '/user',
     text: '員工管理',
     icon: 'mdi-account-cog',
-    roles: ['SUPER_ADMIN', 'HR', 'ACCOUNTANT'] // 只有最高管理者和人資可以看到
+    roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT'] // 只有最高管理者和人資可以看到
   },
   {
     to: '/department',
     text: '公司部門管理',
     icon: 'mdi-office-building-cog',
-    roles: ['SUPER_ADMIN', 'HR', 'MANAGER'] // 最高管理者、人資和經理可以看到
+    roles: ['SUPER_ADMIN', 'ADMIN'] // 最高管理者、人資和經理可以看到
   },
   {
     to: '/asset',
     text: '設備管理',
     icon: 'mdi-desktop-tower-monitor',
-    roles: ['SUPER_ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
+    roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
   }
 ]
 
