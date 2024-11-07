@@ -1,7 +1,7 @@
 <template>
   <div
     id="background"
-    class="fill-height d-flex justify-center align-center"
+    class="d-flex justify-center align-center"
   >
     <v-container
       class="forgot-password-wrapper pa-0"
@@ -16,12 +16,12 @@
             cols="12"
             class="text-center mt-4"
           >
-            <span class="text-h6">忘記密碼</span>
+            忘記密碼
           </v-col>
 
           <v-col cols="12">
-            <div class="text-body-2 text-medium-emphasis mb-4">
-              請輸入您的電子郵件，我們將寄送密碼重置連結給您。
+            <div class="text-body-2 text-medium-emphasis my-4">
+              請輸入您的 Email ，將寄送密碼重置連結給您。
             </div>
             <v-text-field
               v-model="email.value.value"
@@ -35,7 +35,6 @@
 
           <v-col
             cols="12"
-            class="text-center"
           >
             <v-btn
               block
@@ -50,15 +49,14 @@
 
           <v-col
             cols="12"
-            class="text-center pb-6"
+            class="text-center pb-2"
           >
-            <v-btn
-              variant="text"
-              color="grey-darken-1"
+            <router-link
+              class="text-subtitle-2 text-grey-darken-1"
               to="/login"
             >
               返回登入
-            </v-btn>
+            </router-link>
           </v-col>
         </v-row>
       </v-form>
@@ -143,7 +141,7 @@ const submit = handleSubmit(async (values) => {
   font-size: 20px;
   font-weight: 600;
   box-shadow: 0 0 20px 4px rgba(0,0,0,0.2);
-  min-height: 380px;
+  min-height: 340px;
   display: flex;
   flex-direction: column;
 }

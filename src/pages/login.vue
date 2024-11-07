@@ -5,8 +5,8 @@
     class="d-flex justify-center align-center"
   >
     <v-container
-      width="360"
-      height="470"
+      width="380"
+      height="480"
       class="login-wrapper"
     >
       <v-form
@@ -28,7 +28,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12">
+          <v-col
+            cols="12"
+            class="pb-1"
+          >
             <v-text-field
               v-model="password.value.value"
               :error-messages="password.errorMessage.value"
@@ -42,17 +45,22 @@
           </v-col>
           <v-col
             cols="12"
-            class="pt-0 d-flex justify-end"
+            class="ps-2 pe-4 py-0 d-flex justify-space-between align-center"
           >
-            <v-btn
-              variant="text"
-              color="blue-darken-1"
+            <v-checkbox
+              v-model="rememberMe"
+              label="記住我"
+              hide-details
               density="compact"
+              color="grey-darken-2"
               class="text-caption"
+            />
+            <router-link
+              class="text-caption text-blue-grey-darken-2"
               to="./forgotPassword"
             >
               忘記密碼？
-            </v-btn>
+            </router-link>
           </v-col>
           <v-col
             cols="12"
@@ -71,15 +79,7 @@
           <v-col
             cols="12"
             class="py-0 ps-2"
-          >
-            <v-checkbox
-              v-model="rememberMe"
-              label="記住我"
-              hide-details
-              density="compact"
-              color="grey-darken-2"
-            />
-          </v-col>
+          />
           <v-col>
             <v-row>
               <v-col cols="5">
@@ -307,7 +307,9 @@ onMounted(async () => {
   font-weight: 600;
   box-shadow: 0 0 20px 4px rgba(0,0,0,0.2);
 }
-
+.v-checkbox :deep(.v-label) {
+  font-size: 14px;
+}
 </style>
 
 <route lang="yaml">
