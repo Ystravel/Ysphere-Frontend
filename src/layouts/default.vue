@@ -69,7 +69,7 @@
                   style="box-shadow: 0 0 10px rgba(255,255,255,1);"
                 >
                   <v-img
-                    :src="avatar"
+                    :src="user.avatar"
                   />
                 </v-avatar>
               </v-card-title>
@@ -111,6 +111,7 @@
             </v-list-item>
           </template>
           <v-divider
+            v-if="!user.isUser"
             color="blue-grey-darken-4"
             opacity="0.3"
             class="my-2"
@@ -164,7 +165,7 @@
                   style="box-shadow: 0 0 10px rgba(255,255,255,1);"
                 >
                   <v-img
-                    :src="avatar"
+                    :src="user.avatar"
                   />
                 </v-avatar>
               </v-card-title>
@@ -205,7 +206,10 @@
               <v-list-item-title>{{ userItem.text }}</v-list-item-title>
             </v-list-item>
           </template>
-          <v-divider class="mt-4" />
+          <v-divider
+            v-if="!user.isUser"
+            class="mt-4"
+          />
           <template v-if="!user.isUser">
             <v-list-item
               v-for="item in filteredAdminItems"
@@ -316,10 +320,6 @@ const filteredAdminItems = computed(() => {
   })
 })
 
-const avatar = computed(() => {
-  return `https://api.multiavatar.com/${user.userId}.png`
-})
-
 // 監聽螢幕尺寸變化
 watch(() => breakpoint.value, (newBreakpoint) => {
   if (xlAndUp.value) {
@@ -357,7 +357,7 @@ const logout = async () => {
   createSnackbar({
     text: '登出成功',
     snackbarProps: {
-      color: 'teal-darken-1'
+      color: 'teal-lighten-1'
     }
   })
 

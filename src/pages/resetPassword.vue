@@ -16,7 +16,7 @@
             cols="12"
             class="text-center mt-4"
           >
-            <span class="text-h6">重置密碼</span>
+            重置密碼
           </v-col>
 
           <v-col cols="12">
@@ -51,9 +51,9 @@
 
           <v-col
             cols="12"
-            class="pb-6"
+            class="pb-8"
           >
-            <div class="text-body-2 text-medium-emphasis mb-4">
+            <div class="text-body-2 text-medium-emphasis mb-6">
               新密碼必須至少8個字元
             </div>
             <v-btn
@@ -183,11 +183,9 @@ const submit = async () => {
   background: rgba(255,255,255,0.85);
   backdrop-filter: blur(10px);
   border-radius: 20px;
-  font-family: "微軟正黑體";
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   box-shadow: 0 0 20px 4px rgba(0,0,0,0.2);
-  min-height: 420px;
   display: flex;
   flex-direction: column;
 }
@@ -199,7 +197,4 @@ const submit = async () => {
   flex-direction: column;
 }
 
-.v-row {
-  flex: 1;
-}
 </style>

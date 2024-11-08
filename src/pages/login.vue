@@ -197,7 +197,7 @@ const googleLoginCallback = async (response) => {
     if (result === '登入成功') {
       createSnackbar({
         text: '登入成功',
-        snackbarProps: { color: 'teal-darken-1' }
+        snackbarProps: { color: 'teal-lighten-1' }
       })
       router.push('/user')
     } else {
@@ -227,7 +227,7 @@ const submit = handleSubmit(async (values) => {
     createSnackbar({
       text: result,
       snackbarProps: {
-        color: 'teal-darken-1'
+        color: 'teal-lighten-1'
       }
     })
     router.push('/user')
@@ -280,7 +280,7 @@ onMounted(async () => {
     createSnackbar({
       text: '登入成功',
       snackbarProps: {
-        color: 'teal-darken-1'
+        color: 'teal-lighten-1'
       }
     })
     router.push('/')
@@ -296,6 +296,7 @@ onMounted(async () => {
   height: 100%;
   background-image: url(/src/assets/image/bg_login.png);
   background-size: cover;
+  background-position: center;
 }
 
 .login-wrapper {

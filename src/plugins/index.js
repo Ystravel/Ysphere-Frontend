@@ -15,7 +15,8 @@ export function registerPlugins (app) {
     .use(vuetify)
     .use(VuetifyUseDialog, {
       snackbar: {
-        showCloseButton: false,
+        showCloseButton: true,
+        closeButtonText: 'X',
         snackbarProps: {
           timeout: 3000,
           location: 'top',

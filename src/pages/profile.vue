@@ -7,7 +7,7 @@
         v-if="isLgmUp"
         md="3"
       >
-        <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-10">
+        <v-row class="elevation-4 rounded-xl pt-8 pb-10 px-1 px-sm-10 mt-2 mt-sm-10 mx-10">
           <v-card
             width="100%"
             elevation="0"
@@ -18,7 +18,7 @@
                   size="100"
                 >
                   <v-img
-                    :src="avatar"
+                    :src="user.avatar"
                   />
                 </v-avatar>
               </v-col>
@@ -39,13 +39,7 @@
                 >
                   {{ user.jobTitle }}
                 </div>
-                <v-btn
-                  prepend-icon="mdi-camera-outline"
-                  color="blue-grey-darken-2"
-                  variant="outlined"
-                >
-                  更換大頭貼
-                </v-btn>
+                <FileUploadButton />
               </v-col>
             </v-row>
           </v-card>
@@ -54,7 +48,7 @@
       <v-col
         xl="9"
       >
-        <v-row class="elevation-4 rounded-xl pt-8 pb-0 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 ms-xl-0 me-xl-10">
+        <v-row class="elevation-4 rounded-xl pt-8 pb-6 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 ms-xl-0 me-xl-10 mb-4">
           <v-col
             cols="12"
             class="d-flex justify-space-between"
@@ -66,53 +60,40 @@
               ><span class="text-red-darken-2">* </span>若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
             </h3>
             <div>
-              <v-btn
-                v-if="mdAndUp"
-                color="blue-grey-darken-2"
-                prepend-icon="mdi-pencil"
-                variant="outlined"
-                height="36"
-                @click="showPasswordDialog = true"
-              >
-                修改密碼
-              </v-btn>
-              <v-btn
-                v-if="!mdAndUp"
-                color="blue-grey-darken-2"
-                prepend-icon="mdi-pencil"
-                variant="outlined"
-                size="small"
-                height="32"
-                @click="showPasswordDialog = true"
-              >
-                修改密碼
-              </v-btn>
-              <v-btn
-                v-if="!mdAndUp"
-                color="blue-grey-darken-2"
-                class="ms-4"
-                size="24"
-                elevation="0"
-                rounded="xl"
-              >
-                <v-icon
-                  icon="mdi-camera-outline"
-                  size="14"
-                />
-              </v-btn>
-              <v-btn
-                v-if="!isLgmUp && mdAndUp"
-                color="blue-grey-darken-2"
-                class="ms-4"
-                size="28"
-                elevation="0"
-                rounded="xl"
-              >
-                <v-icon
-                  icon="mdi-camera-outline"
-                  size="16"
-                />
-              </v-btn>
+              <v-row>
+                <v-col>
+                  <v-btn
+                    v-if="mdAndUp"
+                    color="blue-grey-darken-2"
+                    prepend-icon="mdi-pencil"
+                    variant="outlined"
+                    height="36"
+                    @click="showPasswordDialog = true"
+                  >
+                    修改密碼
+                  </v-btn>
+                </v-col>
+                <v-col
+                  v-if="!mdAndUp"
+                >
+                  <v-btn
+                    color="blue-grey-darken-2"
+                    prepend-icon="mdi-pencil"
+                    variant="outlined"
+                    size="small"
+                    height="32"
+                    @click="showPasswordDialog = true"
+                  >
+                    修改密碼
+                  </v-btn>
+                </v-col>
+                <v-col
+                  v-if="!isLgmUp"
+                  class="d-flex align-center"
+                >
+                  <FileUploadButton />
+                </v-col>
+              </v-row>
             </div>
           </v-col>
           <v-col
@@ -130,7 +111,7 @@
             cols="12"
             class="mt-3 mb-6 text-center text-blue-grey-darken-3"
           >
-            <div>
+            <div class="profile-subtitle">
               《 基本資料 》
             </div>
           </v-col>
@@ -434,7 +415,9 @@
               cols="12"
               class="mt-3 mb-6 text-center text-blue-grey-darken-3"
             >
-              <div>《 任職資料 》</div>
+              <div class="profile-subtitle">
+                《 任職資料 》
+              </div>
             </v-col>
             <v-col cols="12" />
             <v-row
@@ -579,7 +562,7 @@
                       hide-details
                       readonly
                     >
-                      {{ user.extension.extension }}
+                      {{ user.extNumber }}
                     </v-text-field>
                   </v-col>
                 </v-row>
@@ -721,6 +704,7 @@ import { useUserStore } from '@/stores/user'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
 import { companyNames } from '@/enums/Company'
+import FileUploadButton from '@/components/FileUploadButton.vue'
 
 const { mdAndUp, width } = useDisplay()
 const isLgmUp = computed(() => width.value >= 1500)
@@ -738,10 +722,6 @@ definePage({
 const getCompanyName = (companyId) => {
   return companyNames[companyId] || '未知公司'
 }
-
-const avatar = computed(() => {
-  return `https://api.multiavatar.com/${user.userId}.png`
-})
 
 const showPasswordDialog = ref(false)
 const isChangingPassword = ref(false)
@@ -809,7 +789,7 @@ const handlePasswordChange = async () => {
     // 使用回傳的訊息
     createSnackbar({
       text: result.message,
-      snackbarProps: { color: 'teal-darken-1' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
 
     closePasswordDialog()
@@ -838,9 +818,19 @@ const closePasswordDialog = () => {
 </script>
 
 <style lang="scss" scoped>
+@import '../styles/settings.scss';
+
 .v-col-sm-12 {
   font-size: 13px;
   @media (min-width: 600px) {
+    font-size: 15px;
+  }
+}
+
+.profile-subtitle {
+  font-size: 14px;
+  font-weight: 500;
+  @include sm {
     font-size: 15px;
   }
 }

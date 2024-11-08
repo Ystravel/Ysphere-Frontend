@@ -14,7 +14,7 @@ export const useUserStore = defineStore('user', () => {
   const englishName = ref('')
   const cellphone = ref('')
   const salary = ref('')
-  const extension = ref('')
+  const extNumber = ref('')
   const birthDate = ref('')
   const permanentAddress = ref('')
   const contactAddress = ref('')
@@ -27,6 +27,7 @@ export const useUserStore = defineStore('user', () => {
   const emergencyCellphone = ref('')
   const printNumber = ref('')
   const guideLicense = ref('')
+  const avatar = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
   const isUser = computed(() => role.value === UserRole.USER)
@@ -42,12 +43,31 @@ export const useUserStore = defineStore('user', () => {
     try {
       const { data } = await api.post('/user/login', values)
       token.value = data.result.token
-      email.value = data.result.email
-      role.value = data.result.role
-      userId.value = data.result.userId
-      jobTitle.value = data.result.jobTitle
       name.value = data.result.name
+      englishName.value = data.result.englishName
+      birthDate.value = data.result.birthDate
+      gender.value = data.result.gender
+      cellphone.value = data.result.cellphone
+      email.value = data.result.email
+      permanentAddress.value = data.result.permanentAddress
+      contactAddress.value = data.result.contactAddress
+      emergencyName.value = data.result.emergencyName
+      emergencyCellphone.value = data.result.emergencyCellphone
+      userId.value = data.result.userId
+      department.value = {
+        _id: data.result.department._id,
+        name: data.result.department.name,
+        companyId: data.result.department.companyId
+      }
+      hireDate.value = data.result.hireDate
+      extNumber.value = data.result.extNumber
+      printNumber.value = data.result.printNumber
+      guideLicense.value = data.result.guideLicense
+      role.value = data.result.role
+      jobTitle.value = data.result.jobTitle
+      avatar.value = data.result.avatar
       console.log(data.result)
+      await profile()
       return '登入成功'
     } catch (error) {
       console.log(error)
@@ -65,11 +85,29 @@ export const useUserStore = defineStore('user', () => {
 
       if (response.data.success) {
         token.value = response.data.result.token
-        email.value = response.data.result.email
-        role.value = response.data.result.role
-        userId.value = response.data.result.userId
         name.value = response.data.result.name
+        englishName.value = response.data.result.englishName
+        birthDate.value = response.data.result.birthDate
+        gender.value = response.data.result.gender
+        cellphone.value = response.data.result.cellphone
+        email.value = response.data.result.email
+        permanentAddress.value = response.data.result.permanentAddress
+        contactAddress.value = response.data.result.contactAddress
+        emergencyName.value = response.data.result.emergencyName
+        emergencyCellphone.value = response.data.result.emergencyCellphone
+        userId.value = response.data.result.userId
+        department.value = {
+          _id: response.data.result.department._id,
+          name: response.data.result.department.name,
+          companyId: response.data.result.department.companyId
+        }
+        hireDate.value = response.data.result.hireDate
+        extNumber.value = response.data.result.extNumber
+        printNumber.value = response.data.result.printNumber
+        guideLicense.value = response.data.result.guideLicense
+        role.value = response.data.result.role
         jobTitle.value = response.data.result.jobTitle
+        avatar.value = response.data.result.avatar
         return '登入成功'
       } else {
         throw new Error(response.data.message)
@@ -92,11 +130,15 @@ export const useUserStore = defineStore('user', () => {
       englishName.value = data.result.englishName
       cellphone.value = data.result.cellphone
       salary.value = data.result.salary
-      extension.value = data.result
+      extNumber.value = data.result.extNumber
       birthDate.value = data.result.birthDate
       permanentAddress.value = data.result.permanentAddress
       contactAddress.value = data.result.contactAddress
-      department.value = data.result.department
+      department.value = {
+        _id: data.result.department._id,
+        name: data.result.department.name,
+        companyId: data.result.department.companyId
+      }
       jobTitle.value = data.result.jobTitle
       role.value = data.result.role
       userId.value = data.result.userId
@@ -105,6 +147,7 @@ export const useUserStore = defineStore('user', () => {
       emergencyCellphone.value = data.result.emergencyCellphone
       printNumber.value = data.result.printNumber
       guideLicense.value = data.result.guideLicense
+      avatar.value = data.result.avatar
     } catch (error) {
       console.log(error)
       token.value = ''
@@ -115,7 +158,7 @@ export const useUserStore = defineStore('user', () => {
       englishName.value = ''
       cellphone.value = ''
       salary.value = ''
-      extension.value = ''
+      extNumber.value = ''
       birthDate.value = ''
       permanentAddress.value = ''
       contactAddress.value = ''
@@ -128,6 +171,7 @@ export const useUserStore = defineStore('user', () => {
       emergencyCellphone.value = ''
       printNumber.value = ''
       guideLicense.value = ''
+      avatar.value = ''
     }
   }
 
@@ -153,6 +197,24 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 添加更新頭像的方法
+  const updateAvatar = async (formData) => {
+    try {
+      const { data } = await apiAuth.patch('/user/avatar', formData)
+      if (!data.success) {
+        throw new Error(data.message || '頭像更新失敗')
+      }
+      avatar.value = data.result
+      return {
+        success: true,
+        message: '頭像更新成功'
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || '頭像更新失敗'
+      throw new Error(errorMessage)
+    }
+  }
+
   const logout = async () => {
     try {
       await apiAuth.delete('/user/logout')
@@ -161,10 +223,26 @@ export const useUserStore = defineStore('user', () => {
     }
     token.value = ''
     email.value = ''
-    jobTitle.value = ''
+    IDNumber.value = ''
+    gender.value = ''
     name.value = ''
+    englishName.value = ''
+    cellphone.value = ''
+    salary.value = ''
+    extNumber.value = ''
+    birthDate.value = ''
+    permanentAddress.value = ''
+    contactAddress.value = ''
+    department.value = ''
+    jobTitle.value = ''
     role.value = ''
     userId.value = ''
+    hireDate.value = ''
+    emergencyName.value = ''
+    emergencyCellphone.value = ''
+    printNumber.value = ''
+    guideLicense.value = ''
+    avatar.value = ''
   }
 
   return {
@@ -176,7 +254,7 @@ export const useUserStore = defineStore('user', () => {
     englishName,
     cellphone,
     salary,
-    extension,
+    extNumber,
     birthDate,
     permanentAddress,
     contactAddress,
@@ -189,6 +267,7 @@ export const useUserStore = defineStore('user', () => {
     emergencyCellphone,
     printNumber,
     guideLicense,
+    avatar,
     isLogin,
     isUser,
     isAdmin,
@@ -201,7 +280,8 @@ export const useUserStore = defineStore('user', () => {
     logout,
     profile,
     googleLogin,
-    changePassword
+    changePassword,
+    updateAvatar
   }
 }, {
   persist: {

@@ -118,7 +118,7 @@ const submit = handleSubmit(async (values) => {
   } catch (error) {
     createSnackbar({
       text: error?.response?.data?.message || '發送重置郵件失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
 })
@@ -137,9 +137,8 @@ const submit = handleSubmit(async (values) => {
   background: rgba(255,255,255,0.85);
   backdrop-filter: blur(10px);
   border-radius: 20px;
-  font-family: "微軟正黑體";
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   box-shadow: 0 0 20px 4px rgba(0,0,0,0.2);
   min-height: 340px;
   display: flex;

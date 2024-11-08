@@ -1,7 +1,7 @@
 <template>
   <v-container max-width="1400">
     <v-row
-      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10"
+      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4"
     >
       <v-col
         cols="12"
@@ -24,7 +24,12 @@
                 </v-btn>
               </v-col>
               <v-col
-                cols="3"
+                v-if="!smAndUp"
+                cols="6"
+              />
+              <v-col
+                cols="6"
+                sm="3"
                 lg="2"
               >
                 <v-select
@@ -41,7 +46,8 @@
                 />
               </v-col>
               <v-col
-                cols="3"
+                cols="6"
+                sm="3"
                 lg="2"
                 class="d-flex justify-end"
               >
@@ -82,28 +88,48 @@
                   <td>{{ item.name }}</td>
                   <td>{{ item.memberCount || 0 }} 人</td>
                   <td class="text-center">
-                    <v-btn
-                      icon
-                      color="light-blue-darken-4"
-                      variant="plain"
-                      width="28"
-                      height="40"
-                      :ripple="false"
-                      @click="openEditDepartment(item)"
-                    >
-                      <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      color="red-lighten-1"
-                      variant="plain"
-                      width="28"
-                      height="40"
-                      :ripple="false"
-                      @click="confirmDeleteDepartment(item)"
-                    >
-                      <v-icon>mdi-delete</v-icon>
-                    </v-btn>
+                    <v-row class="d-flex justify-center my-1">
+                      <v-col
+                        cols="6"
+                        sm="4"
+                        md="3"
+                        lg="2"
+                        class="pa-0"
+                      >
+                        <v-btn
+                          icon
+                          color="light-blue-darken-4"
+                          variant="plain"
+                          width="28"
+                          height="32"
+                          :size="buttonSize"
+                          :ripple="false"
+                          @click="openEditDepartment(item)"
+                        >
+                          <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                      </v-col>
+                      <v-col
+                        cols="6"
+                        sm="4"
+                        md="3"
+                        lg="2"
+                        class="pa-0"
+                      >
+                        <v-btn
+                          icon
+                          color="red-lighten-1"
+                          variant="plain"
+                          width="28"
+                          height="32"
+                          :size="buttonSize"
+                          :ripple="false"
+                          @click="confirmDeleteDepartment(item)"
+                        >
+                          <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                      </v-col>
+                    </v-row>
                   </td>
                 </tr>
               </template>
@@ -181,12 +207,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import debounce from 'lodash/debounce'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { definePage } from 'vue-router/auto'
 import UserRole from '../enums/UserRole'
+import { useDisplay } from 'vuetify'
 import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
@@ -198,9 +225,13 @@ definePage({
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
   }
 })
-
+const { smAndUp } = useDisplay()
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
+
+const buttonSize = computed(() => {
+  return smAndUp.value ? 'default' : 'small'
+})
 
 // 公司選項
 const companyOptions = [
@@ -229,9 +260,9 @@ const tablePage = ref(1)
 const tableItemsLength = ref(0)
 const tableSearch = ref('')
 const tableHeaders = [
-  { title: '公司', key: 'companyId', align: 'start', sortable: true },
-  { title: '部門', key: 'name', align: 'start', sortable: true },
-  { title: '人數(在職)', key: 'memberCount', align: 'start', sortable: true },
+  { title: '公司', key: 'companyId', align: 'start', width: '28%', sortable: true },
+  { title: '部門', key: 'name', align: 'start', width: '32%', sortable: true },
+  { title: '人數', key: 'memberCount', align: 'start', sortable: true },
   { title: '操作', key: 'actions', align: 'center', sortable: false }
 ]
 
@@ -330,7 +361,7 @@ const submitDepartment = handleSubmit(async (values) => {
     closeDialog()
     createSnackbar({
       text: `部門${dialog.value.id ? '修改' : '新增'}成功`,
-      snackbarProps: { color: 'teal-darken-1' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
   } catch (error) {
     const errorMessage = error?.response?.data?.message || '操作失敗'
@@ -350,7 +381,7 @@ const deleteDepartment = async () => {
     await loadDepartments()
     createSnackbar({
       text: '部門刪除成功',
-      snackbarProps: { color: 'teal-darken-1' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
   } catch (error) {
     createSnackbar({

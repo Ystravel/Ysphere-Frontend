@@ -32,7 +32,7 @@
       </v-col>
     </v-row>
     <v-row
-      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10"
+      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4"
     >
       <v-col
         cols="12"
@@ -51,8 +51,6 @@
                   prepend-icon="mdi-account-plus"
                   variant="outlined"
                   color="blue-grey-darken-2"
-                  :size="buttonSize"
-                  :height="buttonHeight"
                   @click="openDialog(null)"
                 >
                   新增使用者
@@ -183,7 +181,8 @@
                       color="light-blue-darken-4"
                       variant="plain"
                       width="28"
-                      height="40"
+                      height="48"
+                      :size="buttonSize"
                       :ripple="false"
                       @click="openDialog(item)"
                     >
@@ -486,6 +485,25 @@
               </v-row>
             </v-col>
             <v-col
+              v-if="isEditing"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="userId.value.value"
+                :error-messages="userId.errorMessage.value"
+                label="*員工編號"
+                type="text"
+                variant="outlined"
+                density="compact"
+                maxlength="4"
+                clearable
+              />
+            </v-col>
+            <v-col
               cols="12"
               sm="6"
               md="4"
@@ -606,8 +624,8 @@
               class="pb-0"
             >
               <v-text-field
-                v-model="extension.value.value"
-                :error-messages="extension.errorMessage.value"
+                v-model="extNumber.value.value"
+                :error-messages="extNumber.errorMessage.value"
                 label="*分機號碼"
                 type="text"
                 variant="outlined"
@@ -747,7 +765,6 @@
           <v-btn
             color="red-lighten-1"
             variant="outlined"
-            :height="buttonHeight"
             :size="buttonSize"
             :loading="isSubmitting"
             @click="closeDialog"
@@ -759,7 +776,6 @@
             variant="outlined"
             type="submit"
             class="ms-1"
-            :height="buttonHeight"
             :size="buttonSize"
             :loading="isSubmitting"
             :disabled="isEditing && !hasChanges"
@@ -823,9 +839,6 @@ const resignationDateDialog = ref(false) // 離職日期對話框
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
-const buttonHeight = computed(() => {
-  return smAndUp.value ? '35' : '32'
-})
 
 const chartRef = ref(null)
 // 公司的選項列表
@@ -844,6 +857,9 @@ const roles = ref(
     title
   }))
 )
+
+const lastValidIDNumber = ref('')
+const isInitialLoad = ref(false)
 
 // 修改 getRoleTitle 函數
 const getRoleTitle = (roleValue) => {
@@ -925,6 +941,7 @@ const isInitializingStatus = ref(false)
 
 const openDialog = (item) => {
   isInitializingStatus.value = true
+  isInitialLoad.value = true
   // 檢查是否沒有編輯權限
   if (!hasEditPermission.value) {
     createSnackbar({
@@ -957,7 +974,7 @@ const openDialog = (item) => {
       department: item.department?._id,
       cellphone: item.cellphone,
       salary: item.salary,
-      extension: item.extension,
+      extNumber: item.extNumber,
       printNumber: item.printNumber,
       guideLicense: item.guideLicense,
       jobTitle: item.jobTitle,
@@ -968,7 +985,8 @@ const openDialog = (item) => {
       emergencyName: item.emergencyName,
       emergencyCellphone: item.emergencyCellphone,
       emergencyRelationship: item.emergencyRelationship ?? '', // 使用空值合併運算符
-      note: item.note ?? '' // 使用空值合併運算符
+      note: item.note ?? '', // 使用空值合併運算符
+      userId: item.userId ?? ''
     }
 
     // 設置表單值
@@ -988,7 +1006,7 @@ const openDialog = (item) => {
     })
     cellphone.value.value = item.cellphone
     salary.value.value = item.salary
-    extension.value.value = item.extension
+    extNumber.value.value = item.extNumber
     printNumber.value.value = item.printNumber
     guideLicense.value.value = item.guideLicense
     jobTitle.value.value = item.jobTitle
@@ -998,6 +1016,7 @@ const openDialog = (item) => {
     emergencyCellphone.value.value = item.emergencyCellphone
     emergencyRelationship.value.value = item.emergencyRelationship ?? ''
     note.value.value = item.note ?? ''
+    userId.value.value = item.userId ?? ''
   } else {
     isEditing.value = false
     dialog.value.id = ''
@@ -1011,6 +1030,7 @@ const openDialog = (item) => {
   // 在對話框完全打開之後，將 isInitializingStatus 設置回 false
   setTimeout(() => {
     isInitializingStatus.value = false
+    isInitialLoad.value = false
   }, 300) // 等待對話框完全開啟
 }
 
@@ -1033,7 +1053,7 @@ const hasChanges = computed(() => {
     department: department.value.value,
     cellphone: cellphone.value.value,
     salary: salary.value.value,
-    extension: extension.value.value,
+    extNumber: extNumber.value.value,
     printNumber: printNumber.value.value,
     guideLicense: guideLicense.value.value,
     jobTitle: jobTitle.value.value,
@@ -1044,7 +1064,8 @@ const hasChanges = computed(() => {
     emergencyName: emergencyName.value.value,
     emergencyCellphone: emergencyCellphone.value.value,
     emergencyRelationship: emergencyRelationship.value.value ?? '', // 使用空值合併運算符
-    note: note.value.value ?? '' // 使用空值合併運算符
+    note: note.value.value ?? '', // 使用空值合併運算符
+    userId: userId.value.value ?? ''
   }
 
   // 比較每個欄位
@@ -1141,7 +1162,7 @@ const userSchema = yup.object({
   salary: yup
     .string()
     .required('請輸入基本薪資'),
-  extension: yup
+  extNumber: yup
     .string()
     .required('請輸入分機號碼'),
   printNumber: yup
@@ -1174,6 +1195,8 @@ const userSchema = yup.object({
   emergencyRelationship: yup
     .string(),
   note: yup
+    .string(),
+  userId: yup
     .string(),
   password: yup
     .string()
@@ -1224,7 +1247,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     department: '',
     cellphone: '',
     salary: '',
-    extension: '',
+    extNumber: '',
     printNumber: '',
     guideLicense: false,
     jobTitle: '',
@@ -1236,6 +1259,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     emergencyCellphone: '',
     emergencyRelationship: '',
     note: '',
+    userId: '',
     password: '',
     passwordConfirm: ''
   },
@@ -1264,7 +1288,7 @@ const department = useField('department', undefined, {
 })
 const cellphone = useField('cellphone')
 const salary = useField('salary')
-const extension = useField('extension')
+const extNumber = useField('extNumber')
 const printNumber = useField('printNumber')
 const guideLicense = useField('guideLicense')
 const jobTitle = useField('jobTitle')
@@ -1280,6 +1304,10 @@ const emergencyRelationship = useField('emergencyRelationship', undefined, {
   transform: (value) => value ?? ''
 })
 const note = useField('note', undefined, {
+  validateOnValueUpdate: false,
+  transform: (value) => value ?? ''
+})
+const userId = useField('userId', undefined, {
   validateOnValueUpdate: false,
   transform: (value) => value ?? ''
 })
@@ -1306,7 +1334,7 @@ const submit = handleSubmit(async (values) => {
         department: values.department,
         cellphone: values.cellphone,
         salary: values.salary,
-        extension: values.extension,
+        extNumber: values.extNumber,
         printNumber: values.printNumber,
         guideLicense: values.guideLicense,
         jobTitle: values.jobTitle,
@@ -1317,7 +1345,8 @@ const submit = handleSubmit(async (values) => {
         emergencyName: values.emergencyName,
         emergencyCellphone: values.emergencyCellphone,
         emergencyRelationship: values.emergencyRelationship,
-        note: values.note
+        note: values.note,
+        userId: values.userId
       })
 
       // 獲取更新後的部門信息
@@ -1342,7 +1371,7 @@ const submit = handleSubmit(async (values) => {
       createSnackbar({
         text: '員工資料更新成功',
         snackbarProps: {
-          color: 'teal-darken-1'
+          color: 'teal-lighten-1'
         }
       })
     } else {
@@ -1360,7 +1389,7 @@ const submit = handleSubmit(async (values) => {
         department: values.department,
         cellphone: values.cellphone,
         salary: values.salary,
-        extension: values.extension,
+        extNumber: values.extNumber,
         printNumber: values.printNumber,
         guideLicense: values.guideLicense,
         jobTitle: values.jobTitle,
@@ -1372,6 +1401,7 @@ const submit = handleSubmit(async (values) => {
         emergencyCellphone: values.emergencyCellphone,
         emergencyRelationship: values.emergencyRelationship,
         note: values.note,
+        userId: values.userId,
         password: values.password
       })
 
@@ -1384,7 +1414,7 @@ const submit = handleSubmit(async (values) => {
       createSnackbar({
         text: '員工新增成功',
         snackbarProps: {
-          color: 'teal-darken-1'
+          color: 'teal-lighten-1'
         }
       })
     }
@@ -1558,6 +1588,43 @@ watch(employmentStatus.value, (newVal) => {
   } else {
     resignationDateDialog.value = false
     resignationDate.value.value = null
+  }
+})
+
+watch(() => IDNumber.value.value, (newVal) => {
+  if (!newVal) {
+    gender.value.value = null
+    lastValidIDNumber.value = ''
+    return
+  }
+
+  // 只在非初始載入時才顯示提示
+  if (newVal.length === 10 && newVal !== lastValidIDNumber.value && !isInitialLoad.value) {
+    const idNumberRegex = /^[A-Za-z][12]\d{8}$/
+    if (idNumberRegex.test(newVal)) {
+      const secondDigit = newVal.charAt(1)
+      if (secondDigit === '1') {
+        gender.value.value = '男性'
+        lastValidIDNumber.value = newVal
+        createSnackbar({
+          text: '已自動設定性別為男性',
+          snackbarProps: {
+            color: 'teal-lighten-1',
+            timeout: 1000
+          }
+        })
+      } else if (secondDigit === '2') {
+        gender.value.value = '女性'
+        lastValidIDNumber.value = newVal
+        createSnackbar({
+          text: '已自動設定性別為女性',
+          snackbarProps: {
+            color: 'teal-lighten-1',
+            timeout: 1000
+          }
+        })
+      }
+    }
   }
 })
 // 初始化時載入部門列表
