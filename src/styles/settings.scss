@@ -8,6 +8,11 @@
 // @use 'vuetify/settings' with (
 //   $color-pack: false
 // );
+:root {
+  font-family: '微軟正黑體' !important;
+}
+
+
 @import '_variables';
 @import '_rwd';
 

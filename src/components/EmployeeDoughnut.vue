@@ -8,7 +8,7 @@
           elevation="4"
           rounded="xl"
         >
-          <h6 style="font-size: 15px;">
+          <h6 style="font-size: 16px;">
             全公司人數分布
           </h6>
           <!-- 增加上下內邊距和調整高度 -->
@@ -192,7 +192,7 @@ onUnmounted(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -60%);
+  transform: translate(-50%, -65%);
   text-align: center;
   z-index: 1;
 }

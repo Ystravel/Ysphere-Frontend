@@ -32,7 +32,7 @@
       </v-col>
     </v-row>
     <v-row
-      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4"
+      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <v-col
         cols="12"
@@ -153,27 +153,25 @@
               <template #item="{ item, index }">
                 <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
                   <td>{{ item.userId }}</td>
+                  <td>{{ item.name }}</td>
                   <td v-if="lgAndUp">
                     {{ item.email }}
                   </td>
-                  <td>{{ item.name }}</td>
+                  <td v-if="lgAndUp">
+                    {{ item.cellphone }}
+                  </td>
                   <td v-if="mdAndUp">
                     {{ getCompanyName(item.department.companyId) }}
                   </td>
                   <td v-if="mdAndUp">
                     {{ item.department.name }}
                   </td>
-                  <td v-if="lgAndUp">
-                    {{ item.cellphone }}
-                  </td>
+                  <td>{{ item.extNumber }}</td>
                   <td v-if="smAndUp">
                     {{ getRoleTitle(item.role) }}
                   </td>
-                  <td v-if="smAndUp">
-                    {{ item.employmentStatus }}
-                  </td>
                   <td v-if="xlAndUp">
-                    {{ item.note }}
+                    {{ item.employmentStatus }}
                   </td>
                   <td>
                     <v-btn
@@ -1451,14 +1449,14 @@ const tableItems = ref([])
 const tableKey = ref(0)
 const tableHeaders = [
   { title: '員編', align: 'left', sortable: true, key: 'userId' },
-  { title: 'Email', align: 'left', sortable: true, key: 'email' },
   { title: '姓名', align: 'left', sortable: true, key: 'name' },
+  { title: 'Email', align: 'left', sortable: true, key: 'email' },
+  { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
   { title: '所屬公司', align: 'left', sortable: true, key: 'department.companyId' },
   { title: '部門', align: 'left', sortable: true, key: 'department.name' },
-  { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
+  { title: '分機', align: 'left', sortable: true, key: 'extNumber' },
   { title: '身分別', align: 'left', sortable: true, key: 'role' },
   { title: '狀態', align: 'left', sortable: true, key: 'employmentStatus' },
-  { title: '備註', align: 'left', sortable: true, key: 'note' },
   { title: '操作', align: 'left', sortable: false, key: 'action' }
 ]
 // 根據斷點條件動態生成標題
@@ -1466,20 +1464,20 @@ const filteredHeaders = computed(() => {
   if (['xl', 'xxl'].includes(currentBreakpoint.value)) {
     return tableHeaders
   }
-  // 在 'lg' 和 'xl' 顯示全部欄位
+  // 在 'xl' 和 'xxl' 顯示全部欄位
   if (['lg'].includes(currentBreakpoint.value)) {
-    return tableHeaders.filter(header => header.key !== 'note')
+    return tableHeaders.filter(header => header.key !== 'employmentStatus')
   }
   if (['md'].includes(currentBreakpoint.value)) {
     // 在 'md' 斷點隱藏 "公司" 欄位
-    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'note')
+    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
   }
   if (['sm'].includes(currentBreakpoint.value)) {
     // 在 'sm' 斷點隱藏 "公司" 和 "部門" 欄位
-    return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'note')
+    return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
   }
   // 其他斷點隱藏 "手機號碼" 欄位
-  return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus' && header.key !== 'note')
+  return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus')
 })
 
 const tableLoading = ref(true)

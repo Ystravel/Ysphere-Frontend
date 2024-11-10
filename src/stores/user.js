@@ -276,12 +276,14 @@ export const useUserStore = defineStore('user', () => {
     isManager,
     isAccountant,
     isIT,
+    todos,
     login,
     logout,
     profile,
     googleLogin,
     changePassword,
     updateAvatar
+
   }
 }, {
   persist: {

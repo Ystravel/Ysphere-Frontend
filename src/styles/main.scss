@@ -4,21 +4,37 @@
   font-size: 20px;
 }
 
-.v-field .v-field__input {
+// 一般輸入框樣式
+.v-field:not(.v-textarea .v-field) {
+  .v-field__input {
     font-size: 13px;
     height: 36px !important;
     padding-top: 4px !important;
-  @media #{map-get(vuetify.$display-breakpoints, 'sm-and-up')} {
-    font-size: 14px;
-    height: 40px !important;
-    padding-top: 8px !important;
+
+    @media #{map-get(vuetify.$display-breakpoints, 'sm-and-up')} {
+      font-size: 14px;
+      height: 40px !important;
+      padding-top: 8px !important;
+    }
+  }
+
+  .v-field__field {
+    height: 36px !important;
+
+    @media #{map-get(vuetify.$display-breakpoints, 'sm-and-up')} {
+      height: 40px !important;
+    }
   }
 }
 
-.v-field__field {
-  height: 36px !important;
-  @media #{map-get(vuetify.$display-breakpoints, 'sm-and-up')} {
-    height: 40px !important;
+// 文本區域特殊處理
+.v-textarea {
+  .v-field__input {
+    font-size: 13px;
+
+    @media #{map-get(vuetify.$display-breakpoints, 'sm-and-up')} {
+      font-size: 14px;
+    }
   }
 }
 

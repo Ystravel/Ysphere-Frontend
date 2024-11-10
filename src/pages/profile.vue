@@ -7,7 +7,7 @@
         v-if="isLgmUp"
         md="3"
       >
-        <v-row class="elevation-4 rounded-xl pt-8 pb-10 px-1 px-sm-10 mt-2 mt-sm-10 mx-10">
+        <v-row class="elevation-4 rounded-xl pt-8 pb-10 px-1 px-sm-10 mt-2 mt-sm-10 mx-10 bg-white">
           <v-card
             width="100%"
             elevation="0"
@@ -48,7 +48,7 @@
       <v-col
         xl="9"
       >
-        <v-row class="elevation-4 rounded-xl pt-8 pb-6 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 ms-xl-0 me-xl-10 mb-4">
+        <v-row class="elevation-4 rounded-xl pt-8 pb-6 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 ms-xl-0 me-xl-10 mb-4 bg-white">
           <v-col
             cols="12"
             class="d-flex justify-space-between"

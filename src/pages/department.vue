@@ -1,7 +1,7 @@
 <template>
   <v-container max-width="1400">
     <v-row
-      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4"
+      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <v-col
         cols="12"
@@ -421,10 +421,10 @@ onUnmounted(() => {
 }
 
 .odd-row {
-  background-color: #f5f5f5;
+  background-color: #fff9fd;
 }
 
 .even-row {
-  background-color: rgb(252, 255, 247);
+  background-color: rgb(247, 253, 255);
 }
 </style>
