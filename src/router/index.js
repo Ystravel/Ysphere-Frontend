@@ -40,6 +40,25 @@ router.isReady().then(() => {
   localStorage.removeItem('vuetify:dynamic-reload')
 })
 
+// router.beforeEach(async (to, from, next) => {
+//   const user = useUserStore()
+
+//   if (from === START_LOCATION) {
+//     await user.profile()
+//   }
+
+//   if (user.isLogin && ['/login'].includes(to.path)) {
+//     next('/')
+//   } else if (to.meta.login && !user.isLogin) {
+//     next('/login')
+//   } else if (to.meta.roles && !to.meta.roles.includes(user.role)) {
+//     // 檢查使用者角色是否匹配路由的角色要求
+//     next('/')
+//   } else {
+//     next()
+//   }
+// })
+
 router.beforeEach(async (to, from, next) => {
   const user = useUserStore()
 
@@ -47,7 +66,10 @@ router.beforeEach(async (to, from, next) => {
     await user.profile()
   }
 
-  if (user.isLogin && ['/login'].includes(to.path)) {
+  // 檢查是否要導向 '/profile'
+  if (to.path === '/') {
+    next('/profile')
+  } else if (user.isLogin && ['/login'].includes(to.path)) {
     next('/')
   } else if (to.meta.login && !user.isLogin) {
     next('/login')

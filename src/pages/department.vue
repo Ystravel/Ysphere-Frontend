@@ -69,7 +69,7 @@
             <v-data-table-server
               v-model:items-per-page="tableItemsPerPage"
               v-model:sort-by="tableSortBy"
-              v-model:page="tablePage"
+              :page="tablePage"
               :headers="tableHeaders"
               :items="departments"
               :header-props="headerProps"
@@ -80,7 +80,7 @@
               class="rounded-ts-lg rounded-te-lg py-3"
               hover
               density="compact"
-              @update:options="loadDepartments(true)"
+              @update:options="handleTableUpdate"
             >
               <template #item="{ item, index }">
                 <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
@@ -266,6 +266,22 @@ const tableHeaders = [
   { title: '操作', key: 'actions', align: 'center', sortable: false }
 ]
 
+const handleTableUpdate = (options) => {
+  console.log('表格更新選項:', options)
+
+  const needsUpdate =
+    options.page !== tablePage.value ||
+    options.itemsPerPage !== tableItemsPerPage.value ||
+    JSON.stringify(options.sortBy) !== JSON.stringify(tableSortBy.value)
+
+  if (needsUpdate) {
+    tablePage.value = options.page
+    tableItemsPerPage.value = options.itemsPerPage
+    tableSortBy.value = options.sortBy
+    loadDepartments(false)
+  }
+}
+
 // 部門相關
 const departments = ref([])
 const dialog = ref({ open: false, id: null })
@@ -292,9 +308,21 @@ const companyNames = Object.fromEntries(companyOptions.map(company => [company.i
 
 // 載入部門列表
 const loadDepartments = async (reset = false) => {
-  if (reset) tablePage.value = 1
+  if (reset) {
+    tablePage.value = 1
+  }
+
   tableLoading.value = true
   try {
+    console.log('載入部門列表，參數:', {
+      page: tablePage.value,
+      itemsPerPage: tableItemsPerPage.value,
+      sortBy: tableSortBy.value[0]?.key || 'companyId',
+      sortOrder: tableSortBy.value[0]?.order || 'asc',
+      search: tableSearch.value,
+      companyId: companyFilter.value
+    })
+
     const { data } = await apiAuth.get('/department/all', {
       params: {
         page: tablePage.value,
@@ -306,19 +334,32 @@ const loadDepartments = async (reset = false) => {
       }
     })
 
-    departments.value = data.result.data.map((dept) => ({
-      ...dept,
-      companyName: companyNames[dept.companyId] || '未知公司'
-    }))
-    tableItemsLength.value = data.result.totalItems
+    if (data.success && data.result) {
+      departments.value = data.result.data
+      tableItemsLength.value = data.result.totalItems
+
+      // 檢查頁碼是否超出範圍
+      const maxPage = Math.ceil(data.result.totalItems / tableItemsPerPage.value)
+      if (tablePage.value > maxPage && maxPage > 0) {
+        tablePage.value = maxPage
+        if (!reset) {
+          await loadDepartments(false)
+        }
+      }
+    } else {
+      throw new Error(data.message || '載入失敗')
+    }
   } catch (error) {
-    console.error('loadDepartments error:', error)
+    console.error('載入部門列表錯誤:', error)
     createSnackbar({
       text: error?.response?.data?.message || '載入部門列表失敗',
       snackbarProps: { color: 'red-lighten-1' }
     })
+    departments.value = []
+    tableItemsLength.value = 0
+  } finally {
+    tableLoading.value = false
   }
-  tableLoading.value = false
 }
 
 // 開啟新增部門對話框
@@ -399,8 +440,21 @@ const debouncedSearch = debounce(() => {
   loadDepartments(true)
 }, 300)
 
+// 確保監聽搜尋變化時重設頁碼
 watch(tableSearch, () => {
+  tablePage.value = 1 // 重設頁碼
   debouncedSearch()
+})
+
+// 4. 添加额外的监听器
+watch([tableItemsPerPage, tableSortBy], () => {
+  loadDepartments(true)
+})
+
+// 5. 确保搜索和筛选时重置页码
+watch([tableSearch, companyFilter], () => {
+  tablePage.value = 1
+  loadDepartments(true)
 })
 
 onMounted(() => {
@@ -421,7 +475,7 @@ onUnmounted(() => {
 }
 
 .odd-row {
-  background-color: #fff9fd;
+  background-color: #fffffd;
 }
 
 .even-row {

@@ -4,11 +4,11 @@
   >
     <!-- 上方圖表與統計資訊區域 -->
     <v-row
-      v-if="mdAndUp"
-      class="rounded-xl py-0 mt-2 ma-sm-6"
+      class="rounded-xl py-0 mt-2 ma-sm-1 ma-md-6"
     >
       <!-- 左側圖表，固定寬度 -->
       <v-col
+        v-if="mdAndUp"
         cols="auto"
         class="ps-4 py-0"
       >
@@ -16,7 +16,10 @@
       </v-col>
 
       <!-- 右側統計資訊，自適應寬度 -->
-      <v-col class="pa-0">
+      <v-col
+        v-if="isLgmUp"
+        class="pa-0"
+      >
         <v-card
           class="mx-4 d-flex"
           elevation="4"
@@ -26,7 +29,211 @@
           <!-- 這裡放置您的統計資訊內容 -->
           <v-card-text class="d-flex justify-center align-center text-h2 opacity-60">
             待開發
-            <!-- 統計資訊內容 -->
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <!-- 搜尋條件卡片 -->
+      <v-col
+        xl="4"
+        xxl="3"
+        class="pa-0 mb-6 mb-sm-0"
+      >
+        <v-card
+          class="mx-4 d-flex px-4 py-6 pa-sm-8"
+          elevation="4"
+          rounded="xl"
+          height="100%"
+        >
+          <v-card-text class="pa-2 d-flex align-center">
+            <v-row class="h-100">
+              <!-- 搜尋條件區域 -->
+              <v-col
+                cols="12"
+                class="d-flex flex-column justify-center"
+              >
+                <v-row>
+                  <h3 class="ps-3 mb-3">
+                    搜尋篩選
+                  </h3>
+                </v-row>
+                <v-row>
+                  <!-- 公司選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                    <v-select
+                      v-model="searchCriteria.companyId"
+                      :items="companyList"
+                      label="公司"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                      @update:model-value="handleCompanyChange"
+                    />
+                  </v-col>
+
+                  <!-- 部門選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                    <v-select
+                      v-model="searchCriteria.department"
+                      :items="filteredDepartments"
+                      label="部門"
+                      item-title="name"
+                      item-value="_id"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                      :disabled="!searchCriteria.companyId"
+                    />
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <!-- 身分別選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                    <v-select
+                      v-model="searchCriteria.role"
+                      :items="roles"
+                      label="身分別"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                    />
+                  </v-col>
+                  <!-- 任職狀態選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                    <v-select
+                      v-model="searchCriteria.employmentStatus"
+                      :items="employmentStatuses"
+                      label="任職狀態"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                    />
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <!-- 性別選擇 -->
+                  <v-col
+                    cols="6"
+                    class="pe-0"
+                  >
+                    <div class="d-flex flex-column gap-2">
+                      <label class="text-grey-darken-1 search-label">性別</label>
+                      <v-chip-group
+                        v-model="searchCriteria.gender"
+                        column
+                        class="custom-chip-group "
+                      >
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          color="orange-darken-3"
+                          :value="'男性'"
+                          label
+                        >
+                          男性
+                        </v-chip>
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          color="orange-darken-3"
+                          :value="'女性'"
+                          label
+                        >
+                          女性
+                        </v-chip>
+                      </v-chip-group>
+                    </div>
+                  </v-col>
+
+                  <!-- 領隊證選擇 -->
+                  <v-col
+                    cols="6"
+                  >
+                    <div class="d-flex flex-column gap-2">
+                      <label class="text-grey-darken-1 search-label">領隊證</label>
+                      <v-chip-group
+                        v-model="searchCriteria.guideLicense"
+                        column
+                        class="custom-chip-group"
+                      >
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          :value="true"
+                          color="orange-darken-3"
+                          label
+                        >
+                          有
+                        </v-chip>
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          :value="false"
+                          color="orange-darken-3"
+                          label
+                        >
+                          無
+                        </v-chip>
+                      </v-chip-group>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    class="d-flex justify-end gap-2"
+                  >
+                    <v-row>
+                      <v-col cols="3">
+                        <!-- 重置按鈕 -->
+
+                        <v-btn
+                          color="grey"
+                          block
+                          @click="resetSearch"
+                        >
+                          <v-icon>mdi-refresh</v-icon>
+                        </v-btn>
+                      </v-col>
+                      <v-col>
+                        <!-- 搜尋按鈕 -->
+                        <v-btn
+                          prepend-icon="mdi-magnify"
+                          color="cyan-darken-2"
+                          :loading="tableLoading"
+                          block
+                          @click="performSearch"
+                        >
+                          搜尋
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
+                <!-- 搜尋按鈕區域 -->
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
       </v-col>
@@ -57,76 +264,36 @@
                 </v-btn>
               </v-col>
               <v-col
-                v-if="mdAndUp"
-                cols="3"
-                lg="2"
+                sm="4"
+                lg="3"
+                xl="2"
               >
-                <v-select
-                  v-model="roleFilter"
-                  :items="[{ title: '全部', value: '' }, ...roles]"
-                  label="身份別"
-                  item-title="title"
-                  item-value="value"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  clearable
-                  @update:model-value="tableLoadItems(true)"
-                />
-              </v-col>
-              <v-col
-                v-if="mdAndUp"
-                cols="3"
-                lg="2"
-                class="d-flex justify-end"
-              >
-                <v-text-field
-                  v-model="tableSearch"
-                  label="搜尋"
-                  append-inner-icon="mdi-magnify"
-                  base-color="#666"
-                  color="blue-grey-darken-3"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  clearable
-                />
-              </v-col>
-            </v-row>
-          </v-col>
-          <v-col
-            v-if="!mdAndUp"
-            cols="12"
-          >
-            <v-row>
-              <v-col cols="6">
-                <v-select
-                  v-model="roleFilter"
-                  :items="[{ title: '全部', value: '' }, ...roles]"
-                  label="身份別"
-                  item-title="title"
-                  item-value="value"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  clearable
-                  @update:model-value="tableLoadItems(true)"
-                />
-              </v-col>
-              <v-col
-                cols="6"
-              >
-                <v-text-field
-                  v-model="tableSearch"
-                  label="搜尋"
-                  append-inner-icon="mdi-magnify"
-                  base-color="#666"
-                  color="blue-grey-darken-3"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  clearable
-                />
+                <v-row class="d-flex align-center">
+                  <v-col
+                    v-if="mdAndUp"
+                    cols="2"
+                    class="ps-lg-5"
+                  >
+                    <v-icon
+                      v-tooltip:start="'可搜尋員編、姓名、Email、手機、分機、職稱、備註'"
+                      icon="mdi-information-outline"
+                      color="blue-grey-darken-1"
+                    />
+                  </v-col>
+                  <v-col>
+                    <v-text-field
+                      v-model="quickSearchText"
+                      label="搜尋"
+                      append-inner-icon="mdi-magnify"
+                      base-color="#666"
+                      color="blue-grey-darken-3"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                    />
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
           </v-col>
@@ -206,8 +373,8 @@
       :disabled="isSubmitting"
       @submit.prevent="submit"
     >
-      <v-card class="rounded-lg pa-4 pt-6">
-        <v-card-title style="font-size: 18px;">
+      <v-card class="rounded-lg px-4 py-6">
+        <v-card-title style="font-size: 18px; font-weight: 600;">
           {{ dialog.id ? '員工資料編輯' : '新增員工' }}
         </v-card-title>
         <v-row class="py-4">
@@ -221,7 +388,7 @@
           <v-col
             cols="4"
             md="2"
-            class="personal-info-title px-0 text-blue-grey-darken-2 font-weight-medium"
+            class="info-title px-0 text-blue-grey-darken-2"
           >
             基本資料
           </v-col>
@@ -469,7 +636,7 @@
                 <v-col
                   cols="4"
                   md="2"
-                  class="job-info-title text-blue-grey-darken-2 font-weight-medium"
+                  class="info-title text-blue-grey-darken-2 "
                 >
                   任職資訊
                 </v-col>
@@ -511,16 +678,14 @@
               <v-select
                 v-model="selectedCompany"
                 :error-messages="company.errorMessage.value"
-                :items="companyList"
+                :items="Object.entries(companyNames).map(([id, name]) => ({ title: name, value: Number(id) }))"
                 label="*所屬公司"
-                item-title="name"
-                item-value="id"
+                item-title="title"
+                item-value="value"
                 variant="outlined"
                 density="compact"
                 clearable
-              >
-                />
-              </v-select>
+              />
             </v-col>
 
             <v-col
@@ -758,7 +923,24 @@
             </v-col>
           </v-row>
         </v-card-text>
-        <v-card-actions>
+        <v-card-actions
+          class="px-3 mt-4"
+        >
+          <v-hover>
+            <template #default="{ isHovering, props}">
+              <v-btn
+                v-if="isEditing"
+                v-bind="props"
+                :color="isHovering ? 'red-lighten-1' : 'grey'"
+                variant="outlined"
+                prepend-icon="mdi-delete"
+                :size="buttonSize"
+                @click="confirmDeleteDialog = true"
+              >
+                永久刪除
+              </v-btn>
+            </template>
+          </v-hover>
           <v-spacer />
           <v-btn
             color="red-lighten-1"
@@ -790,6 +972,15 @@
     @confirm="(date) => { resignationDate.value.value = date }"
     @cancel="employmentStatus.value.value = '在職'"
   />
+
+  <!-- 在組件最後添加確認刪除對話框 -->
+  <ConfirmDeletDialogWithTextField
+    v-model="confirmDeleteDialog"
+    title="確認刪除員工"
+    :message="`確定要刪除員工「${originalData?.name || ''}」(${originalData?.userId || ''})嗎？ 此操作無法復原。`"
+    :expected-name="originalData?.name || ''"
+    @confirm="deleteUser"
+  />
 </template>
 
 <script setup>
@@ -806,7 +997,7 @@ import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
 import ResignationDateDialog from '../components/ResignationDateDialog.vue'
-// import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
+import ConfirmDeletDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
 
 definePage({
   meta: {
@@ -817,7 +1008,8 @@ definePage({
 })
 
 // sm 600px, md 960px, lg 1280px
-const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint } = useDisplay()
+const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint, width } = useDisplay()
+const isLgmUp = computed(() => width.value >= 1500)
 
 const { apiAuth } = useApi()
 const user = useUserStore()
@@ -826,9 +1018,9 @@ const createSnackbar = useSnackbar()
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const isEditing = ref(false)
-const roleFilter = ref('')
 const originalData = ref(null)
 const currentPage = ref(1)
+const confirmDeleteDialog = ref(false)
 const headerProps = {
   class: 'header-bg' // 設置自定義的 CSS 類名
 }
@@ -840,10 +1032,12 @@ const buttonSize = computed(() => {
 
 const chartRef = ref(null)
 // 公司的選項列表
-const companyList = Object.entries(companyNames).map(([id, name]) => ({
-  id: Number(id),
-  name
-}))
+const companyList = ref(
+  Object.entries(companyNames).map(([id, name]) => ({
+    title: name,
+    value: Number(id)
+  }))
+)
 
 // 用於存儲所選公司和篩選後的部門列表
 const selectedCompany = ref(1)
@@ -1436,9 +1630,133 @@ const onUpdatePage = (page) => {
 
   if (tablePage.value !== page) {
     tablePage.value = page
+    // 清空 LocalStorage 頁碼，避免重新整理跳回錯誤頁面
+    localStorage.removeItem('userTablePage')
     tableLoadItems(false)
   }
 }
+
+// 新增搜尋條件相關的狀態
+const searchCriteria = ref({
+  role: '',
+  companyId: '',
+  department: '',
+  gender: '',
+  guideLicense: '',
+  employmentStatus: ''
+})
+
+// 處理公司變更
+const handleCompanyChange = async (companyId) => {
+  try {
+    // 只有在有選擇公司時才清空部門
+    if (companyId) {
+      const response = await apiAuth.get('/department/all', {
+        params: { companyId }
+      })
+      if (response.data?.result?.data) {
+        filteredDepartments.value = response.data.result.data
+        // 如果當前選擇的部門不屬於新選擇的公司，才清空部門選擇
+        const currentDepartment = filteredDepartments.value.find(
+          dept => dept._id === searchCriteria.value.department
+        )
+        if (!currentDepartment) {
+          searchCriteria.value.department = ''
+        }
+      }
+    } else {
+      // 如果取消選擇公司，才清空部門相關數據
+      searchCriteria.value.department = ''
+      filteredDepartments.value = []
+    }
+  } catch (error) {
+    console.error('載入部門失敗:', error)
+    createSnackbar({
+      text: '載入部門資料失敗',
+      snackbarProps: { color: 'error' }
+    })
+  }
+}
+
+// 重置搜尋條件
+const resetSearch = () => {
+  searchCriteria.value = {
+    role: '',
+    companyId: '',
+    department: '',
+    gender: '',
+    guideLicense: '',
+    employmentStatus: ''
+  }
+  filteredDepartments.value = [] // 確保部門列表被清空
+  tableSearch.value = ''
+
+  // 重置後自動執行一次搜尋
+  performSearch()
+}
+
+// 執行搜尋
+const performSearch = async (fromQuickSearch = false) => {
+  tableLoading.value = true
+  try {
+    const params = {
+      page: tablePage.value,
+      itemsPerPage: tableItemsPerPage.value,
+      sortBy: tableSortBy.value[0]?.key || 'userId',
+      sortOrder: tableSortBy.value[0]?.order || 'asc',
+      ...Object.fromEntries(
+        Object.entries(searchCriteria.value).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined
+        )
+      )
+    }
+
+    // 只在快速搜尋時使用 quickSearchText，否則使用一般搜尋
+    if (fromQuickSearch) {
+      params.quickSearch = quickSearchText.value
+    }
+
+    const response = await apiAuth.get('/user/all', { params })
+
+    if (response.data.success) {
+      const { data: users, totalItems } = response.data.result
+      tableItems.value = users
+      tableItemsLength.value = totalItems
+
+      const maxPage = Math.ceil(totalItems / tableItemsPerPage.value)
+      if (tablePage.value > maxPage) {
+        tablePage.value = Math.max(1, maxPage)
+      }
+    } else {
+      throw new Error(response.data.message)
+    }
+  } catch (error) {
+    console.error('搜尋失敗:', error)
+    createSnackbar({
+      text: error?.response?.data?.message || '搜尋時發生錯誤',
+      snackbarProps: { color: 'error' }
+    })
+    tableItems.value = []
+    tableItemsLength.value = 0
+  } finally {
+    tableLoading.value = false
+  }
+}
+
+// 新增用於快速搜尋的 ref
+const quickSearchText = ref('')
+
+// 建立一個新的 debounced 搜尋函數專門用於快速搜尋
+const debouncedQuickSearch = debounce((value) => {
+  tablePage.value = 1 // 重置到第一頁
+  performSearch(true) // 傳入 true 表示這是來自快速搜尋
+}, 300)
+
+// 監聽快速搜尋輸入框
+watch(quickSearchText, (newVal) => {
+  debouncedQuickSearch(newVal)
+})
+
 // 數據表格相關變量
 const tableItemsPerPage = ref(10)
 const tableSortBy = ref([
@@ -1485,66 +1803,73 @@ const tableItemsLength = ref(0)
 const tableSearch = ref('')
 
 // 加載表格數據
+// const tableLoadItems = async (reset, page) => {
+//   console.log('Loading items:', { reset, page, currentPage: tablePage.value })
+//   tableLoading.value = true
+//   if (reset) {
+//     tablePage.value = 1
+//   } else if (page) {
+//     tablePage.value = page
+//   }
+//   // 確保頁碼至少為 1
+//   tablePage.value = Math.max(1, tablePage.value)
+//   try {
+//     const { data } = await apiAuth.get('/user/all', {
+//       params: {
+//         page: tablePage.value, // 將 tablePage.value 傳遞給後端
+//         itemsPerPage: tableItemsPerPage.value,
+//         sortBy: tableSortBy.value[0]?.key || 'userId',
+//         sortOrder: tableSortBy.value[0]?.order || 'asc',
+//         search: tableSearch.value,
+//         role: roleFilter.value
+//       }
+//     })
+//     // 更新表格數據
+//     const { data: users, totalItems } = data.result
+//     tableItems.value = users
+//     tableItemsLength.value = totalItems
+
+//     // 計算最大頁數
+//     const maxPage = Math.ceil(totalItems / tableItemsPerPage.value)
+
+//     // 檢查當前頁碼是否有效
+//     if (tablePage.value > maxPage) {
+//       console.log('Current page exceeds max page, adjusting...')
+//       tablePage.value = Math.max(1, maxPage)
+//       // 如果頁碼無效，重新加載正確的頁
+//       if (maxPage > 0) {
+//         return tableLoadItems(false, tablePage.value)
+//       }
+//     }
+
+//     // 更新 localStorage 中的頁碼
+//     if (!reset) {
+//       localStorage.setItem('userTablePage', tablePage.value.toString())
+//     }
+//   } catch (error) {
+//     console.error('Error loading items:', error)
+//     createSnackbar({
+//       text: error?.response?.data?.message || '載入資料時發生錯誤',
+//       snackbarProps: {
+//         color: 'red-lighten-1'
+//       }
+//     })
+//     // 發生錯誤時重置到第一頁
+//     tableItems.value = []
+//     tableItemsLength.value = 0
+//     tablePage.value = 1
+//   } finally {
+//     tableLoading.value = false
+//   }
+// }
 const tableLoadItems = async (reset, page) => {
-  console.log('Loading items:', { reset, page, currentPage: tablePage.value })
-  tableLoading.value = true
   if (reset) {
     tablePage.value = 1
   } else if (page) {
     tablePage.value = page
   }
-  // 確保頁碼至少為 1
-  tablePage.value = Math.max(1, tablePage.value)
-  try {
-    const { data } = await apiAuth.get('/user/all', {
-      params: {
-        page: tablePage.value, // 將 tablePage.value 傳遞給後端
-        itemsPerPage: tableItemsPerPage.value,
-        sortBy: tableSortBy.value[0]?.key || 'userId',
-        sortOrder: tableSortBy.value[0]?.order || 'asc',
-        search: tableSearch.value,
-        role: roleFilter.value
-      }
-    })
-    // 更新表格數據
-    const { data: users, totalItems } = data.result
-    tableItems.value = users
-    tableItemsLength.value = totalItems
-
-    // 計算最大頁數
-    const maxPage = Math.ceil(totalItems / tableItemsPerPage.value)
-
-    // 檢查當前頁碼是否有效
-    if (tablePage.value > maxPage) {
-      console.log('Current page exceeds max page, adjusting...')
-      tablePage.value = Math.max(1, maxPage)
-      // 如果頁碼無效，重新加載正確的頁
-      if (maxPage > 0) {
-        return tableLoadItems(false, tablePage.value)
-      }
-    }
-
-    // 更新 localStorage 中的頁碼
-    if (!reset) {
-      localStorage.setItem('userTablePage', tablePage.value.toString())
-    }
-  } catch (error) {
-    console.error('Error loading items:', error)
-    createSnackbar({
-      text: error?.response?.data?.message || '載入資料時發生錯誤',
-      snackbarProps: {
-        color: 'red-lighten-1'
-      }
-    })
-    // 發生錯誤時重置到第一頁
-    tableItems.value = []
-    tableItemsLength.value = 0
-    tablePage.value = 1
-  } finally {
-    tableLoading.value = false
-  }
+  await performSearch()
 }
-
 // 初始加載表格數據
 tableLoadItems()
 
@@ -1553,11 +1878,10 @@ const debouncedSearch = debounce((value) => {
   tableLoadItems(true)
 }, 300) // 300ms 的延遲
 
-// 監聽搜尋值的變化
-watch(tableSearch, (newVal) => {
-  debouncedSearch(newVal)
+// 監聽快速搜尋輸入框
+watch(quickSearchText, (newVal) => {
+  debouncedQuickSearch(newVal)
 })
-
 // 監聽 selectedCompany 的變化並更新部門列表
 watch(selectedCompany, async (newVal) => {
   if (newVal !== null && newVal !== undefined) {
@@ -1625,6 +1949,38 @@ watch(() => IDNumber.value.value, (newVal) => {
     }
   }
 })
+
+const deleteUser = async () => {
+  try {
+    tableLoading.value = true
+    await apiAuth.delete(`/user/${dialog.value.id}`)
+
+    // 關閉對話框
+    closeDialog()
+
+    // 重新載入資料
+    await tableLoadItems(true)
+
+    // 更新圖表（如果有的話）
+    await chartRef.value?.refreshChart()
+
+    // 顯示成功訊息
+    createSnackbar({
+      text: '員工刪除成功',
+      snackbarProps: { color: 'teal-lighten-1' }
+    })
+  } catch (error) {
+    console.error('Delete user error:', error)
+    createSnackbar({
+      text: error?.response?.data?.message || '刪除失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  } finally {
+    tableLoading.value = false
+    confirmDeleteDialog.value = false
+  }
+}
+
 // 初始化時載入部門列表
 // 根據預設的 selectedCompany 值加載部門
 onMounted(async () => {
@@ -1632,18 +1988,29 @@ onMounted(async () => {
   if (storedPage) {
     tablePage.value = parseInt(storedPage)
     tableKey.value++
-    await tableLoadItems(false, tablePage.value) // 加載存儲的頁面數據
-  } else {
-    await tableLoadItems() // 加載第一頁數據
   }
 
   await loadDepartments()
   await fetchDepartments()
+  await performSearch() // 確保初始載入時會執行搜尋
 })
 
+onMounted(() => {
+  const storedPage = localStorage.getItem('userTablePage')
+  // 僅在 localStorage 存在且為合法頁碼時才使用
+  if (storedPage && parseInt(storedPage) > 0) {
+    tablePage.value = parseInt(storedPage)
+    tableKey.value++
+    // 清空存取以避免後續重新整理問題
+    localStorage.removeItem('userTablePage')
+  } else {
+    tablePage.value = 1 // 預設回到第一頁
+  }
+})
 // 在組件卸載時取消 debounce
 onUnmounted(() => {
   debouncedSearch.cancel()
+  debouncedQuickSearch.cancel() // 新增這行
 })
 </script>
 
@@ -1663,26 +2030,20 @@ onUnmounted(() => {
   background-color: rgb(255, 250, 240);
 }
 
-.personal-info-title {
+.info-title {
   text-align: center;
   letter-spacing: 2px;
   font-size: 14px;
+  font-weight: 900;
 }
 
-.job-info-title {
-  text-align: center;
-  letter-spacing: 2px;
-  font-size: 14px;
+.search-label {
+  font-size: 13px;
+  font-weight: 500;
 }
 
 @include md {
-  .personal-info-title {
-  text-align: center;
-  letter-spacing: 4px;
-  font-size: 15px;
-}
-
-.job-info-title {
+  .info-title {
   text-align: center;
   letter-spacing: 4px;
   font-size: 15px;

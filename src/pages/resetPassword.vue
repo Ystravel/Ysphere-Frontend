@@ -14,7 +14,7 @@
         <v-row class="px-4 ma-0">
           <v-col
             cols="12"
-            class="text-center mt-4"
+            class="text-center mt-4 font-weight-bold"
           >
             重置密碼
           </v-col>
@@ -176,7 +176,6 @@ const submit = async () => {
   min-height: 100vh;
   background-image: url(/src/assets/image/bg_login.png);
   background-size: cover;
-  background-position: center;
 }
 
 .reset-password-wrapper {

@@ -79,7 +79,7 @@
                     cols="12"
                     class="ps-4 pb-0 pt-4"
                   >
-                    <span style="font-size: 18px; font-weight: 600;">{{ user.name }}</span>
+                    <span style="font-size: 17px; font-weight: 600;">{{ user.name }}</span>
                   </v-col>
                   <v-col
                     cols="12"
@@ -175,7 +175,7 @@
                     cols="12"
                     class="ps-4 pb-0 pt-4"
                   >
-                    <span style="font-size: 18px; font-weight: 600;">{{ user.name }}</span>
+                    <span style="font-size: 17px; font-weight: 600;">{{ user.name }}</span>
                   </v-col>
                   <v-col
                     cols="12"
@@ -293,6 +293,12 @@ const adminItems = [
     text: '設備管理',
     icon: 'mdi-desktop-tower-monitor',
     roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
+  },
+  {
+    to: '/auditLog',
+    text: '異動紀錄',
+    icon: 'mdi-history',
+    roles: ['SUPER_ADMIN', 'ADMIN', 'IT']
   }
 ]
 

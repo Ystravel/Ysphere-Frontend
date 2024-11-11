@@ -14,7 +14,7 @@
         <v-row class="px-4 ma-0">
           <v-col
             cols="12"
-            class="text-center mt-4"
+            class="text-center mt-4 font-weight-bold"
           >
             忘記密碼
           </v-col>
@@ -52,7 +52,8 @@
             class="text-center pb-2"
           >
             <router-link
-              class="text-subtitle-2 text-grey-darken-1"
+              class="text-grey-darken-1"
+              style="font-size: 15px; font-weight: 500;"
               to="/login"
             >
               返回登入
@@ -130,7 +131,6 @@ const submit = handleSubmit(async (values) => {
   min-height: 100vh;
   background-image: url(/src/assets/image/bg_login.png);
   background-size: cover;
-  background-position: center;
 }
 
 .forgot-password-wrapper {

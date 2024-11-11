@@ -21,7 +21,7 @@
               >
                 <div
                   class="text-grey-darken-1"
-                  style="font-size: 12px;"
+                  style="font-size: 12px; font-weight: 600;"
                 >
                   總在職人數
                 </div>

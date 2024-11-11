@@ -34,7 +34,7 @@
                   {{ user.userId }}
                 </div>
                 <div
-                  style="font-size: 15px; font-weight: 500;"
+                  style="font-size: 15px; font-weight: 600;"
                   class="opacity-90 mb-12"
                 >
                   {{ user.jobTitle }}
@@ -56,7 +56,7 @@
             <h3>
               個人資料管理&nbsp;&nbsp;&nbsp;<span
                 v-if="mdAndUp"
-                class="text-subtitle-2 opacity-80"
+                class="text-subtitle-2 opacity-80 font-weight-regular"
               ><span class="text-red-darken-2">* </span>若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
             </h3>
             <div>
@@ -829,7 +829,7 @@ const closePasswordDialog = () => {
 
 .profile-subtitle {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   @include sm {
     font-size: 15px;
   }
