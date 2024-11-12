@@ -16,7 +16,7 @@
                 搜尋條件
                 <v-icon
                   v-if="smAndUp"
-                  v-tooltip:top="'操作人員及對象，請輸入員工編號或姓名進行搜尋'"
+                  v-tooltip:top="'操作人員:員編或姓名；操作對象:員編、姓名、部門編號、設備編號'"
                   icon="mdi-information"
                   color="grey-darken-2"
                   size="x-small"
@@ -82,7 +82,7 @@
                       v-model:search-input="targetSearchInput"
                       :items="targetSuggestions"
                       :loading="targetLoading"
-                      :label="targetType ? '選擇操作對象' : '請先選擇資料類型'"
+                      :label="targetType ? '操作對象' : '操作對象( 請先選擇資料類型 )'"
                       :disabled="!targetType"
                       return-object
                       :item-props="item => ({
