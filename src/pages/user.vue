@@ -276,8 +276,9 @@
                   >
                     <v-icon
                       v-tooltip:start="'可搜尋員編、姓名、Email、手機、分機、職稱、備註'"
-                      icon="mdi-information-outline"
-                      color="blue-grey-darken-1"
+                      icon="mdi-information"
+                      size="small"
+                      color="blue-grey-darken-2"
                     />
                   </v-col>
                   <v-col>
@@ -974,7 +975,7 @@
   />
 
   <!-- 在組件最後添加確認刪除對話框 -->
-  <ConfirmDeletDialogWithTextField
+  <ConfirmDeleteDialogWithTextField
     v-model="confirmDeleteDialog"
     title="確認刪除員工"
     :message="`確定要刪除員工「${originalData?.name || ''}」(${originalData?.userId || ''})嗎？ 此操作無法復原。`"
@@ -985,7 +986,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import debounce from 'lodash/debounce'
+import { debounce } from 'lodash'
 import * as yup from 'yup'
 import { definePage } from 'vue-router/auto'
 import { useForm, useField } from 'vee-validate'
@@ -997,8 +998,9 @@ import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
 import ResignationDateDialog from '../components/ResignationDateDialog.vue'
-import ConfirmDeletDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
+import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
 
+// ===== 頁面設定 =====
 definePage({
   meta: {
     title: '員工管理 | ystravel',
@@ -1007,14 +1009,19 @@ definePage({
   }
 })
 
-// sm 600px, md 960px, lg 1280px
-const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint, width } = useDisplay()
-const isLgmUp = computed(() => width.value >= 1500)
-
+// ===== API 與 Store 初始化 =====
 const { apiAuth } = useApi()
 const user = useUserStore()
 const createSnackbar = useSnackbar()
 
+// ===== 響應式設定與螢幕斷點 =====
+const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint, width } = useDisplay()
+const isLgmUp = computed(() => width.value >= 1500)
+const buttonSize = computed(() => {
+  return smAndUp.value ? 'default' : 'small'
+})
+
+// ===== 基礎狀態管理 =====
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const isEditing = ref(false)
@@ -1022,16 +1029,19 @@ const originalData = ref(null)
 const currentPage = ref(1)
 const confirmDeleteDialog = ref(false)
 const headerProps = {
-  class: 'header-bg' // 設置自定義的 CSS 類名
+  class: 'header-bg'
 }
-const resignationDateDialog = ref(false) // 離職日期對話框
-// 按鈕大小斷點設置
-const buttonSize = computed(() => {
-  return smAndUp.value ? 'default' : 'small'
+const resignationDateDialog = ref(false)
+const chartRef = ref(null)
+const lastValidIDNumber = ref('')
+const isInitialLoad = ref(false)
+const isInitializingStatus = ref(false)
+const dialog = ref({
+  open: false,
+  id: ''
 })
 
-const chartRef = ref(null)
-// 公司的選項列表
+// ===== 選項列表設定 =====
 const companyList = ref(
   Object.entries(companyNames).map(([id, name]) => ({
     title: name,
@@ -1039,9 +1049,9 @@ const companyList = ref(
   }))
 )
 
-// 用於存儲所選公司和篩選後的部門列表
 const selectedCompany = ref(1)
 const filteredDepartments = ref([])
+const departments = ref([])
 
 const roles = ref(
   Object.entries(roleNames).map(([value, title]) => ({
@@ -1049,14 +1059,6 @@ const roles = ref(
     title
   }))
 )
-
-const lastValidIDNumber = ref('')
-const isInitialLoad = ref(false)
-
-// 修改 getRoleTitle 函數
-const getRoleTitle = (roleValue) => {
-  return roleNames[roleValue] || '未知'
-}
 
 const employmentStatuses = ref([
   { title: '在職', value: '在職' },
@@ -1075,11 +1077,7 @@ const guideLicenseOptions = ref([
   { title: '無', value: false }
 ])
 
-const dialog = ref({
-  open: false,
-  id: ''
-})
-
+// ===== 對話框設定 =====
 const dialogWidth = computed(() => {
   if (xlAndUp.value) return '1200'
   if (lgAndUp.value) return '900'
@@ -1088,228 +1086,7 @@ const dialogWidth = computed(() => {
   return '100%'
 })
 
-const departments = ref([])
-
-const getCompanyName = (companyId) => {
-  return companyNames[companyId] || '未知公司' // 若找不到則顯示"未知公司"
-}
-
-// 載入選定公司下的部門
-const fetchDepartments = async () => {
-  if (!selectedCompany.value) {
-    filteredDepartments.value = []
-    return
-  }
-
-  try {
-    const response = await apiAuth.get('/department/all', {
-      params: { companyId: selectedCompany.value }
-    })
-
-    // 檢查後端返回的數據並加載部門列表
-    if (response.data && response.data.result && response.data.result.data) {
-      filteredDepartments.value = response.data.result.data.filter(
-        dept => dept.companyId === selectedCompany.value
-      )
-    } else {
-      console.warn('No departments found for selected company.')
-      filteredDepartments.value = []
-    }
-  } catch (error) {
-    console.error('部門加載失敗:', error)
-    filteredDepartments.value = []
-  }
-}
-
-const formatToDate = (dateString) => {
-  return dateString ? new Date(dateString) : null
-}
-
-const hasEditPermission = computed(() => {
-  return user.isSuperAdmin || user.isHR || user.isAdmin
-})
-
-const isInitializingStatus = ref(false)
-
-const openDialog = (item) => {
-  isInitializingStatus.value = true
-  isInitialLoad.value = true
-  // 檢查是否沒有編輯權限
-  if (!hasEditPermission.value) {
-    createSnackbar({
-      text: '權限不足',
-      snackbarProps: {
-        color: 'red-lighten-1'
-      }
-    })
-    return
-  }
-
-  currentPage.value = tablePage.value
-  if (item) {
-    isEditing.value = true
-    dialog.value.id = item._id
-    employmentStatus.value.value = item.employmentStatus // 將 employmentStatus 賦值
-    // 保存當前頁碼到 localStorage
-    localStorage.setItem('userTablePage', tablePage.value.toString())
-    // 儲存原始數據，對可選欄位使用空字串
-    originalData.value = {
-      email: item.email,
-      name: item.name,
-      englishName: item.englishName,
-      gender: item.gender,
-      IDNumber: item.IDNumber,
-      permanentAddress: item.permanentAddress,
-      contactAddress: item.contactAddress,
-      birthDate: formatToDate(item.birthDate),
-      company: item.department?.companyId || 1,
-      department: item.department?._id,
-      cellphone: item.cellphone,
-      salary: item.salary,
-      extNumber: item.extNumber,
-      printNumber: item.printNumber,
-      guideLicense: item.guideLicense,
-      jobTitle: item.jobTitle,
-      role: item.role,
-      employmentStatus: item.employmentStatus,
-      hireDate: formatToDate(item.hireDate),
-      resignationDate: formatToDate(item.resignationDate),
-      emergencyName: item.emergencyName,
-      emergencyCellphone: item.emergencyCellphone,
-      emergencyRelationship: item.emergencyRelationship ?? '', // 使用空值合併運算符
-      note: item.note ?? '', // 使用空值合併運算符
-      userId: item.userId ?? ''
-    }
-
-    // 設置表單值
-    email.value.value = item.email
-    name.value.value = item.name
-    englishName.value.value = item.englishName
-    gender.value.value = item.gender
-    IDNumber.value.value = item.IDNumber
-    permanentAddress.value.value = item.permanentAddress
-    contactAddress.value.value = item.contactAddress
-    birthDate.value.value = formatToDate(item.birthDate)
-    hireDate.value.value = formatToDate(item.hireDate)
-    resignationDate.value.value = formatToDate(item.resignationDate)
-    selectedCompany.value = item.department?.companyId || 1
-    fetchDepartments().then(() => {
-      department.value.value = item.department?._id
-    })
-    cellphone.value.value = item.cellphone
-    salary.value.value = item.salary
-    extNumber.value.value = item.extNumber
-    printNumber.value.value = item.printNumber
-    guideLicense.value.value = item.guideLicense
-    jobTitle.value.value = item.jobTitle
-    role.value.value = item.role
-    employmentStatus.value.value = item.employmentStatus
-    emergencyName.value.value = item.emergencyName
-    emergencyCellphone.value.value = item.emergencyCellphone
-    emergencyRelationship.value.value = item.emergencyRelationship ?? ''
-    note.value.value = item.note ?? ''
-    userId.value.value = item.userId ?? ''
-  } else {
-    isEditing.value = false
-    dialog.value.id = ''
-    originalData.value = null
-    selectedCompany.value = 1
-    fetchDepartments()
-    resetForm()
-    hireDate.value.value = new Date()
-  }
-  dialog.value.open = true
-  // 在對話框完全打開之後，將 isInitializingStatus 設置回 false
-  setTimeout(() => {
-    isInitializingStatus.value = false
-    isInitialLoad.value = false
-  }, 300) // 等待對話框完全開啟
-}
-
-// 添加一個計算屬性來判斷是否有更改
-const hasChanges = computed(() => {
-  if (!isEditing.value) return true // 新增模式永遠可以提交
-  if (!originalData.value) return false
-
-  // 取得當前表單值，對可選欄位使用空字串
-  const currentValues = {
-    email: email.value.value,
-    name: name.value.value,
-    englishName: englishName.value.value,
-    gender: gender.value.value,
-    IDNumber: IDNumber.value.value,
-    permanentAddress: permanentAddress.value.value,
-    contactAddress: contactAddress.value.value,
-    birthDate: birthDate.value.value,
-    company: selectedCompany.value,
-    department: department.value.value,
-    cellphone: cellphone.value.value,
-    salary: salary.value.value,
-    extNumber: extNumber.value.value,
-    printNumber: printNumber.value.value,
-    guideLicense: guideLicense.value.value,
-    jobTitle: jobTitle.value.value,
-    role: role.value.value,
-    employmentStatus: employmentStatus.value.value,
-    hireDate: hireDate.value.value,
-    resignationDate: resignationDate.value.value,
-    emergencyName: emergencyName.value.value,
-    emergencyCellphone: emergencyCellphone.value.value,
-    emergencyRelationship: emergencyRelationship.value.value ?? '', // 使用空值合併運算符
-    note: note.value.value ?? '', // 使用空值合併運算符
-    userId: userId.value.value ?? ''
-  }
-
-  // 比較每個欄位
-  return Object.keys(originalData.value).some(key => {
-    // 對於可選欄位，將 null 或 undefined 轉換為空字串
-    if (['note', 'emergencyRelationship'].includes(key)) {
-      const originalValue = originalData.value[key] ?? ''
-      const currentValue = currentValues[key] ?? ''
-      return originalValue !== currentValue
-    }
-
-    // 對於日期類型的比較
-    if (key === 'birthDate' || key === 'hireDate' || key === 'resignationDate') {
-      const originalDate = originalData.value[key] ? new Date(originalData.value[key]).toISOString() : null
-      const currentDate = currentValues[key] ? new Date(currentValues[key]).toISOString() : null
-      return originalDate !== currentDate
-    }
-
-    // 其他必填欄位的比較
-    return originalData.value[key] !== currentValues[key]
-  })
-})
-
-// 在關閉對話框時清除原始數據
-const closeDialog = () => {
-  dialog.value.open = false
-  selectedCompany.value = null
-  filteredDepartments.value = []
-  originalData.value = null
-  resetForm()
-}
-
-const copyPermanentAddress = () => {
-  if (permanentAddress.value.value) {
-    contactAddress.value.value = permanentAddress.value.value
-  }
-}
-
-// 加載部門列表的函數
-const loadDepartments = async () => {
-  try {
-    const { data } = await apiAuth.get('/department/all')
-    departments.value = data.result
-  } catch (error) {
-    console.error('加載部門失敗', error)
-    createSnackbar({
-      text: '加載部門失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  }
-}
-
+// ===== 表單驗證架構 =====
 const userSchema = yup.object({
   email: yup
     .string()
@@ -1337,7 +1114,6 @@ const userSchema = yup.object({
   birthDate: yup
     .date()
     .nullable()
-    // originalValue 是從表單獲取的值，當 originalValue 為空字串""時，轉換為 null，若不是空字串則保持為原本的 value。
     .required('請選擇生日'),
   company: yup
     .number()
@@ -1393,14 +1169,12 @@ const userSchema = yup.object({
   password: yup
     .string()
     .test('password', '請輸入密碼', function (value) {
-      // 只在新增模式時驗證
       if (!isEditing.value) {
         return !!value
       }
       return true
     })
     .test('password-length', '密碼至少需輸入8個字', function (value) {
-      // 只在新增模式時驗證
       if (!isEditing.value && value) {
         return value.length >= 8
       }
@@ -1409,14 +1183,12 @@ const userSchema = yup.object({
   passwordConfirm: yup
     .string()
     .test('passwordConfirm', '請再次輸入密碼', function (value) {
-      // 只在新增模式時驗證
       if (!isEditing.value) {
         return !!value
       }
       return true
     })
     .test('passwords-match', '密碼不一致', function (value) {
-      // 只在新增模式時驗證
       if (!isEditing.value) {
         return value === this.parent.password
       }
@@ -1424,6 +1196,7 @@ const userSchema = yup.object({
     })
 })
 
+// ===== 表單初始化與欄位設定 =====
 const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: userSchema,
   initialValues: {
@@ -1455,16 +1228,16 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     password: '',
     passwordConfirm: ''
   },
-  // 加入這個設定
   validateOnMount: false,
-  validateOnChange: true, // 添加這行
-  validateOnBlur: true, // 添加這行
+  validateOnChange: true,
+  validateOnBlur: true,
   validateOnInput: false,
   context: computed(() => ({
     isEditing: isEditing.value
   }))
 })
 
+// ===== 表單欄位定義 =====
 const email = useField('email')
 const name = useField('name')
 const englishName = useField('englishName')
@@ -1474,9 +1247,8 @@ const permanentAddress = useField('permanentAddress')
 const contactAddress = useField('contactAddress')
 const birthDate = useField('birthDate')
 const company = useField('company')
-// 修改 department 欄位的 useField 設置
 const department = useField('department', undefined, {
-  validateOnValueUpdate: false // 添加這個選項，只在提交時驗證
+  validateOnValueUpdate: false
 })
 const cellphone = useField('cellphone')
 const salary = useField('salary')
@@ -1490,7 +1262,6 @@ const hireDate = useField('hireDate')
 const resignationDate = useField('resignationDate')
 const emergencyName = useField('emergencyName')
 const emergencyCellphone = useField('emergencyCellphone')
-
 const emergencyRelationship = useField('emergencyRelationship', undefined, {
   validateOnValueUpdate: false,
   transform: (value) => value ?? ''
@@ -1506,137 +1277,32 @@ const userId = useField('userId', undefined, {
 const password = useField('password')
 const passwordConfirm = useField('passwordConfirm')
 
-const submit = handleSubmit(async (values) => {
-  try {
-    if (isEditing.value) {
-      // 保存當前頁碼
-      const currentPageNumber = tablePage.value
+// ===== 表格相關設定 =====
+const tableItemsPerPage = ref(10)
+const tableSortBy = ref([
+  { key: 'userId', order: 'asc' }
+])
+const tablePage = ref(1)
+const tableItems = ref([])
+const tableKey = ref(0)
+const tableHeaders = [
+  { title: '員編', align: 'left', sortable: true, key: 'userId' },
+  { title: '姓名', align: 'left', sortable: true, key: 'name' },
+  { title: 'Email', align: 'left', sortable: true, key: 'email' },
+  { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
+  { title: '所屬公司', align: 'left', sortable: true, key: 'department.companyId' },
+  { title: '部門', align: 'left', sortable: true, key: 'department.name' },
+  { title: '分機', align: 'left', sortable: true, key: 'extNumber' },
+  { title: '身分別', align: 'left', sortable: true, key: 'role' },
+  { title: '狀態', align: 'left', sortable: true, key: 'employmentStatus' },
+  { title: '操作', align: 'left', sortable: false, key: 'action' }
+]
 
-      // 更新用戶數據
-      const { data: updateResponse } = await apiAuth.patch(`/user/${dialog.value.id}`, {
-        email: values.email,
-        name: values.name,
-        englishName: values.englishName,
-        gender: values.gender,
-        IDNumber: values.IDNumber,
-        permanentAddress: values.permanentAddress,
-        contactAddress: values.contactAddress,
-        birthDate: values.birthDate,
-        company: values.company,
-        department: values.department,
-        cellphone: values.cellphone,
-        salary: values.salary,
-        extNumber: values.extNumber,
-        printNumber: values.printNumber,
-        guideLicense: values.guideLicense,
-        jobTitle: values.jobTitle,
-        role: values.role,
-        employmentStatus: values.employmentStatus,
-        hireDate: values.hireDate,
-        resignationDate: values.resignationDate,
-        emergencyName: values.emergencyName,
-        emergencyCellphone: values.emergencyCellphone,
-        emergencyRelationship: values.emergencyRelationship,
-        note: values.note,
-        userId: values.userId
-      })
+const tableLoading = ref(true)
+const tableItemsLength = ref(0)
+const tableSearch = ref('')
 
-      // 獲取更新後的部門信息
-      const { data: departmentResponse } = await apiAuth.get(`/department/${values.department}`)
-
-      // 在表格中更新該筆資料
-      const index = tableItems.value.findIndex(item => item._id === dialog.value.id)
-      if (index !== -1) {
-        tableItems.value[index] = {
-          ...updateResponse.result,
-          department: departmentResponse.result
-        }
-      }
-
-      // 儲存當前頁碼並重新加載該頁數據
-      localStorage.setItem('userTablePage', currentPageNumber.toString())
-      await tableLoadItems(false, currentPageNumber)
-
-      // 更新圖表
-      await chartRef.value?.refreshChart()
-
-      createSnackbar({
-        text: '員工資料更新成功',
-        snackbarProps: {
-          color: 'teal-lighten-1'
-        }
-      })
-    } else {
-      // 新增用戶
-      await apiAuth.post('/user', {
-        email: values.email,
-        name: values.name,
-        englishName: values.englishName,
-        gender: values.gender,
-        IDNumber: values.IDNumber,
-        permanentAddress: values.permanentAddress,
-        contactAddress: values.contactAddress,
-        birthDate: values.birthDate,
-        company: values.company,
-        department: values.department,
-        cellphone: values.cellphone,
-        salary: values.salary,
-        extNumber: values.extNumber,
-        printNumber: values.printNumber,
-        guideLicense: values.guideLicense,
-        jobTitle: values.jobTitle,
-        role: values.role,
-        employmentStatus: values.employmentStatus,
-        hireDate: values.hireDate,
-        resignationDate: values.resignationDate,
-        emergencyName: values.emergencyName,
-        emergencyCellphone: values.emergencyCellphone,
-        emergencyRelationship: values.emergencyRelationship,
-        note: values.note,
-        userId: values.userId,
-        password: values.password
-      })
-
-      // 新增後回到第一頁
-      localStorage.setItem('userTablePage', '1')
-      await tableLoadItems(true)
-
-      await chartRef.value?.refreshChart()
-
-      createSnackbar({
-        text: '員工新增成功',
-        snackbarProps: {
-          color: 'teal-lighten-1'
-        }
-      })
-    }
-
-    closeDialog()
-  } catch (error) {
-    console.log(error)
-    createSnackbar({
-      text: error?.response?.data?.message || '發生錯誤',
-      snackbarProps: {
-        color: 'red-lighten-1'
-      }
-    })
-  }
-})
-
-const onUpdatePage = (page) => {
-  if (page < 1) page = 1
-  const maxPage = Math.ceil(tableItemsLength.value / tableItemsPerPage.value)
-  if (page > maxPage) page = maxPage
-
-  if (tablePage.value !== page) {
-    tablePage.value = page
-    // 清空 LocalStorage 頁碼，避免重新整理跳回錯誤頁面
-    localStorage.removeItem('userTablePage')
-    tableLoadItems(false)
-  }
-}
-
-// 新增搜尋條件相關的狀態
+// ===== 搜尋相關設定 =====
 const searchCriteria = ref({
   role: '',
   companyId: '',
@@ -1646,56 +1312,95 @@ const searchCriteria = ref({
   employmentStatus: ''
 })
 
-// 處理公司變更
-const handleCompanyChange = async (companyId) => {
+const quickSearchText = ref('')
+
+// ===== 輔助函數 =====
+const getCompanyName = (companyId) => {
+  return companyNames[companyId] || '未知公司'
+}
+
+const getRoleTitle = (roleValue) => {
+  return roleNames[roleValue] || '未知'
+}
+
+const formatToDate = (dateString) => {
+  return dateString ? new Date(dateString) : null
+}
+
+// ===== 權限檢查 =====
+const hasEditPermission = computed(() => {
+  return user.isSuperAdmin || user.isHR || user.isAdmin
+})
+
+// ===== 響應式表格抬頭設定 =====
+const filteredHeaders = computed(() => {
+  if (['xl', 'xxl'].includes(currentBreakpoint.value)) {
+    return tableHeaders
+  }
+  if (['lg'].includes(currentBreakpoint.value)) {
+    return tableHeaders.filter(header => header.key !== 'employmentStatus')
+  }
+  if (['md'].includes(currentBreakpoint.value)) {
+    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
+  }
+  if (['sm'].includes(currentBreakpoint.value)) {
+    return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
+  }
+  return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus')
+})
+
+// ===== API 相關函數 =====
+// 載入部門列表
+const loadDepartments = async () => {
   try {
-    // 只有在有選擇公司時才清空部門
-    if (companyId) {
-      const response = await apiAuth.get('/department/all', {
-        params: { companyId }
-      })
-      if (response.data?.result?.data) {
-        filteredDepartments.value = response.data.result.data
-        // 如果當前選擇的部門不屬於新選擇的公司，才清空部門選擇
-        const currentDepartment = filteredDepartments.value.find(
-          dept => dept._id === searchCriteria.value.department
-        )
-        if (!currentDepartment) {
-          searchCriteria.value.department = ''
-        }
-      }
-    } else {
-      // 如果取消選擇公司，才清空部門相關數據
-      searchCriteria.value.department = ''
-      filteredDepartments.value = []
-    }
+    const { data } = await apiAuth.get('/department/all')
+    departments.value = data.result
   } catch (error) {
-    console.error('載入部門失敗:', error)
+    console.error('加載部門失敗', error)
     createSnackbar({
-      text: '載入部門資料失敗',
-      snackbarProps: { color: 'error' }
+      text: '加載部門失敗',
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
 }
 
-// 重置搜尋條件
-const resetSearch = () => {
-  searchCriteria.value = {
-    role: '',
-    companyId: '',
-    department: '',
-    gender: '',
-    guideLicense: '',
-    employmentStatus: ''
+// 獲取特定公司的部門
+const fetchDepartments = async () => {
+  if (!selectedCompany.value) {
+    filteredDepartments.value = []
+    return
   }
-  filteredDepartments.value = [] // 確保部門列表被清空
-  tableSearch.value = ''
 
-  // 重置後自動執行一次搜尋
-  performSearch()
+  try {
+    const response = await apiAuth.get('/department/all', {
+      params: { companyId: selectedCompany.value }
+    })
+
+    if (response.data && response.data.result && response.data.result.data) {
+      filteredDepartments.value = response.data.result.data.filter(
+        dept => dept.companyId === selectedCompany.value
+      )
+    } else {
+      console.warn('No departments found for selected company.')
+      filteredDepartments.value = []
+    }
+  } catch (error) {
+    console.error('部門加載失敗:', error)
+    filteredDepartments.value = []
+  }
 }
 
-// 執行搜尋
+// ===== 表格操作函數 =====
+const tableLoadItems = async (reset, page) => {
+  if (reset) {
+    tablePage.value = 1
+  } else if (page) {
+    tablePage.value = page
+  }
+  await performSearch()
+}
+
+// 搜尋相關函數
 const performSearch = async (fromQuickSearch = false) => {
   tableLoading.value = true
   try {
@@ -1711,7 +1416,6 @@ const performSearch = async (fromQuickSearch = false) => {
       )
     }
 
-    // 只在快速搜尋時使用 quickSearchText，否則使用一般搜尋
     if (fromQuickSearch) {
       params.quickSearch = quickSearchText.value
     }
@@ -1743,157 +1447,379 @@ const performSearch = async (fromQuickSearch = false) => {
   }
 }
 
-// 新增用於快速搜尋的 ref
-const quickSearchText = ref('')
+// ===== 表單操作函數 =====
+const submit = handleSubmit(async (values) => {
+  try {
+    if (isEditing.value) {
+      const currentPageNumber = tablePage.value
 
-// 建立一個新的 debounced 搜尋函數專門用於快速搜尋
-const debouncedQuickSearch = debounce((value) => {
-  tablePage.value = 1 // 重置到第一頁
-  performSearch(true) // 傳入 true 表示這是來自快速搜尋
-}, 300)
+      const { data: updateResponse } = await apiAuth.patch(`/user/${dialog.value.id}`, {
+        email: values.email,
+        name: values.name,
+        englishName: values.englishName,
+        gender: values.gender,
+        IDNumber: values.IDNumber,
+        permanentAddress: values.permanentAddress,
+        contactAddress: values.contactAddress,
+        birthDate: values.birthDate,
+        company: values.company,
+        department: values.department,
+        cellphone: values.cellphone,
+        salary: values.salary,
+        extNumber: values.extNumber,
+        printNumber: values.printNumber,
+        guideLicense: values.guideLicense,
+        jobTitle: values.jobTitle,
+        role: values.role,
+        employmentStatus: values.employmentStatus,
+        hireDate: values.hireDate,
+        resignationDate: values.resignationDate,
+        emergencyName: values.emergencyName,
+        emergencyCellphone: values.emergencyCellphone,
+        emergencyRelationship: values.emergencyRelationship,
+        note: values.note,
+        userId: values.userId
+      })
 
-// 監聽快速搜尋輸入框
-watch(quickSearchText, (newVal) => {
-  debouncedQuickSearch(newVal)
+      const { data: departmentResponse } = await apiAuth.get(`/department/${values.department}`)
+
+      const index = tableItems.value.findIndex(item => item._id === dialog.value.id)
+      if (index !== -1) {
+        tableItems.value[index] = {
+          ...updateResponse.result,
+          department: departmentResponse.result
+        }
+      }
+
+      localStorage.setItem('userTablePage', currentPageNumber.toString())
+      await tableLoadItems(false, currentPageNumber)
+
+      await chartRef.value?.refreshChart()
+
+      createSnackbar({
+        text: '員工資料更新成功',
+        snackbarProps: {
+          color: 'teal-lighten-1'
+        }
+      })
+    } else {
+      await apiAuth.post('/user', {
+        email: values.email,
+        name: values.name,
+        englishName: values.englishName,
+        gender: values.gender,
+        IDNumber: values.IDNumber,
+        permanentAddress: values.permanentAddress,
+        contactAddress: values.contactAddress,
+        birthDate: values.birthDate,
+        company: values.company,
+        department: values.department,
+        cellphone: values.cellphone,
+        salary: values.salary,
+        extNumber: values.extNumber,
+        printNumber: values.printNumber,
+        guideLicense: values.guideLicense,
+        jobTitle: values.jobTitle,
+        role: values.role,
+        employmentStatus: values.employmentStatus,
+        hireDate: values.hireDate,
+        resignationDate: values.resignationDate,
+        emergencyName: values.emergencyName,
+        emergencyCellphone: values.emergencyCellphone,
+        emergencyRelationship: values.emergencyRelationship,
+        note: values.note,
+        userId: values.userId,
+        password: values.password
+      })
+
+      localStorage.setItem('userTablePage', '1')
+      await tableLoadItems(true)
+
+      await chartRef.value?.refreshChart()
+
+      createSnackbar({
+        text: '員工新增成功',
+        snackbarProps: {
+          color: 'teal-lighten-1'
+        }
+      })
+    }
+
+    closeDialog()
+  } catch (error) {
+    console.log(error)
+    createSnackbar({
+      text: error?.response?.data?.message || '發生錯誤',
+      snackbarProps: {
+        color: 'red-lighten-1'
+      }
+    })
+  }
 })
 
-// 數據表格相關變量
-const tableItemsPerPage = ref(10)
-const tableSortBy = ref([
-  { key: 'userId', order: 'asc' }
-])
-const tablePage = ref(1)
-const tableItems = ref([])
-const tableKey = ref(0)
-const tableHeaders = [
-  { title: '員編', align: 'left', sortable: true, key: 'userId' },
-  { title: '姓名', align: 'left', sortable: true, key: 'name' },
-  { title: 'Email', align: 'left', sortable: true, key: 'email' },
-  { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
-  { title: '所屬公司', align: 'left', sortable: true, key: 'department.companyId' },
-  { title: '部門', align: 'left', sortable: true, key: 'department.name' },
-  { title: '分機', align: 'left', sortable: true, key: 'extNumber' },
-  { title: '身分別', align: 'left', sortable: true, key: 'role' },
-  { title: '狀態', align: 'left', sortable: true, key: 'employmentStatus' },
-  { title: '操作', align: 'left', sortable: false, key: 'action' }
-]
-// 根據斷點條件動態生成標題
-const filteredHeaders = computed(() => {
-  if (['xl', 'xxl'].includes(currentBreakpoint.value)) {
-    return tableHeaders
-  }
-  // 在 'xl' 和 'xxl' 顯示全部欄位
-  if (['lg'].includes(currentBreakpoint.value)) {
-    return tableHeaders.filter(header => header.key !== 'employmentStatus')
-  }
-  if (['md'].includes(currentBreakpoint.value)) {
-    // 在 'md' 斷點隱藏 "公司" 欄位
-    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
-  }
-  if (['sm'].includes(currentBreakpoint.value)) {
-    // 在 'sm' 斷點隱藏 "公司" 和 "部門" 欄位
-    return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
-  }
-  // 其他斷點隱藏 "手機號碼" 欄位
-  return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus')
-})
+// ===== 對話框操作函數 =====
+const openDialog = (item) => {
+  isInitializingStatus.value = true
+  isInitialLoad.value = true
 
-const tableLoading = ref(true)
-const tableItemsLength = ref(0)
-const tableSearch = ref('')
-
-// 加載表格數據
-// const tableLoadItems = async (reset, page) => {
-//   console.log('Loading items:', { reset, page, currentPage: tablePage.value })
-//   tableLoading.value = true
-//   if (reset) {
-//     tablePage.value = 1
-//   } else if (page) {
-//     tablePage.value = page
-//   }
-//   // 確保頁碼至少為 1
-//   tablePage.value = Math.max(1, tablePage.value)
-//   try {
-//     const { data } = await apiAuth.get('/user/all', {
-//       params: {
-//         page: tablePage.value, // 將 tablePage.value 傳遞給後端
-//         itemsPerPage: tableItemsPerPage.value,
-//         sortBy: tableSortBy.value[0]?.key || 'userId',
-//         sortOrder: tableSortBy.value[0]?.order || 'asc',
-//         search: tableSearch.value,
-//         role: roleFilter.value
-//       }
-//     })
-//     // 更新表格數據
-//     const { data: users, totalItems } = data.result
-//     tableItems.value = users
-//     tableItemsLength.value = totalItems
-
-//     // 計算最大頁數
-//     const maxPage = Math.ceil(totalItems / tableItemsPerPage.value)
-
-//     // 檢查當前頁碼是否有效
-//     if (tablePage.value > maxPage) {
-//       console.log('Current page exceeds max page, adjusting...')
-//       tablePage.value = Math.max(1, maxPage)
-//       // 如果頁碼無效，重新加載正確的頁
-//       if (maxPage > 0) {
-//         return tableLoadItems(false, tablePage.value)
-//       }
-//     }
-
-//     // 更新 localStorage 中的頁碼
-//     if (!reset) {
-//       localStorage.setItem('userTablePage', tablePage.value.toString())
-//     }
-//   } catch (error) {
-//     console.error('Error loading items:', error)
-//     createSnackbar({
-//       text: error?.response?.data?.message || '載入資料時發生錯誤',
-//       snackbarProps: {
-//         color: 'red-lighten-1'
-//       }
-//     })
-//     // 發生錯誤時重置到第一頁
-//     tableItems.value = []
-//     tableItemsLength.value = 0
-//     tablePage.value = 1
-//   } finally {
-//     tableLoading.value = false
-//   }
-// }
-const tableLoadItems = async (reset, page) => {
-  if (reset) {
-    tablePage.value = 1
-  } else if (page) {
-    tablePage.value = page
+  if (!hasEditPermission.value) {
+    createSnackbar({
+      text: '權限不足',
+      snackbarProps: {
+        color: 'red-lighten-1'
+      }
+    })
+    return
   }
-  await performSearch()
+
+  currentPage.value = tablePage.value
+  if (item) {
+    isEditing.value = true
+    dialog.value.id = item._id
+    employmentStatus.value.value = item.employmentStatus
+    localStorage.setItem('userTablePage', tablePage.value.toString())
+
+    originalData.value = {
+      email: item.email,
+      name: item.name,
+      englishName: item.englishName,
+      gender: item.gender,
+      IDNumber: item.IDNumber,
+      permanentAddress: item.permanentAddress,
+      contactAddress: item.contactAddress,
+      birthDate: formatToDate(item.birthDate),
+      company: item.department?.companyId || 1,
+      department: item.department?._id,
+      cellphone: item.cellphone,
+      salary: item.salary,
+      extNumber: item.extNumber,
+      printNumber: item.printNumber,
+      guideLicense: item.guideLicense,
+      jobTitle: item.jobTitle,
+      role: item.role,
+      employmentStatus: item.employmentStatus,
+      hireDate: formatToDate(item.hireDate),
+      resignationDate: formatToDate(item.resignationDate),
+      emergencyName: item.emergencyName,
+      emergencyCellphone: item.emergencyCellphone,
+      emergencyRelationship: item.emergencyRelationship ?? '',
+      note: item.note ?? '',
+      userId: item.userId ?? ''
+    }
+
+    // 設置表單值
+    email.value.value = item.email
+    name.value.value = item.name
+    englishName.value.value = item.englishName
+    gender.value.value = item.gender
+    IDNumber.value.value = item.IDNumber
+    permanentAddress.value.value = item.permanentAddress
+    contactAddress.value.value = item.contactAddress
+    birthDate.value.value = formatToDate(item.birthDate)
+    hireDate.value.value = formatToDate(item.hireDate)
+    resignationDate.value.value = formatToDate(item.resignationDate)
+    selectedCompany.value = item.department?.companyId || 1
+    fetchDepartments().then(() => {
+      department.value.value = item.department?._id
+    })
+    cellphone.value.value = item.cellphone
+    salary.value.value = item.salary
+    extNumber.value.value = item.extNumber
+    printNumber.value.value = item.printNumber
+    guideLicense.value.value = item.guideLicense
+    jobTitle.value.value = item.jobTitle
+    role.value.value = item.role
+    employmentStatus.value.value = item.employmentStatus
+    emergencyName.value.value = item.emergencyName
+    emergencyCellphone.value.value = item.emergencyCellphone
+    emergencyRelationship.value.value = item.emergencyRelationship ?? ''
+    note.value.value = item.note ?? ''
+    userId.value.value = item.userId ?? ''
+  } else {
+    isEditing.value = false
+    dialog.value.id = ''
+    originalData.value = null
+    selectedCompany.value = 1
+    fetchDepartments()
+    resetForm()
+    hireDate.value.value = new Date()
+  }
+  dialog.value.open = true
+  setTimeout(() => {
+    isInitializingStatus.value = false
+    isInitialLoad.value = false
+  }, 300)
 }
-// 初始加載表格數據
-tableLoadItems()
 
-// 建立一個 debounced 的搜尋函數
+const closeDialog = () => {
+  dialog.value.open = false
+  selectedCompany.value = null
+  filteredDepartments.value = []
+  originalData.value = null
+  resetForm()
+}
+
+// ===== 刪除用戶函數 =====
+const deleteUser = async () => {
+  try {
+    tableLoading.value = true
+    await apiAuth.delete(`/user/${dialog.value.id}`)
+
+    closeDialog()
+    await tableLoadItems(true)
+    await chartRef.value?.refreshChart()
+
+    createSnackbar({
+      text: '員工刪除成功',
+      snackbarProps: { color: 'teal-lighten-1' }
+    })
+  } catch (error) {
+    console.error('Delete user error:', error)
+    createSnackbar({
+      text: error?.response?.data?.message || '刪除失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  } finally {
+    tableLoading.value = false
+    confirmDeleteDialog.value = false
+  }
+}
+
+// ===== 工具函數 =====
+const copyPermanentAddress = () => {
+  if (permanentAddress.value.value) {
+    contactAddress.value.value = permanentAddress.value.value
+  }
+}
+
+const onUpdatePage = (page) => {
+  if (page < 1) page = 1
+  const maxPage = Math.ceil(tableItemsLength.value / tableItemsPerPage.value)
+  if (page > maxPage) page = maxPage
+
+  if (tablePage.value !== page) {
+    tablePage.value = page
+    localStorage.removeItem('userTablePage')
+    tableLoadItems(false)
+  }
+}
+
+const resetSearch = () => {
+  searchCriteria.value = {
+    role: '',
+    companyId: '',
+    department: '',
+    gender: '',
+    guideLicense: '',
+    employmentStatus: ''
+  }
+  filteredDepartments.value = []
+  tableSearch.value = ''
+  performSearch()
+}
+
+// ===== 計算屬性 =====
+const hasChanges = computed(() => {
+  if (!isEditing.value) return true
+  if (!originalData.value) return false
+
+  const currentValues = {
+    email: email.value.value,
+    name: name.value.value,
+    englishName: englishName.value.value,
+    gender: gender.value.value,
+    IDNumber: IDNumber.value.value,
+    permanentAddress: permanentAddress.value.value,
+    contactAddress: contactAddress.value.value,
+    birthDate: birthDate.value.value,
+    company: selectedCompany.value,
+    department: department.value.value,
+    cellphone: cellphone.value.value,
+    salary: salary.value.value,
+    extNumber: extNumber.value.value,
+    printNumber: printNumber.value.value,
+    guideLicense: guideLicense.value.value,
+    jobTitle: jobTitle.value.value,
+    role: role.value.value,
+    employmentStatus: employmentStatus.value.value,
+    hireDate: hireDate.value.value,
+    resignationDate: resignationDate.value.value,
+    emergencyName: emergencyName.value.value,
+    emergencyCellphone: emergencyCellphone.value.value,
+    emergencyRelationship: emergencyRelationship.value.value ?? '',
+    note: note.value.value ?? '',
+    userId: userId.value.value ?? ''
+  }
+
+  return Object.keys(originalData.value).some(key => {
+    if (['note', 'emergencyRelationship'].includes(key)) {
+      const originalValue = originalData.value[key] ?? ''
+      const currentValue = currentValues[key] ?? ''
+      return originalValue !== currentValue
+    }
+
+    if (key === 'birthDate' || key === 'hireDate' || key === 'resignationDate') {
+      const originalDate = originalData.value[key] ? new Date(originalData.value[key]).toISOString() : null
+      const currentDate = currentValues[key] ? new Date(currentValues[key]).toISOString() : null
+      return originalDate !== currentDate
+    }
+
+    return originalData.value[key] !== currentValues[key]
+  })
+})
+
+// ===== 監聽器 =====
+// 公司變更處理
+const handleCompanyChange = async (companyId) => {
+  try {
+    if (companyId) {
+      const response = await apiAuth.get('/department/all', {
+        params: { companyId }
+      })
+      if (response.data?.result?.data) {
+        filteredDepartments.value = response.data.result.data
+        const currentDepartment = filteredDepartments.value.find(
+          dept => dept._id === searchCriteria.value.department
+        )
+        if (!currentDepartment) {
+          searchCriteria.value.department = ''
+        }
+      }
+    } else {
+      searchCriteria.value.department = ''
+      filteredDepartments.value = []
+    }
+  } catch (error) {
+    console.error('載入部門失敗:', error)
+    createSnackbar({
+      text: '載入部門資料失敗',
+      snackbarProps: { color: 'error' }
+    })
+  }
+}
+
 const debouncedSearch = debounce((value) => {
   tableLoadItems(true)
-}, 300) // 300ms 的延遲
+}, 300)
 
-// 監聽快速搜尋輸入框
+const debouncedQuickSearch = debounce((value) => {
+  tablePage.value = 1
+  performSearch(true)
+}, 300)
+
 watch(quickSearchText, (newVal) => {
   debouncedQuickSearch(newVal)
 })
-// 監聽 selectedCompany 的變化並更新部門列表
+
 watch(selectedCompany, async (newVal) => {
   if (newVal !== null && newVal !== undefined) {
-    // 更新 company 欄位並載入部門列表
-    company.value.value = newVal // 將選擇的公司同步到 company 欄位
-    department.value.value = null // 重置部門欄位的值
-    await fetchDepartments() // 根據新選擇的公司重新加載部門
+    company.value.value = newVal
+    department.value.value = null
+    await fetchDepartments()
   } else {
-    // 若公司欄位被清空，清空部門列表並重置 department 欄位值
     company.value.value = null
     department.value.value = null
-    filteredDepartments.value = [] // 清空部門列表
+    filteredDepartments.value = []
   }
 })
 
@@ -1904,7 +1830,7 @@ watch(company.value, (newVal) => {
 })
 
 watch(employmentStatus.value, (newVal) => {
-  if (isInitializingStatus.value) return // 初始化期間跳過監聽
+  if (isInitializingStatus.value) return
   if (newVal === '離職') {
     resignationDateDialog.value = true
   } else {
@@ -1920,7 +1846,6 @@ watch(() => IDNumber.value.value, (newVal) => {
     return
   }
 
-  // 只在非初始載入時才顯示提示
   if (newVal.length === 10 && newVal !== lastValidIDNumber.value && !isInitialLoad.value) {
     const idNumberRegex = /^[A-Za-z][12]\d{8}$/
     if (idNumberRegex.test(newVal)) {
@@ -1950,39 +1875,7 @@ watch(() => IDNumber.value.value, (newVal) => {
   }
 })
 
-const deleteUser = async () => {
-  try {
-    tableLoading.value = true
-    await apiAuth.delete(`/user/${dialog.value.id}`)
-
-    // 關閉對話框
-    closeDialog()
-
-    // 重新載入資料
-    await tableLoadItems(true)
-
-    // 更新圖表（如果有的話）
-    await chartRef.value?.refreshChart()
-
-    // 顯示成功訊息
-    createSnackbar({
-      text: '員工刪除成功',
-      snackbarProps: { color: 'teal-lighten-1' }
-    })
-  } catch (error) {
-    console.error('Delete user error:', error)
-    createSnackbar({
-      text: error?.response?.data?.message || '刪除失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  } finally {
-    tableLoading.value = false
-    confirmDeleteDialog.value = false
-  }
-}
-
-// 初始化時載入部門列表
-// 根據預設的 selectedCompany 值加載部門
+// ===== 生命週期鉤子 =====
 onMounted(async () => {
   const storedPage = localStorage.getItem('userTablePage')
   if (storedPage) {
@@ -1992,25 +1885,23 @@ onMounted(async () => {
 
   await loadDepartments()
   await fetchDepartments()
-  await performSearch() // 確保初始載入時會執行搜尋
+  await performSearch()
 })
 
 onMounted(() => {
   const storedPage = localStorage.getItem('userTablePage')
-  // 僅在 localStorage 存在且為合法頁碼時才使用
   if (storedPage && parseInt(storedPage) > 0) {
     tablePage.value = parseInt(storedPage)
     tableKey.value++
-    // 清空存取以避免後續重新整理問題
     localStorage.removeItem('userTablePage')
   } else {
-    tablePage.value = 1 // 預設回到第一頁
+    tablePage.value = 1
   }
 })
-// 在組件卸載時取消 debounce
+
 onUnmounted(() => {
   debouncedSearch.cancel()
-  debouncedQuickSearch.cancel() // 新增這行
+  debouncedQuickSearch.cancel()
 })
 </script>
 

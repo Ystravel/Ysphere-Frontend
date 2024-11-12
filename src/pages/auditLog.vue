@@ -11,9 +11,17 @@
             cols="12"
             class="mt-1 px-lg-10"
           >
-            <v-card class="elevation-4 rounded-xl py-8 px-4 px-sm-8">
-              <v-card-title class="font-weight-bold">
+            <v-card class="elevation-4 rounded-xl py-8 px-4 px-sm-4 px-xl-8">
+              <v-card-title class="font-weight-bold d-flex align-center">
                 搜尋條件
+                <v-icon
+                  v-if="smAndUp"
+                  v-tooltip:top="'操作人員及對象，請輸入員工編號或姓名進行搜尋'"
+                  icon="mdi-information"
+                  color="grey-darken-2"
+                  size="x-small"
+                  class="ms-2"
+                />
               </v-card-title>
               <v-card-text class="pa-2">
                 <v-row>
@@ -51,16 +59,34 @@
                     sm="6"
                     lg="12"
                   >
+                    <v-select
+                      v-model="searchCriteria.targetModel"
+                      :items="modelOptions"
+                      label="資料類型"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="6"
+                    lg="12"
+                  >
                     <!-- 被操作對象自動完成 -->
                     <v-autocomplete
                       v-model="searchCriteria.targetId"
                       v-model:search-input="targetSearchInput"
                       :items="targetSuggestions"
                       :loading="targetLoading"
-                      label="操作對象"
+                      :label="targetType ? '選擇操作對象' : '請先選擇資料類型'"
+                      :disabled="!targetType"
                       return-object
                       :item-props="item => ({
-                        title: `${item.name} (${item.userId})`,
+                        title: getTargetDisplayText(item),
                         value: item
                       })"
                       variant="outlined"
@@ -71,7 +97,7 @@
                       @click:clear="clearTargetSearch"
                     >
                       <template #selection="{ item }">
-                        {{ item?.props?.title }}
+                        {{ getTargetDisplayText(item.props.value) }}
                       </template>
                     </v-autocomplete>
                   </v-col>
@@ -92,27 +118,11 @@
                       clearable
                     />
                   </v-col>
+
                   <v-col
                     cols="12"
                     sm="6"
                     lg="12"
-                  >
-                    <v-select
-                      v-model="searchCriteria.targetModel"
-                      :items="modelOptions"
-                      label="資料類型"
-                      item-title="title"
-                      item-value="value"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      clearable
-                    />
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                    md="4"
                   >
                     <v-date-input
                       v-model="searchCriteria.startDate"
@@ -127,7 +137,7 @@
                   <v-col
                     cols="12"
                     sm="6"
-                    md="4"
+                    lg="12"
                   >
                     <v-date-input
                       v-model="searchCriteria.endDate"
@@ -137,6 +147,7 @@
                       density="compact"
                       hide-details
                       clearable
+                      :min="searchCriteria.startDate"
                     />
                   </v-col>
                 </v-row>
@@ -200,39 +211,49 @@
               :headers="filteredHeaders"
               :loading="tableLoading"
               :items-length="tableItemsLength"
+              :items-per-page-options="[10, 20, 50,100]"
               :page="tablePage"
+              :header-props="headerProps"
               hover
               density="compact"
+              class="rounded-ts-lg rounded-te-lg"
               @update:options="handleTableOptionsChange"
             >
-              <template #[`item.createdAt`]="{ item }">
-                {{ formatDateTime(item.createdAt) }}
-              </template>
-              <template #[`item.operatorId`]="{ item }">
-                {{ formatOperator(item) }}
-              </template>
-              <template #[`item.targetId`]="{ item }">
-                {{ formatTarget(item) }}
-              </template>
-              <template #[`item.changes`]="{ item }">
-                {{ formatChanges(item) }}
-              </template>
-              <template #[`item.targetModel`]="{ item }">
-                {{ getModelDisplay(item.targetModel) }}
-              </template>
-              <template #[`item.actionType`]="{ item }">
-                {{ item.action }}
-              </template>
-              <template #[`item.actions`]="{ item }">
-                <v-btn
-                  icon
-                  color="blue-grey-darken-1"
-                  variant="text"
-                  size="small"
-                  @click="showDetail(item)"
-                >
-                  <v-icon>mdi-information</v-icon>
-                </v-btn>
+              <!-- 添加自定義的 item 插槽來實現交替行顏色 -->
+              <template #item="{ item, index }">
+                <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
+                  <td>{{ formatDateTime(item.createdAt) }}</td>
+                  <td v-if="smAndUp">
+                    {{ formatOperator(item) }}
+                  </td>
+                  <td>{{ getModelDisplay(item.targetModel) }}</td>
+                  <td v-if="mdAndUp">
+                    {{ item.action }}
+                  </td>
+                  <td v-if="smAndUp">
+                    {{ formatTarget(item) }}
+                  </td>
+                  <td v-if="lgAndUp">
+                    <div
+                      v-for="(change, idx) in formatChanges(item)"
+                      :key="idx"
+                    >
+                      {{ change }}
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <v-btn
+                      icon
+                      color="blue-grey-darken-3"
+                      variant="text"
+                      size="small"
+                      class="my-2"
+                      @click="showDetail(item)"
+                    >
+                      <v-icon>mdi-book-open-variant-outline</v-icon>
+                    </v-btn>
+                  </td>
+                </tr>
               </template>
             </v-data-table-server>
           </v-col>
@@ -246,7 +267,7 @@
     width="600"
   >
     <v-card class="pa-4">
-      <v-card-title class="text-h6 pb-4">
+      <v-card-title class="text-h6 ps-6 pt-4 pb-3">
         異動詳細資料
       </v-card-title>
       <v-card-text>
@@ -254,37 +275,60 @@
           <v-col cols="12">
             <div class="d-flex flex-column gap-4">
               <div>
-                <div class="text-grey text-subtitle-2">
+                <div
+                  class="text-grey-darken-1"
+                  style="font-size: 15px; font-weight: 600;"
+                >
                   操作時間
                 </div>
                 <div>{{ formatDateTime(selectedItem?.createdAt) }}</div>
               </div>
+              <v-divider class="my-2" />
               <div>
-                <div class="text-grey text-subtitle-2">
+                <div
+                  class="text-grey-darken-1"
+                  style="font-size: 15px; font-weight: 600;"
+                >
                   操作人員
                 </div>
                 <div>{{ formatOperator(selectedItem) }}</div>
               </div>
+              <v-divider class="my-2" />
               <div>
-                <div class="text-grey text-subtitle-2">
+                <div
+                  class="text-grey-darken-1"
+                  style="font-size: 15px; font-weight: 600;"
+                >
                   操作對象
                 </div>
                 <div>{{ formatTarget(selectedItem) }}</div>
               </div>
+              <v-divider class="my-2" />
               <div>
-                <div class="text-grey text-subtitle-2">
+                <div
+                  class="text-grey-darken-1"
+                  style="font-size: 15px; font-weight: 600;"
+                >
                   操作類型
                 </div>
                 <div>{{ selectedItem?.action }}</div>
               </div>
+              <v-divider class="my-2" />
               <div>
-                <div class="text-grey text-subtitle-2">
+                <div
+                  class="text-grey-darken-1"
+                  style="font-size: 15px; font-weight: 600;"
+                >
                   資料類型
                 </div>
                 <div>{{ getModelDisplay(selectedItem?.targetModel) }}</div>
               </div>
+              <v-divider class="my-2" />
               <div>
-                <div class="text-grey text-subtitle-2">
+                <div
+                  class="text-grey-darken-1"
+                  style="font-size: 15px; font-weight: 600;"
+                >
                   異動內容
                 </div>
                 <div>{{ formatChanges(selectedItem) }}</div>
@@ -308,19 +352,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useApi } from '@/composables/axios'
-import debounce from 'lodash/debounce'
+import { debounce } from 'lodash'
 import { definePage } from 'vue-router/auto'
 import { companyNames } from '@/enums/Company'
-import { roleNames } from '@/enums/UserRole'
+import UserRole, { roleNames } from '@/enums/UserRole'
 import { useSnackbar } from 'vuetify-use-dialog'
 
 definePage({
   meta: {
     title: '異動紀錄 | ystravel',
-    login: true
+    login: true,
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
   }
 })
 
@@ -344,6 +389,9 @@ const tablePage = ref(1)
 const tableItemsPerPage = ref(10)
 const tableItemsLength = ref(0)
 const tableSortBy = ref([{ key: 'createdAt', order: 'desc' }])
+const headerProps = {
+  class: 'header-bg'
+}
 
 // 搜尋條件
 const searchCriteria = ref({
@@ -385,6 +433,21 @@ const getModelDisplay = (model) => {
   return modelMap[model] || model
 }
 
+const getTargetDisplayText = (item) => {
+  if (!item) return ''
+
+  switch (targetType.value) {
+    case 'users':
+      return `${item.name} (${item.userId})`
+    case 'departments':
+      return `${item.name} (${item.departmentId}) - ${companyNames[item.companyId]}`
+    case 'assets':
+      return `${item.name} (${item.assetId})`
+    default:
+      return item.name || ''
+  }
+}
+
 // 欄位名稱翻譯
 const fieldTranslations = {
   name: '姓名',
@@ -394,15 +457,16 @@ const fieldTranslations = {
   extNumber: '分機號碼',
   printNumber: '列印編號',
   department: '部門',
-  companyId: '所屬公司',
+  companyId: '公司',
   company: '公司',
   companyName: '公司名稱',
   jobTitle: '職稱',
   role: '權限',
   employmentStatus: '任職狀態',
+  gender: '性別',
   guideLicense: '領隊證',
   salary: '薪資',
-  hireDate: '到職日期',
+  birthDate: '生日',
   resignationDate: '離職日期',
   emergencyName: '緊急聯絡人',
   emergencyCellphone: '緊急聯絡電話',
@@ -415,13 +479,13 @@ const fieldTranslations = {
 
 // 表格標頭
 const tableHeaders = [
-  { title: '操作時間', align: 'start', sortable: true, key: 'createdAt', width: '180' },
-  { title: '操作人員', align: 'start', sortable: true, key: 'operatorId', width: '150' },
-  { title: '資料類型', align: 'start', sortable: true, key: 'targetModel', width: '120' },
-  { title: '操作類型', align: 'start', sortable: true, key: 'actionType', width: '100', mdAndUp: true }, // 改為 'actionType'
-  { title: '操作對象', align: 'start', sortable: true, key: 'targetId', width: '150', smAndUp: true },
-  { title: '異動內容', align: 'start', sortable: false, key: 'changes', lgAndUp: true },
-  { title: '操作', align: 'center', sortable: false, key: 'actions', width: '80' } // 改為 'actions'
+  { title: '操作時間', align: 'start', sortable: true, key: 'createdAt' },
+  { title: '操作人員', align: 'start', sortable: true, key: 'operatorId' },
+  { title: '資料類型', align: 'start', sortable: true, key: 'targetModel' },
+  { title: '動作', align: 'start', sortable: true, key: 'actionType' }, // 改為 'actionType'
+  { title: '操作對象', align: 'start', sortable: true, key: 'targetId' },
+  { title: '異動內容', align: 'start', sortable: false, key: 'changes' },
+  { title: '查看', align: 'center', sortable: false, key: 'actions' } // 改為 'actions'
 ]
 
 // 新增表格標頭響應式顯示
@@ -429,7 +493,7 @@ const filteredHeaders = computed(() => {
   if (!smAndUp.value) {
     // sm 以下只顯示基本欄位
     return tableHeaders.filter(header =>
-      ['createdAt', 'operatorId', 'targetModel', 'actions'].includes(header.key)
+      ['createdAt', 'targetModel', 'actions'].includes(header.key)
     )
   }
   if (!mdAndUp.value) {
@@ -476,13 +540,44 @@ const handleTargetSearch = debounce(async (text) => {
     return
   }
 
+  // 如果沒有選擇資料類型,提示用戶
+  if (!targetType.value) {
+    createSnackbar({
+      text: '請先選擇資料類型',
+      snackbarProps: { color: 'warning' }
+    })
+    targetSuggestions.value = []
+    return
+  }
+
   targetLoading.value = true
   try {
-    const { data } = await apiAuth.get('/user/suggestions', {
-      params: { search: text }
-    })
-    if (data.success) {
-      targetSuggestions.value = data.result // 直接使用回傳的資料
+    let response
+    switch (targetType.value) {
+      case 'users':
+        response = await apiAuth.get('/user/suggestions', {
+          params: { search: text }
+        })
+        if (response.data.success) {
+          targetSuggestions.value = response.data.result
+        }
+        break
+      case 'departments':
+        response = await apiAuth.get('/department/all', {
+          params: {
+            search: text,
+            searchFields: ['name', 'departmentId'] // 添加 departmentId 搜尋
+          }
+        })
+        if (response.data.success) {
+          targetSuggestions.value = response.data.result.data.map(dept => ({
+            _id: dept._id,
+            name: dept.name,
+            departmentId: dept.departmentId,
+            companyId: dept.companyId
+          }))
+        }
+        break
     }
   } catch (error) {
     console.error('搜尋被操作對象失敗:', error)
@@ -530,36 +625,78 @@ const formatOperator = (item) => {
 // 格式化被操作對象
 const formatTarget = (item) => {
   if (!item.target) return '-'
-  return `${item.target.name || ''} ${item.target.userId ? `(${item.target.userId})` : ''}`
-}
+  if (!item.targetModel) return '-'
 
+  let displayText = '-'
+
+  switch (item.targetModel) {
+    case 'users':
+      displayText = `${item.target.name || ''} ${item.target.userId ? `(${item.target.userId})` : ''}`
+      break
+    case 'departments': {
+      // 優先使用從資料庫查到的資料
+      if (item.target.name) {
+        const firstLine = `${item.target.name} ${item.target.departmentId ? `(${item.target.departmentId})` : ''}`
+        const secondLine = companyNames[item.target.companyId] || ''
+        displayText = `${firstLine}\n${secondLine}` // 使用明確的換行符
+      } else {
+        // 如果沒有,使用 changes 中的資料
+        const changes = item.changes || {}
+        const deptName = changes.name?.from || changes.name?.to || ''
+        const companyName = changes.company?.from || changes.company?.to ||
+                          companyNames[changes.companyId?.from] || companyNames[changes.companyId?.to] || ''
+        displayText = `${deptName}\n${companyName}` // 使用明確的換行符
+      }
+      break
+    }
+    case 'assets':
+      displayText = `${item.target.name || ''} ${item.target.assetId ? `(${item.target.assetId})` : ''}`
+      break
+    default:
+      displayText = '-'
+  }
+
+  return displayText
+}
 // 格式化變更內容
 // formatChanges 函數修改
+// 格式化變更內容
 const formatChanges = (item) => {
+  // 如果沒有 item 或 changes，返回空數組
+  if (!item || !item.changes) return []
+
   // 處理創建操作
   if (item.action === '創建') {
     if (item.targetModel === 'departments') {
       const { name, company } = item.changes || {}
       const displayName = name?.to || ''
       const displayCompany = company?.to || companyNames[item.changes?.companyId?.to] || ''
-      return `新增部門： ${displayName} (${displayCompany})`
+      return [`新增部門: ${displayName} (${displayCompany})`]
     } else if (item.targetModel === 'users') {
       const target = item.target || {}
-      return `新增員工： ${target.name || ''} ${target.userId ? `(${target.userId})` : ''}`
+      return [`新增員工: ${target.name || ''} ${target.userId ? `(${target.userId})` : ''}`]
     }
-    return '新增資料'
+    return ['新增資料']
   }
 
   // 處理刪除操作
   if (item.action === '刪除') {
     if (item.targetModel === 'departments') {
-      const changes = item.changes || {}
-      return `刪除部門： ${changes.name || ''} (${changes.company || companyNames[changes.companyId] || ''})`
+      const name = item.changes?.name || ''
+      const company = item.changes?.company || companyNames[item.changes?.companyId] || ''
+      return [`刪除部門: ${name} ${company ? `(${company})` : ''}`]
     } else if (item.targetModel === 'users') {
-      const target = item.target || {}
-      return `刪除員工： ${target.name || ''} ${target.userId ? `(${target.userId})` : ''}`
+      const changes = item.changes || {}
+      const name = changes.name || ''
+      const userId = changes.userId || ''
+      return [`刪除員工: ${name} ${userId ? `(${userId})` : ''}`]
+    } else if (item.targetModel === 'assets') {
+      const changes = item.changes || {}
+      const name = changes.name || ''
+      const assetId = changes.assetId || ''
+      return [`刪除資產: ${name} ${assetId ? `(${assetId})` : ''}`]
     }
-    return '刪除資料'
+    return ['刪除資料']
   }
 
   // 處理修改操作
@@ -567,32 +704,42 @@ const formatChanges = (item) => {
     const changes = []
     const changesObj = item.changes || {}
 
-    // 處理部門名稱變更
     if (changesObj.name) {
       changes.push(`部門名稱: ${changesObj.name.from || '-'} → ${changesObj.name.to || '-'}`)
     }
 
-    // 處理公司變更
     if (changesObj.company) {
-      changes.push(`所屬公司: ${changesObj.company.from || '-'} → ${changesObj.company.to || '-'}`)
+      changes.push(`公司: ${changesObj.company.from || '-'} → ${changesObj.company.to || '-'}`)
     } else if (changesObj.companyId) {
-      changes.push(`所屬公司: ${companyNames[changesObj.companyId.from] || '-'} → ${companyNames[changesObj.companyId.to] || '-'}`)
+      changes.push(`公司: ${companyNames[changesObj.companyId.from] || '-'} → ${companyNames[changesObj.companyId.to] || '-'}`)
     }
 
-    return changes.join('、') || '-'
+    return changes
   }
 
   // 處理其他資料的修改
   const changes = []
+  // 先檢查是否有簡單描述字串
+  if (typeof item.changes.description === 'string') {
+    changes.push(item.changes.description)
+    return changes
+  }
+
+  // 處理 from/to 格式的變更
   for (const [key, value] of Object.entries(item.changes)) {
-    // 跳過未定義的值
     if (!value || (!value.from && !value.to && !['department', 'company'].includes(key))) continue
+
+    // 如果值是字串，直接使用該值
+    if (typeof value === 'string') {
+      const fieldName = fieldTranslations[key] || key
+      changes.push(`${fieldName}: ${value}`)
+      continue
+    }
 
     const fieldName = fieldTranslations[key] || key
     let fromValue = value.from
     let toValue = value.to
 
-    // 特殊處理不同類型的值
     switch (key) {
       case 'role':
         fromValue = roleNames[value.from] || value.from || '-'
@@ -628,7 +775,7 @@ const formatChanges = (item) => {
     changes.push(`${fieldName}: ${fromValue} → ${toValue}`)
   }
 
-  return changes.length > 0 ? changes.join('、') : '-'
+  return changes
 }
 
 // 重置搜尋條件
@@ -649,8 +796,25 @@ const resetSearch = () => {
   // 重置後執行搜尋
   performSearch()
 }
+// 在搜索條件相關變數下添加
+const targetType = computed(() => {
+  return searchCriteria.value.targetModel
+})
 // 執行搜尋
 const performSearch = async () => {
+  // 日期驗證
+  if (searchCriteria.value.startDate && searchCriteria.value.endDate) {
+    const start = new Date(searchCriteria.value.startDate)
+    const end = new Date(searchCriteria.value.endDate)
+    if (start > end) {
+      createSnackbar({
+        text: '結束日期不能早於開始日期',
+        snackbarProps: { color: 'warning' }
+      })
+      return // 如果日期無效，直接返回不執行搜尋
+    }
+  }
+
   tableLoading.value = true
   try {
     const params = {
@@ -660,15 +824,19 @@ const performSearch = async () => {
       sortOrder: tableSortBy.value[0]?.order || 'desc'
     }
 
-    // 處理日期
+    // 處理日期 - 只保留這一段日期處理
     if (searchCriteria.value.startDate) {
-      params.startDate = new Date(searchCriteria.value.startDate).toISOString().split('T')[0]
+      const startDate = new Date(searchCriteria.value.startDate)
+      startDate.setHours(0, 0, 0, 0)
+      params.startDate = startDate.toISOString()
     }
     if (searchCriteria.value.endDate) {
-      params.endDate = new Date(searchCriteria.value.endDate).toISOString().split('T')[0]
+      const endDate = new Date(searchCriteria.value.endDate)
+      endDate.setHours(23, 59, 59, 999)
+      params.endDate = endDate.toISOString()
     }
 
-    // 處理搜尋條件
+    // 處理操作人員和被操作對象
     if (searchCriteria.value.operatorId?._id) {
       params.operatorId = searchCriteria.value.operatorId._id
     }
@@ -682,12 +850,6 @@ const performSearch = async () => {
     }
     if (searchCriteria.value.targetModel) {
       params.targetModel = searchCriteria.value.targetModel
-    }
-    if (searchCriteria.value.startDate) {
-      params.startDate = searchCriteria.value.startDate
-    }
-    if (searchCriteria.value.endDate) {
-      params.endDate = searchCriteria.value.endDate
     }
 
     const response = await apiAuth.get('/auditlog/all', { params })
@@ -716,7 +878,6 @@ const performSearch = async () => {
     tableLoading.value = false
   }
 }
-
 // 處理表格選項變更
 const handleTableOptionsChange = async ({ page, itemsPerPage, sortBy }) => {
   tablePage.value = page
@@ -725,6 +886,36 @@ const handleTableOptionsChange = async ({ page, itemsPerPage, sortBy }) => {
   await performSearch()
 }
 
+// 監聽日期變化
+watch(
+  [
+    () => searchCriteria.value.startDate,
+    () => searchCriteria.value.endDate
+  ],
+  ([newStartDate, newEndDate]) => {
+    if (newStartDate && newEndDate) {
+      const start = new Date(newStartDate)
+      const end = new Date(newEndDate)
+      if (start > end) {
+        createSnackbar({
+          text: '結束日期不能早於開始日期',
+          snackbarProps: { color: 'warning' }
+        })
+        // 可以選擇自動清空結束日期
+        searchCriteria.value.endDate = null
+      }
+    }
+  }
+)
+
+// 監聽資料類型變更
+watch(() => searchCriteria.value.targetModel, (newValue) => {
+  // 當資料類型改變時,清空操作對象
+  searchCriteria.value.targetId = null
+  targetSearchInput.value = ''
+  targetSuggestions.value = []
+})
+
 // 初始載入
 onMounted(async () => {
   await performSearch()
@@ -732,10 +923,31 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.v-data-table ::v-deep {
-  .text-wrap {
+// 添加表格相關樣式
+:deep(.header-bg) {
+  background-color: #5e5858;
+  color: white;
+}
+
+.odd-row {
+  background-color: #fcfcfc;
+}
+
+.even-row {
+  background-color: rgb(245, 255, 251);
+}
+
+// 保留原有的樣式
+.v-data-table {
+  :deep(.text-wrap) {
     white-space: pre-wrap;
     word-break: break-word;
   }
+}
+
+.target-cell {
+  white-space: pre-line;
+  line-height: 1.5;
+  padding: 4px 0;
 }
 </style>

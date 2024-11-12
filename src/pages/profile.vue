@@ -101,7 +101,7 @@
             cols="12"
           >
             <span
-              class="text-subtitle-2 opacity-80"
+              class="text-subtitle-2 opacity-80 font-weight-regular"
             ><span class="text-red-darken-2">* </span>若有需要修改 請聯絡人資 ( 密碼可自行修改 )</span>
           </v-col>
           <v-col>

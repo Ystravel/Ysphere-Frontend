@@ -5,9 +5,18 @@
     >
       <v-col
         cols="12"
-        class="ps-3 pb-6"
+        class="ps-3 pb-6 d-flex align-center"
       >
-        <h3>公司部門管理</h3>
+        <h3 class="d-inline">
+          公司部門管理
+        </h3> <v-icon
+          v-if="smAndUp"
+          v-tooltip="'人數為「在職」人數'"
+          icon="mdi-information"
+          size="small"
+          color="grey-darken-2"
+          class="ms-4"
+        />
       </v-col>
       <v-col cols="12">
         <v-row>
@@ -84,6 +93,7 @@
             >
               <template #item="{ item, index }">
                 <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
+                  <td>{{ item.departmentId || '尚未設定' }}</td>
                   <td>{{ companyNames[item.companyId] || '未知公司' }}</td>
                   <td>{{ item.name }}</td>
                   <td>{{ item.memberCount || 0 }} 人</td>
@@ -94,7 +104,7 @@
                         sm="4"
                         md="3"
                         lg="2"
-                        class="pa-0"
+                        class="pa-0 mx-1"
                       >
                         <v-btn
                           icon
@@ -114,7 +124,7 @@
                         sm="4"
                         md="3"
                         lg="2"
-                        class="pa-0"
+                        class="pa-0 mx-1"
                       >
                         <v-btn
                           icon
@@ -151,6 +161,16 @@
             {{ dialog.id ? '編輯部門' : '新增部門' }}
           </v-card-title>
           <v-card-text class="px-3">
+            <template v-if="dialog.id">
+              <v-text-field
+                v-model="departmentId.value.value"
+                :error-messages="departmentId.errorMessage.value"
+                label="部門編號"
+                variant="outlined"
+                density="compact"
+                class="mb-4"
+              />
+            </template>
             <v-select
               v-model="departmentCompanyId.value.value"
               :error-messages="departmentCompanyId.errorMessage.value"
@@ -208,7 +228,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import debounce from 'lodash/debounce'
+import { debounce } from 'lodash'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { definePage } from 'vue-router/auto'
@@ -255,13 +275,14 @@ const headerProps = {
 // 表格相關
 const tableLoading = ref(false)
 const tableItemsPerPage = ref(10)
-const tableSortBy = ref([{ key: 'companyId', order: 'asc' }])
+const tableSortBy = ref([{ key: 'departmentId', order: 'asc' }])
 const tablePage = ref(1)
 const tableItemsLength = ref(0)
 const tableSearch = ref('')
 const tableHeaders = [
-  { title: '公司', key: 'companyId', align: 'start', width: '28%', sortable: true },
-  { title: '部門', key: 'name', align: 'start', width: '32%', sortable: true },
+  { title: '編號', key: 'departmentId', align: 'start', width: '15%', sortable: true },
+  { title: '公司', key: 'companyId', align: 'start', width: '25%', sortable: true },
+  { title: '部門', key: 'name', align: 'start', width: '30%', sortable: true },
   { title: '人數', key: 'memberCount', align: 'start', sortable: true },
   { title: '操作', key: 'actions', align: 'center', sortable: false }
 ]
@@ -295,7 +316,10 @@ const schema = yup.object({
     .required('請輸入部門名稱'),
   companyId: yup
     .number()
-    .required('請選擇所屬公司')
+    .required('請選擇所屬公司'),
+  departmentId: yup
+    .string()
+    .nullable()
 })
 
 const { handleSubmit, isSubmitting, resetForm } = useForm({
@@ -304,6 +328,9 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
 
 const departmentName = useField('name')
 const departmentCompanyId = useField('companyId')
+const departmentId = useField('departmentId', undefined, {
+  validateOnValueUpdate: false
+})
 const companyNames = Object.fromEntries(companyOptions.map(company => [company.id, company.name]))
 
 // 載入部門列表
@@ -373,6 +400,7 @@ const openEditDepartment = (department) => {
   dialog.value = { open: true, id: department._id }
   departmentName.value.value = department.name
   departmentCompanyId.value.value = department.companyId
+  departmentId.value.value = department.departmentId
   selectedDepartment.value = department
 }
 
@@ -394,9 +422,16 @@ const submitDepartment = handleSubmit(async (values) => {
   tableLoading.value = true
   try {
     if (dialog.value.id) {
-      await apiAuth.patch(`/department/${dialog.value.id}`, values)
+      await apiAuth.patch(`/department/${dialog.value.id}`, {
+        name: values.name,
+        companyId: values.companyId,
+        departmentId: values.departmentId
+      })
     } else {
-      await apiAuth.post('/department', values)
+      await apiAuth.post('/department', {
+        name: values.name,
+        companyId: values.companyId
+      })
     }
     await loadDepartments()
     closeDialog()
