@@ -194,7 +194,7 @@
       <v-col
         cols="12"
         lg="9"
-        class="px-6 ps-lg-4 pe-lg-12"
+        class="px-6 ps-lg-4 pe-lg-12 mb-6"
       >
         <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-1 bg-white">
           <v-col
@@ -474,7 +474,8 @@ const fieldTranslations = {
   permanentAddress: '戶籍地址',
   contactAddress: '聯絡地址',
   IDNumber: '身分證號碼',
-  userId: '員工編號'
+  userId: '員工編號',
+  departmentId: '部門編號'
 }
 
 // 表格標頭
@@ -658,20 +659,18 @@ const formatTarget = (item) => {
 
   return displayText
 }
-// 格式化變更內容
-// formatChanges 函數修改
+
 // 格式化變更內容
 const formatChanges = (item) => {
   // 如果沒有 item 或 changes，返回空數組
-  if (!item || !item.changes) return []
-
-  // 處理創建操作
   if (item.action === '創建') {
     if (item.targetModel === 'departments') {
-      const { name, company } = item.changes || {}
-      const displayName = name?.to || ''
-      const displayCompany = company?.to || companyNames[item.changes?.companyId?.to] || ''
-      return [`新增部門: ${displayName} (${displayCompany})`]
+      const { name, company, departmentId } = item.changes || {}
+      const parts = []
+      if (name?.to) parts.push(`部門名稱: ${name.to}`)
+      if (departmentId?.to) parts.push(`部門編號: ${departmentId.to}`)
+      if (company?.to) parts.push(`公司: ${company.to}`)
+      return parts.length > 0 ? [parts.join(', ')] : ['新增部門']
     } else if (item.targetModel === 'users') {
       const target = item.target || {}
       return [`新增員工: ${target.name || ''} ${target.userId ? `(${target.userId})` : ''}`]
@@ -683,18 +682,18 @@ const formatChanges = (item) => {
   if (item.action === '刪除') {
     if (item.targetModel === 'departments') {
       const name = item.changes?.name || ''
+      const departmentId = item.changes?.departmentId || ''
       const company = item.changes?.company || companyNames[item.changes?.companyId] || ''
-      return [`刪除部門: ${name} ${company ? `(${company})` : ''}`]
+      const parts = []
+      if (name) parts.push(name)
+      if (departmentId) parts.push(`(${departmentId})`)
+      if (company) parts.push(company)
+      return [`刪除部門: ${parts.join(' ')}`]
     } else if (item.targetModel === 'users') {
       const changes = item.changes || {}
       const name = changes.name || ''
       const userId = changes.userId || ''
       return [`刪除員工: ${name} ${userId ? `(${userId})` : ''}`]
-    } else if (item.targetModel === 'assets') {
-      const changes = item.changes || {}
-      const name = changes.name || ''
-      const assetId = changes.assetId || ''
-      return [`刪除資產: ${name} ${assetId ? `(${assetId})` : ''}`]
     }
     return ['刪除資料']
   }
@@ -704,13 +703,17 @@ const formatChanges = (item) => {
     const changes = []
     const changesObj = item.changes || {}
 
-    if (changesObj.name) {
+    if (changesObj.name && changesObj.name.from !== changesObj.name.to) {
       changes.push(`部門名稱: ${changesObj.name.from || '-'} → ${changesObj.name.to || '-'}`)
     }
 
-    if (changesObj.company) {
+    if (changesObj.departmentId && changesObj.departmentId.from !== changesObj.departmentId.to) {
+      changes.push(`部門編號: ${changesObj.departmentId.from || '-'} → ${changesObj.departmentId.to || '-'}`)
+    }
+
+    if (changesObj.company && changesObj.company.from !== changesObj.company.to) {
       changes.push(`公司: ${changesObj.company.from || '-'} → ${changesObj.company.to || '-'}`)
-    } else if (changesObj.companyId) {
+    } else if (changesObj.companyId && changesObj.companyId.from !== changesObj.companyId.to) {
       changes.push(`公司: ${companyNames[changesObj.companyId.from] || '-'} → ${companyNames[changesObj.companyId.to] || '-'}`)
     }
 

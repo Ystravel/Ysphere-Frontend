@@ -210,6 +210,7 @@
               height="32"
               class="ms-1"
               :loading="isSubmitting"
+              :disabled="dialog.id && !hasChanges"
             >
               送出
             </v-btn>
@@ -266,6 +267,7 @@ const companyOptions = [
 ]
 
 const companyFilter = ref('')
+const originalData = ref(null)
 
 // 表格樣式設定
 const headerProps = {
@@ -398,6 +400,14 @@ const openDepartmentDialog = () => {
 // 開啟編輯部門對話框
 const openEditDepartment = (department) => {
   dialog.value = { open: true, id: department._id }
+
+  // 保存原始數據
+  originalData.value = {
+    name: department.name,
+    companyId: department.companyId,
+    departmentId: department.departmentId
+  }
+
   departmentName.value.value = department.name
   departmentCompanyId.value.value = department.companyId
   departmentId.value.value = department.departmentId
@@ -409,6 +419,7 @@ const closeDialog = () => {
   dialog.value.open = false
   resetForm()
   selectedDepartment.value = null
+  originalData.value = null
 }
 
 // 確認刪除部門
@@ -416,6 +427,28 @@ const confirmDeleteDepartment = (department) => {
   selectedDepartment.value = department
   deleteDialog.value = true
 }
+
+const hasChanges = computed(() => {
+  // 如果是新增模式，直接返回 true (允許提交)
+  if (!dialog.value.id) return true
+
+  // 如果沒有原始數據，返回 false
+  if (!originalData.value) return false
+
+  // 取得當前值
+  const currentValues = {
+    name: departmentName.value.value,
+    companyId: departmentCompanyId.value.value,
+    departmentId: departmentId.value.value || ''
+  }
+
+  // 比較每個欄位
+  return Object.keys(originalData.value).some(key => {
+    const originalValue = originalData.value[key] ?? ''
+    const currentValue = currentValues[key] ?? ''
+    return originalValue !== currentValue
+  })
+})
 
 // 提交部門表單
 const submitDepartment = handleSubmit(async (values) => {
@@ -442,7 +475,7 @@ const submitDepartment = handleSubmit(async (values) => {
   } catch (error) {
     const errorMessage = error?.response?.data?.message || '操作失敗'
     createSnackbar({
-      text: errorMessage.includes('相同名稱') ? errorMessage : '操作失敗',
+      text: errorMessage,
       snackbarProps: { color: 'red-lighten-1' }
     })
   }
