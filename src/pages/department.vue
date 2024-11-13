@@ -7,7 +7,7 @@
         cols="12"
         class="ps-3 pb-6 d-flex align-center"
       >
-        <h3 class="d-inline">
+        <h3>
           公司部門管理
         </h3> <v-icon
           v-if="smAndUp"
@@ -157,9 +157,9 @@
     >
       <v-form @submit.prevent="submitDepartment">
         <v-card class="rounded-lg pa-4 pt-6">
-          <v-card-title style="font-size: 18px;">
+          <div class="ps-4 py-3 card-title">
             {{ dialog.id ? '編輯部門' : '新增部門' }}
-          </v-card-title>
+          </div>
           <v-card-text class="px-3">
             <template v-if="dialog.id">
               <v-text-field
@@ -197,7 +197,7 @@
             <v-btn
               color="red-lighten-1"
               variant="outlined"
-              height="32"
+              :size="buttonSize"
               :loading="isSubmitting"
               @click="closeDialog"
             >
@@ -207,7 +207,7 @@
               color="teal-darken-1"
               variant="outlined"
               type="submit"
-              height="32"
+              :size="buttonSize"
               class="ms-1"
               :loading="isSubmitting"
               :disabled="dialog.id && !hasChanges"
@@ -219,9 +219,12 @@
       </v-form>
     </v-dialog>
 
-    <ConfirmDeleteDialog
+    <ConfirmDeleteDialogWithTextField
       v-model="deleteDialog"
-      :message="`確定要刪除「${companyNames[selectedDepartment?.companyId]}」的「${selectedDepartment?.name}」嗎？`"
+      title="確認刪除部門"
+      :message="`確定要刪除「${companyNames[selectedDepartment?.companyId]}」的「${selectedDepartment?.name}」嗎？此操作無法復原。`"
+      :expected-name="selectedDepartment?.name || ''"
+      input-label="部門名稱"
       @confirm="deleteDepartment"
     />
   </v-container>
@@ -237,7 +240,7 @@ import UserRole from '../enums/UserRole'
 import { useDisplay } from 'vuetify'
 import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
-import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
+import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
 
 definePage({
   meta: {
@@ -502,7 +505,6 @@ const deleteDepartment = async () => {
   selectedDepartment.value = null
   tableLoading.value = false
 }
-
 // 搜尋防抖
 const debouncedSearch = debounce(() => {
   loadDepartments(true)

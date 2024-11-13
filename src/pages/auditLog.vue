@@ -14,14 +14,6 @@
             <v-card class="elevation-4 rounded-xl py-8 px-4 px-sm-4 px-xl-8">
               <v-card-title class="font-weight-bold d-flex align-center">
                 搜尋條件
-                <v-icon
-                  v-if="smAndUp"
-                  v-tooltip:top="'操作人員:員編或姓名；操作對象:員編、姓名、部門編號、設備編號'"
-                  icon="mdi-information"
-                  color="grey-darken-2"
-                  size="x-small"
-                  class="ms-2"
-                />
               </v-card-title>
               <v-card-text class="pa-2">
                 <v-row>
@@ -60,6 +52,24 @@
                     >
                       <template #selection="{ item }">
                         {{ item?.props?.title }}
+                      </template>
+                      <template
+                        v-if="smAndUp"
+                        #append-inner
+                      >
+                        <v-tooltip
+                          location="top"
+                          close-delay="200"
+                        >
+                          <template #activator="{ props }">
+                            <v-icon
+                              v-bind="props"
+                              icon="mdi-information"
+                              size="18"
+                            />
+                          </template>
+                          輸入員編、姓名查詢
+                        </v-tooltip>
                       </template>
                     </v-autocomplete>
                   </v-col>
@@ -125,6 +135,24 @@
                     >
                       <template #selection="{ item }">
                         {{ getTargetDisplayText(item.props.value) }}
+                      </template>
+                      <template
+                        v-if="smAndUp"
+                        #append-inner
+                      >
+                        <v-tooltip
+                          location="top"
+                          close-delay="200"
+                        >
+                          <template #activator="{ props }">
+                            <v-icon
+                              v-bind="props"
+                              icon="mdi-information"
+                              size="18"
+                            />
+                          </template>
+                          輸入員編、姓名、部門編號、部門名稱、設備編號、設備名稱查詢
+                        </v-tooltip>
                       </template>
                     </v-autocomplete>
                   </v-col>
@@ -260,7 +288,10 @@
                   <td v-if="smAndUp">
                     {{ formatTarget(item) }}
                   </td>
-                  <td v-if="lgAndUp">
+                  <td
+                    v-if="lgAndUp"
+                    class="py-3"
+                  >
                     <div
                       v-for="(change, idx) in formatChanges(item)"
                       :key="idx"
@@ -269,16 +300,13 @@
                     </div>
                   </td>
                   <td class="text-center">
-                    <v-btn
-                      icon
+                    <v-icon
+                      icon="mdi-book-open-variant-outline"
                       color="blue-grey-darken-3"
-                      variant="text"
                       size="small"
-                      class="my-2"
+                      class="my-4"
                       @click="showDetail(item)"
-                    >
-                      <v-icon>mdi-book-open-variant-outline</v-icon>
-                    </v-btn>
+                    />
                   </td>
                 </tr>
               </template>
@@ -294,71 +322,78 @@
     width="600"
   >
     <v-card class="pa-4">
-      <v-card-title class="text-h6 ps-6 pt-4 pb-3">
+      <div class="ps-6 pt-4 pb-1 pb-sm-3 card-title">
         異動詳細資料
-      </v-card-title>
+      </div>
       <v-card-text>
         <v-row>
           <v-col cols="12">
             <div class="d-flex flex-column gap-4">
               <div>
                 <div
-                  class="text-grey-darken-1"
-                  style="font-size: 15px; font-weight: 600;"
+                  class="text-grey-darken-1 list-title"
                 >
                   操作時間
                 </div>
-                <div>{{ formatDateTime(selectedItem?.createdAt) }}</div>
+                <div class="list-content">
+                  {{ formatDateTime(selectedItem?.createdAt) }}
+                </div>
               </div>
               <v-divider class="my-2" />
               <div>
                 <div
-                  class="text-grey-darken-1"
-                  style="font-size: 15px; font-weight: 600;"
+                  class="text-grey-darken-1 list-title"
                 >
                   操作人員
                 </div>
-                <div>{{ formatOperator(selectedItem) }}</div>
+                <div class="list-content">
+                  {{ formatOperator(selectedItem) }}
+                </div>
               </div>
               <v-divider class="my-2" />
               <div>
                 <div
-                  class="text-grey-darken-1"
-                  style="font-size: 15px; font-weight: 600;"
+                  class="text-grey-darken-1 list-title"
                 >
                   操作對象
                 </div>
-                <div>{{ formatTarget(selectedItem) }}</div>
+                <div class="list-content">
+                  {{ formatTarget(selectedItem) }}
+                </div>
               </div>
               <v-divider class="my-2" />
               <div>
                 <div
-                  class="text-grey-darken-1"
-                  style="font-size: 15px; font-weight: 600;"
+                  class="text-grey-darken-1 list-title"
                 >
                   操作類型
                 </div>
-                <div>{{ selectedItem?.action }}</div>
+                <div class="list-content">
+                  {{ selectedItem?.action }}
+                </div>
               </div>
               <v-divider class="my-2" />
               <div>
                 <div
-                  class="text-grey-darken-1"
-                  style="font-size: 15px; font-weight: 600;"
+                  class="text-grey-darken-1 list-title"
                 >
                   資料類型
                 </div>
-                <div>{{ getModelDisplay(selectedItem?.targetModel) }}</div>
+                <div class="list-content">
+                  {{ getModelDisplay(selectedItem?.targetModel) }}
+                </div>
               </div>
               <v-divider class="my-2" />
               <div>
                 <div
-                  class="text-grey-darken-1"
-                  style="font-size: 15px; font-weight: 600;"
+                  class="text-grey-darken-1 list-title"
                 >
                   異動內容
                 </div>
-                <div v-if="formatChanges(selectedItem).length > 0">
+                <div
+                  v-if="formatChanges(selectedItem).length > 0"
+                  class="list-content"
+                >
                   <ul class="change-list">
                     <li
                       v-for="(change, index) in formatChanges(selectedItem)"
@@ -382,6 +417,7 @@
         <v-btn
           color="grey-darken-1"
           variant="outlined"
+          :size="buttonSize"
           @click="detailDialog = false"
         >
           關閉
@@ -407,6 +443,10 @@ definePage({
     login: true,
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
   }
+})
+
+const buttonSize = computed(() => {
+  return smAndUp.value ? 'default' : 'small'
 })
 
 const createSnackbar = useSnackbar()
@@ -1030,6 +1070,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
+@import '/src/styles/settings.scss';
 // 添加表格相關樣式
 :deep(.header-bg) {
   background-color: #5e5858;
@@ -1068,4 +1109,5 @@ onMounted(async () => {
     word-break: break-word; /* 防止文字過長溢出 */
   }
 }
+
 </style>

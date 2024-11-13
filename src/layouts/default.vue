@@ -288,12 +288,12 @@ const adminItems = [
     icon: 'mdi-office-building-cog',
     roles: ['SUPER_ADMIN', 'ADMIN'] // 最高管理者、人資和經理可以看到
   },
-  {
-    to: '/asset',
-    text: '設備管理',
-    icon: 'mdi-desktop-tower-monitor',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
-  },
+  // {
+  //   to: '/asset',
+  //   text: '設備管理',
+  //   icon: 'mdi-desktop-tower-monitor',
+  //   roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
+  // },
   {
     to: '/auditLog',
     text: '異動紀錄',

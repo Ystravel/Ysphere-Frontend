@@ -14,7 +14,7 @@
           v-model="inputName"
           :error-messages="errorMessage"
           class="mt-8"
-          label="請輸入欲刪除員工姓名"
+          :label="`請輸入${labelText}`"
           variant="outlined"
           dense
           clearable
@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
   title: {
@@ -59,7 +59,7 @@ const props = defineProps({
   modelValue: Boolean,
   expectedName: {
     type: String,
-    default: '' // 將 required: true 改為提供預設值
+    default: ''
   },
   confirmButtonColor: {
     type: String,
@@ -84,19 +84,25 @@ const props = defineProps({
   confirmButtonSize: {
     type: String,
     default: 'small'
+  },
+  inputLabel: {
+    type: String,
+    default: '名稱'
   }
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const isOpen = ref(props.modelValue)
-const inputName = ref('') // 儲存輸入的姓名
+const inputName = ref('')
 const errorMessage = ref('')
+
+const labelText = computed(() => `欲刪除${props.inputLabel}`)
 
 watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
-  inputName.value = '' // 重置輸入框
-  errorMessage.value = '' // 清除錯誤訊息
+  inputName.value = ''
+  errorMessage.value = ''
 })
 
 const cancel = () => {
@@ -114,7 +120,7 @@ const confirm = () => {
     emit('confirm')
     emit('update:modelValue', false)
   } else {
-    errorMessage.value = '輸入的姓名不正確'
+    errorMessage.value = '輸入的名稱不正確'
   }
 }
 </script>

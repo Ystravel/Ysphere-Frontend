@@ -8,11 +8,104 @@
 // @use 'vuetify/settings' with (
 //   $color-pack: false
 // );
+@import '_variables';
+@import '_rwd';
+
 :root {
   font-family: '微軟正黑體' !important;
 }
 
+.v-field .v-icon {
+  font-size: 18px;
+}
 
-@import '_variables';
-@import '_rwd';
+// 一般輸入框樣式
+.v-field:not(.v-textarea .v-field) {
+  .v-field__input {
+    font-size: 13px;
+    height: 36px !important;
+    padding-top: 4px !important;
+  }
+
+  .v-field__field {
+    height: 36px !important;
+  }
+}
+
+// 文本區域特殊處理
+.v-textarea {
+  .v-field__input {
+    font-size: 13px;
+  }
+}
+
+.v-card-title {
+  font-size: 17px !important;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  opacity: 85%;
+}
+
+.v-data-table {
+  .v-data-table-footer {
+    margin-top: 16px ;
+  }
+} 
+
+
+h3 {
+  font-size: 16px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.list-title {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.list-content {
+  font-size: 14px;
+}
+
+@include sm {
+  h3{
+    font-size: 18px;
+  }
+
+  .v-field:not(.v-textarea .v-field) {
+    .v-field__input {
+        font-size: 14px;
+        height: 40px !important;
+        padding-top: 8px !important;
+    }
+  
+    .v-field__field {
+        height: 40px !important;
+      }
+  }
+
+  .v-textarea {
+    .v-field__input {
+        font-size: 14px;
+    }
+  }
+
+  .card-title {
+    font-size: 17px;
+  }
+
+  .list-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .list-content {
+    font-size: 15px;
+  }
+}
 

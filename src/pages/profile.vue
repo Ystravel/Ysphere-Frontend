@@ -317,6 +317,7 @@
                       density="compact"
                       hide-details
                       readonly
+                      class="address-style"
                     >
                       {{ user.permanentAddress }}
                     </v-text-field>
@@ -346,6 +347,7 @@
                       density="compact"
                       hide-details
                       readonly
+                      class="address-style"
                     >
                       {{ user.contactAddress }}
                     </v-text-field>
@@ -819,6 +821,13 @@ const closePasswordDialog = () => {
 
 <style lang="scss" scoped>
 @import '../styles/settings.scss';
+
+.address-style :deep(.v-field .v-field__input) {
+  font-size: 10.5px;
+  @include sm {
+    font-size: 14px;
+  }
+}
 
 .v-col-sm-12 {
   font-size: 13px;

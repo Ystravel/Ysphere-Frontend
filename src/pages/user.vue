@@ -375,9 +375,9 @@
       @submit.prevent="submit"
     >
       <v-card class="rounded-lg px-4 py-6">
-        <v-card-title style="font-size: 18px; font-weight: 600;">
+        <div class="card-title ps-4 py-3">
           {{ dialog.id ? '員工資料編輯' : '新增員工' }}
-        </v-card-title>
+        </div>
         <v-row class="py-4">
           <v-col
             cols="4"
@@ -980,6 +980,7 @@
     title="確認刪除員工"
     :message="`確定要刪除員工「${originalData?.name || ''}」(${originalData?.userId || ''})嗎？ 此操作無法復原。`"
     :expected-name="originalData?.name || ''"
+    input-label="員工姓名"
     @confirm="deleteUser"
   />
 </template>
