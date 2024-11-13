@@ -46,8 +46,17 @@
                       density="compact"
                       hide-details
                       clearable
+                      creatable
+                      create-filter="(item, queryText, itemText) =>
+    item.name.toLowerCase().indexOf(queryText.toLowerCase()) > -1 ||
+    item.userId.toLowerCase().indexOf(queryText.toLowerCase()) > -1"
                       @update:search="handleOperatorSearch"
                       @click:clear="clearOperatorSearch"
+                      @create="(name) => {
+                        const newOperator = { name, userId: name };
+                        operatorSuggestions.value.push(newOperator);
+                        searchCriteria.value.operatorId = newOperator;
+                      }"
                     >
                       <template #selection="{ item }">
                         {{ item?.props?.title }}
@@ -93,8 +102,26 @@
                       density="compact"
                       hide-details
                       clearable
+                      creatable
+                      create-filter="(item, queryText, itemText) =>
+    item.name.toLowerCase().indexOf(queryText.toLowerCase()) > -1 ||
+    (item.userId && item.userId.toLowerCase().indexOf(queryText.toLowerCase()) > -1) ||
+    (item.departmentId && item.departmentId.toLowerCase().indexOf(queryText.toLowerCase()) > -1)"
                       @update:search="handleTargetSearch"
                       @click:clear="clearTargetSearch"
+                      @create="(name) => {
+                        let newTarget;
+                        switch (targetType.value) {
+                        case 'users':
+                          newTarget = { name, userId: name };
+                          break;
+                        case 'departments':
+                          newTarget = { name, departmentId: name };
+                          break;
+                        }
+                        targetSuggestions.value.push(newTarget);
+                        searchCriteria.value.targetId = newTarget;
+                      }"
                     >
                       <template #selection="{ item }">
                         {{ getTargetDisplayText(item.props.value) }}
@@ -331,7 +358,20 @@
                 >
                   異動內容
                 </div>
-                <div>{{ formatChanges(selectedItem) }}</div>
+                <div v-if="formatChanges(selectedItem).length > 0">
+                  <ul class="change-list">
+                    <li
+                      v-for="(change, index) in formatChanges(selectedItem)"
+                      :key="index"
+                      class="py-2"
+                    >
+                      {{ change }}
+                    </li>
+                  </ul>
+                </div>
+                <div v-else>
+                  無異動內容
+                </div>
               </div>
             </div>
           </v-col>
@@ -358,7 +398,7 @@ import { useApi } from '@/composables/axios'
 import { debounce } from 'lodash'
 import { definePage } from 'vue-router/auto'
 import { companyNames } from '@/enums/Company'
-import UserRole, { roleNames } from '@/enums/UserRole'
+import UserRole from '@/enums/UserRole'
 import { useSnackbar } from 'vuetify-use-dialog'
 
 definePage({
@@ -435,17 +475,15 @@ const getModelDisplay = (model) => {
 
 const getTargetDisplayText = (item) => {
   if (!item) return ''
-
-  switch (targetType.value) {
-    case 'users':
+  if (typeof item === 'object') {
+    if (item.name && item.departmentId) {
+      return `${item.name} (${item.departmentId})`
+    }
+    if (item.name && item.userId) {
       return `${item.name} (${item.userId})`
-    case 'departments':
-      return `${item.name} (${item.departmentId}) - ${companyNames[item.companyId]}`
-    case 'assets':
-      return `${item.name} (${item.assetId})`
-    default:
-      return item.name || ''
+    }
   }
+  return item
 }
 
 // 欄位名稱翻譯
@@ -475,7 +513,8 @@ const fieldTranslations = {
   contactAddress: '聯絡地址',
   IDNumber: '身分證號碼',
   userId: '員工編號',
-  departmentId: '部門編號'
+  departmentId: '部門編號',
+  note: '備註'
 }
 
 // 表格標頭
@@ -513,44 +552,30 @@ const filteredHeaders = computed(() => {
 
 // 處理操作人員搜尋
 const handleOperatorSearch = debounce(async (text) => {
-  if (!text || text.length < 1) {
-    operatorSuggestions.value = []
-    return
-  }
-
   operatorLoading.value = true
   try {
     const { data } = await apiAuth.get('/user/suggestions', {
       params: { search: text }
     })
     if (data.success) {
-      operatorSuggestions.value = data.result // 直接使用回傳的資料
+      operatorSuggestions.value = data.result
+    } else if (text) {
+      // 當搜索結果為空,但用戶有輸入時,保留用戶輸入的值
+      const newOperator = { name: text, userId: text }
+      operatorSuggestions.value = [newOperator]
+      searchCriteria.value.operatorId = newOperator
+    } else {
+      operatorSuggestions.value = []
     }
   } catch (error) {
-    console.error('搜尋操作人員失敗:', error)
+    console.error('搜索操作人員失敗:', error)
     operatorSuggestions.value = []
   } finally {
     operatorLoading.value = false
   }
 }, 300)
-
 // 處理被操作對象搜尋
 const handleTargetSearch = debounce(async (text) => {
-  if (!text || text.length < 1) {
-    targetSuggestions.value = []
-    return
-  }
-
-  // 如果沒有選擇資料類型,提示用戶
-  if (!targetType.value) {
-    createSnackbar({
-      text: '請先選擇資料類型',
-      snackbarProps: { color: 'warning' }
-    })
-    targetSuggestions.value = []
-    return
-  }
-
   targetLoading.value = true
   try {
     let response
@@ -560,23 +585,40 @@ const handleTargetSearch = debounce(async (text) => {
           params: { search: text }
         })
         if (response.data.success) {
-          targetSuggestions.value = response.data.result
+          targetSuggestions.value = response.data.result.map(user => ({
+            _id: user._id,
+            name: user.name,
+            userId: user.userId
+          }))
+        } else if (text) {
+          // 當搜索結果為空,但用戶有輸入時,保留用戶輸入的值
+          const newTarget = { name: text, userId: text }
+          targetSuggestions.value = [newTarget]
+          searchCriteria.value.targetId = newTarget
+        } else {
+          targetSuggestions.value = []
         }
         break
       case 'departments':
         response = await apiAuth.get('/department/all', {
           params: {
             search: text,
-            searchFields: ['name', 'departmentId'] // 添加 departmentId 搜尋
+            searchFields: ['name', 'departmentId']
           }
         })
         if (response.data.success) {
           targetSuggestions.value = response.data.result.data.map(dept => ({
             _id: dept._id,
             name: dept.name,
-            departmentId: dept.departmentId,
-            companyId: dept.companyId
+            departmentId: dept.departmentId
           }))
+        } else if (text) {
+          // 當搜索結果為空,但用戶有輸入時,保留用戶輸入的值
+          const newTarget = { name: text, departmentId: text }
+          targetSuggestions.value = [newTarget]
+          searchCriteria.value.targetId = newTarget
+        } else {
+          targetSuggestions.value = []
         }
         break
     }
@@ -592,13 +634,17 @@ const handleTargetSearch = debounce(async (text) => {
 const clearOperatorSearch = () => {
   operatorSearchInput.value = ''
   operatorSuggestions.value = []
-  searchCriteria.value.operatorId = null
+  if (searchCriteria.value.operatorId?.name !== operatorSearchInput.value) {
+    searchCriteria.value.operatorId = null
+  }
 }
 
 const clearTargetSearch = () => {
   targetSearchInput.value = ''
   targetSuggestions.value = []
-  searchCriteria.value.targetId = null
+  if (searchCriteria.value.targetId?.name !== targetSearchInput.value) {
+    searchCriteria.value.targetId = null
+  }
 }
 
 // 格式化日期時間
@@ -618,165 +664,216 @@ const formatDate = (date) => {
 }
 
 // 格式化操作人員
+// formatOperator 函數
 const formatOperator = (item) => {
-  if (!item.operator) return '系統'
-  return `${item.operator.name || ''} ${item.operator.userId ? `(${item.operator.userId})` : ''}`
+  if (!item) return '-'
+
+  // 優先使用關聯查詢結果
+  if (item.operator?.name && item.operator?.userId) {
+    return `${item.operator.name} (${item.operator.userId})`
+  }
+
+  // 如果沒有關聯查詢結果，則使用 operatorInfo
+  if (item.operatorInfo?.name) {
+    return `${item.operatorInfo.name}${item.operatorInfo.userId ? ` (${item.operatorInfo.userId})` : ''}`
+  }
+
+  return '系統'
 }
 
 // 格式化被操作對象
 const formatTarget = (item) => {
-  if (!item.target) return '-'
-  if (!item.targetModel) return '-'
+  if (!item) return '-'
 
-  let displayText = '-'
-
-  switch (item.targetModel) {
-    case 'users':
-      displayText = `${item.target.name || ''} ${item.target.userId ? `(${item.target.userId})` : ''}`
-      break
-    case 'departments': {
-      // 優先使用從資料庫查到的資料
-      if (item.target.name) {
-        const firstLine = `${item.target.name} ${item.target.departmentId ? `(${item.target.departmentId})` : ''}`
-        const secondLine = companyNames[item.target.companyId] || ''
-        displayText = `${firstLine}\n${secondLine}` // 使用明確的換行符
-      } else {
-        // 如果沒有,使用 changes 中的資料
-        const changes = item.changes || {}
-        const deptName = changes.name?.from || changes.name?.to || ''
-        const companyName = changes.company?.from || changes.company?.to ||
-                          companyNames[changes.companyId?.from] || companyNames[changes.companyId?.to] || ''
-        displayText = `${deptName}\n${companyName}` // 使用明確的換行符
+  // 如果有 targetData，優先處理關聯查詢結果
+  if (item.targetData) {
+    switch (item.targetModel) {
+      case 'users': {
+        const name = item.targetData.name || '-'
+        const userId = item.targetData.userId ? ` (${item.targetData.userId})` : ''
+        return `${name}${userId}`
       }
-      break
+      case 'departments': {
+        const name = item.targetData.name || '-'
+        const departmentId = item.targetData.departmentId ? ` (${item.targetData.departmentId})` : ''
+        const companyName = companyNames[item.targetData.companyId] || '' // 查找公司名稱
+        return `${name}${departmentId}${companyName ? ` - ${companyName}` : ''}` // 避免多餘換行
+      }
+      default:
+        return `${item.targetData.name || '-'}`
     }
-    case 'assets':
-      displayText = `${item.target.name || ''} ${item.target.assetId ? `(${item.target.assetId})` : ''}`
-      break
-    default:
-      displayText = '-'
   }
 
-  return displayText
+  // 如果 targetData 不存在，嘗試處理 targetInfo（舊的備援資料）
+  if (item.targetInfo) {
+    switch (item.targetModel) {
+      case 'users': {
+        const name = item.targetInfo.name || '-'
+        const userId = item.targetInfo.userId ? ` (${item.targetInfo.userId})` : ''
+        return `${name}${userId}`
+      }
+      case 'departments': {
+        const name = item.targetInfo.name || '-'
+        const departmentId = item.targetInfo.departmentId ? ` (${item.targetInfo.departmentId})` : ''
+        const companyName = companyNames[item.targetInfo.companyId] || ''
+        return `${name}${departmentId}${companyName ? ` - ${companyName}` : ''}`
+      }
+      default:
+        return `${item.targetInfo.name || '-'}`
+    }
+  }
+
+  // 如果兩者都沒有，嘗試從 changes 中提取資料（適用於刪除操作）
+  if (item.changes) {
+    switch (item.targetModel) {
+      case 'users': {
+        const name = item.action === '刪除'
+          ? (item.changes.name?.from || '-')
+          : (item.changes.name?.to || '-')
+        const userId = item.action === '刪除'
+          ? (item.changes.userId?.from || '')
+          : (item.changes.userId?.to || '')
+        return `${name}${userId ? ` (${userId})` : ''}`
+      }
+      case 'departments': {
+        const name = item.action === '刪除'
+          ? (item.changes.name?.from || '-')
+          : (item.changes.name?.to || '-')
+        const departmentId = item.action === '刪除'
+          ? (item.changes.departmentId?.from || '')
+          : (item.changes.departmentId?.to || '')
+        const companyId = item.action === '刪除'
+          ? (item.changes.companyId?.from || '')
+          : (item.changes.companyId?.to || '')
+        const companyName = companyNames[companyId] || ''
+        return `${name}${departmentId ? ` (${departmentId})` : ''}${companyName ? ` - ${companyName}` : ''}`
+      }
+      default:
+        return '-'
+    }
+  }
+
+  // 如果以上都沒有資料可用，返回預設值
+  return '-'
+}
+
+// 欄位名稱獲取函數
+const getFieldName = (key, targetModel = '') => {
+  if (key === 'name') {
+    if (targetModel === 'users') return '姓名' // user 模型
+    if (targetModel === 'departments') return '部門名稱' // department 模型
+  }
+  return fieldTranslations[key] || key
 }
 
 // 格式化變更內容
 const formatChanges = (item) => {
-  // 如果沒有 item 或 changes，返回空數組
+  if (!item?.changes) return []
+
+  const changes = []
+  const addedKeys = new Set() // 避免重複添加的欄位
+
+  // 處理創建操作
   if (item.action === '創建') {
-    if (item.targetModel === 'departments') {
-      const { name, company, departmentId } = item.changes || {}
-      const parts = []
-      if (name?.to) parts.push(`部門名稱: ${name.to}`)
-      if (departmentId?.to) parts.push(`部門編號: ${departmentId.to}`)
-      if (company?.to) parts.push(`公司: ${company.to}`)
-      return parts.length > 0 ? [parts.join(', ')] : ['新增部門']
-    } else if (item.targetModel === 'users') {
-      const target = item.target || {}
-      return [`新增員工: ${target.name || ''} ${target.userId ? `(${target.userId})` : ''}`]
-    }
-    return ['新增資料']
+    Object.entries(item.changes).forEach(([key, value]) => {
+      // 忽略空值
+      if (!value?.to && typeof value !== 'boolean') return
+
+      // 避免重複添加
+      if (addedKeys.has(key)) return
+
+      switch (key) {
+        case 'birthDate': // 特殊處理生日
+          changes.push(`生日: ${formatDate(value.to)}`)
+          addedKeys.add(key)
+          break
+        case 'companyId': {
+          // 如果已處理過 company，則跳過處理 companyId
+          if (item.changes.company && addedKeys.has('company')) return
+
+          // 查找公司名稱對應
+          const companyName = companyNames[value.to]
+          if (companyName) {
+            changes.push(`公司: ${companyName}`)
+          } else {
+            changes.push(`公司ID: ${value.to}`)
+          }
+          addedKeys.add(key)
+          break
+        }
+        case 'company': {
+          // 如果已處理過 companyId，則跳過處理 company
+          if (item.changes.companyId && addedKeys.has('companyId')) return
+
+          changes.push(`公司: ${value.to}`)
+          addedKeys.add(key)
+          break
+        }
+        default: {
+          const fieldName = getFieldName(key, item.targetModel) // 根據 targetModel 獲取正確的翻譯
+          if (fieldName) {
+            changes.push(`${fieldName}: ${value.to || value}`)
+            addedKeys.add(key)
+          }
+        }
+      }
+    })
+
+    return changes.length > 0 ? changes : [`新增${getModelDisplay(item.targetModel)}`]
   }
 
   // 處理刪除操作
   if (item.action === '刪除') {
-    if (item.targetModel === 'departments') {
-      const name = item.changes?.name || ''
-      const departmentId = item.changes?.departmentId || ''
-      const company = item.changes?.company || companyNames[item.changes?.companyId] || ''
-      const parts = []
-      if (name) parts.push(name)
-      if (departmentId) parts.push(`(${departmentId})`)
-      if (company) parts.push(company)
-      return [`刪除部門: ${parts.join(' ')}`]
-    } else if (item.targetModel === 'users') {
-      const changes = item.changes || {}
-      const name = changes.name || ''
-      const userId = changes.userId || ''
-      return [`刪除員工: ${name} ${userId ? `(${userId})` : ''}`]
+    switch (item.targetModel) {
+      case 'departments': {
+        const name = item.targetInfo?.name || item.changes.name?.from || item.changes.name || ''
+        const departmentId = item.targetInfo?.departmentId || item.changes.departmentId?.from || item.changes.departmentId || ''
+        const companyName = companyNames[item.targetInfo?.companyId] || companyNames[item.changes.companyId?.from] || ''
+        return [`刪除部門: ${name}${departmentId ? ` (${departmentId})` : ''}${companyName ? ` - ${companyName}` : ''}`]
+      }
+      case 'users': {
+        const name = item.targetInfo?.name || item.changes.name?.from || item.changes.name || ''
+        const userId = item.targetInfo?.userId || item.changes.userId?.from || item.changes.userId || ''
+        return [`刪除員工: ${name}${userId ? ` (${userId})` : ''}`]
+      }
+      default:
+        return [`刪除${getModelDisplay(item.targetModel)}`]
     }
-    return ['刪除資料']
   }
 
   // 處理修改操作
-  if (item.targetModel === 'departments') {
-    const changes = []
-    const changesObj = item.changes || {}
+  Object.entries(item.changes).forEach(([key, value]) => {
+    // 檢查是否為有效的變更
+    if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
 
-    if (changesObj.name && changesObj.name.from !== changesObj.name.to) {
-      changes.push(`部門名稱: ${changesObj.name.from || '-'} → ${changesObj.name.to || '-'}`)
+    const from = value.from ?? '-'
+    const to = value.to ?? '-'
+    if (from === to) return
+
+    const fieldName = getFieldName(key, item.targetModel) // 根據 targetModel 獲取正確的翻譯
+    if (fieldName) {
+      switch (key) {
+        case 'birthDate': // 特殊處理日期格式
+        case 'resignationDate':
+          changes.push(`${fieldName}: ${formatDate(from)} → ${formatDate(to)}`)
+          break
+        case 'salary': // 特殊處理金額格式
+          changes.push(`${fieldName}: ${from?.toLocaleString() || '-'} → ${to?.toLocaleString() || '-'}`)
+          break
+        case 'guideLicense': // 特殊處理布林值
+          changes.push(`${fieldName}: ${from ? '有' : '無'} → ${to ? '有' : '無'}`)
+          break
+        case 'company': // 特殊處理公司名稱
+        case 'companyName':
+          if (!changes.some((c) => c.startsWith('公司:'))) {
+            changes.push(`${fieldName}: ${from} → ${to}`)
+          }
+          break
+        default:
+          changes.push(`${fieldName}: ${from} → ${to}`)
+      }
     }
-
-    if (changesObj.departmentId && changesObj.departmentId.from !== changesObj.departmentId.to) {
-      changes.push(`部門編號: ${changesObj.departmentId.from || '-'} → ${changesObj.departmentId.to || '-'}`)
-    }
-
-    if (changesObj.company && changesObj.company.from !== changesObj.company.to) {
-      changes.push(`公司: ${changesObj.company.from || '-'} → ${changesObj.company.to || '-'}`)
-    } else if (changesObj.companyId && changesObj.companyId.from !== changesObj.companyId.to) {
-      changes.push(`公司: ${companyNames[changesObj.companyId.from] || '-'} → ${companyNames[changesObj.companyId.to] || '-'}`)
-    }
-
-    return changes
-  }
-
-  // 處理其他資料的修改
-  const changes = []
-  // 先檢查是否有簡單描述字串
-  if (typeof item.changes.description === 'string') {
-    changes.push(item.changes.description)
-    return changes
-  }
-
-  // 處理 from/to 格式的變更
-  for (const [key, value] of Object.entries(item.changes)) {
-    if (!value || (!value.from && !value.to && !['department', 'company'].includes(key))) continue
-
-    // 如果值是字串，直接使用該值
-    if (typeof value === 'string') {
-      const fieldName = fieldTranslations[key] || key
-      changes.push(`${fieldName}: ${value}`)
-      continue
-    }
-
-    const fieldName = fieldTranslations[key] || key
-    let fromValue = value.from
-    let toValue = value.to
-
-    switch (key) {
-      case 'role':
-        fromValue = roleNames[value.from] || value.from || '-'
-        toValue = roleNames[value.to] || value.to || '-'
-        break
-      case 'companyId':
-      case 'company':
-        fromValue = companyNames[value.from] || value.from || '-'
-        toValue = companyNames[value.to] || value.to || '-'
-        break
-      case 'department':
-        fromValue = value.from || '-'
-        toValue = value.to || '-'
-        break
-      case 'guideLicense':
-        fromValue = value.from ? '有' : '無'
-        toValue = value.to ? '有' : '無'
-        break
-      case 'salary':
-        fromValue = value.from?.toLocaleString() || '-'
-        toValue = value.to?.toLocaleString() || '-'
-        break
-      default:
-        if (key.includes('Date')) {
-          fromValue = value.from ? formatDate(value.from) : '-'
-          toValue = value.to ? formatDate(value.to) : '-'
-        } else {
-          fromValue = value.from || '-'
-          toValue = value.to || '-'
-        }
-    }
-
-    changes.push(`${fieldName}: ${fromValue} → ${toValue}`)
-  }
+  })
 
   return changes
 }
@@ -862,9 +959,11 @@ const performSearch = async () => {
       tableItems.value = data
       tableItemsLength.value = totalItems
 
+      // 處理頁數超出範圍的情況
       const maxPage = Math.ceil(totalItems / tableItemsPerPage.value)
-      if (tablePage.value > maxPage) {
-        tablePage.value = Math.max(1, maxPage)
+      if (maxPage > 0 && tablePage.value > maxPage) {
+        tablePage.value = maxPage
+        await performSearch() // 重新取得正確頁面的資料
       }
     } else {
       throw new Error(response.data.message)
@@ -883,9 +982,14 @@ const performSearch = async () => {
 }
 // 處理表格選項變更
 const handleTableOptionsChange = async ({ page, itemsPerPage, sortBy }) => {
+  // 更新頁面狀態
   tablePage.value = page
   tableItemsPerPage.value = itemsPerPage
-  tableSortBy.value = sortBy
+  if (sortBy?.length > 0) {
+    tableSortBy.value = sortBy
+  }
+
+  // 重新載入資料
   await performSearch()
 }
 
@@ -952,5 +1056,16 @@ onMounted(async () => {
   white-space: pre-line;
   line-height: 1.5;
   padding: 4px 0;
+}
+
+.change-list {
+  padding-left: 16px;
+  list-style-type: disc;
+
+  li {
+    line-height: 1.2;
+    white-space: pre-wrap; /* 保留換行 */
+    word-break: break-word; /* 防止文字過長溢出 */
+  }
 }
 </style>
