@@ -6,16 +6,22 @@
   >
     <v-container
       width="380"
-      height="480"
-      class="login-wrapper"
+      height="510"
+      class="login-wrapper mx-2 mx-sm-0"
     >
       <v-form
         :disabled="isSubmitting"
         @submit.prevent="submit"
       >
         <v-row class="px-4">
-          <v-col class="text-center mt-4">
-            登入
+          <v-col
+            cols="12"
+            class="pt-9 pb-6 d-flex justify-center"
+          >
+            <v-img
+              src="/src/assets/image/logo_horizontal.png"
+              max-width="200"
+            />
           </v-col>
 
           <v-col cols="12">
@@ -69,7 +75,7 @@
             <v-btn
               block
               elevation="2"
-              color="orange-darken-1"
+              color="blue-grey-darken-2"
               type="submit"
               :loading="isSubmitting"
             >
@@ -110,7 +116,7 @@
               <v-btn
                 block
                 elevation="2"
-                color="red-darken-1"
+                color="cyan-darken-3"
               >
                 <v-icon
                   icon="mdi-google-plus"
@@ -147,7 +153,7 @@ import { useRouter } from 'vue-router'
 
 definePage({
   meta: {
-    title: '登入 | ystravel' // 這裡的 title 會被設定到 <title> 標籤
+    title: '登入 | ysphere' // 這裡的 title 會被設定到 <title> 標籤
   }
 })
 
@@ -294,8 +300,9 @@ onMounted(async () => {
 #background {
   width: 100%;
   height: 100%;
-  background-image: url(/src/assets/image/bg_login.png);
+  background-image: url(/src/assets/image/bg_login_1.webp);
   background-size: cover;
+  background-position: center;
 }
 
 .login-wrapper {

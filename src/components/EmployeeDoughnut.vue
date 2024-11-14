@@ -3,8 +3,7 @@
     <v-row>
       <v-col cols="12">
         <v-card
-          class="mx-auto pa-8 pb-4"
-          width="400"
+          class="mx-auto pa-8 pb-4 d-flex flex-column justify-center align-center"
           elevation="4"
           rounded="xl"
         >
@@ -135,7 +134,9 @@ const initChart = (companyData) => {
           labels: {
             padding: 12, // 增加標籤之間的間距
             font: {
-              size: 12
+              family: '微軟正黑體',
+              size: 12,
+              weight: 500
             },
             usePointStyle: true,
             pointStyle: 'circle',
@@ -144,6 +145,16 @@ const initChart = (companyData) => {
           }
         },
         tooltip: {
+          titleFont: {
+            family: '微軟正黑體',
+            size: 14,
+            weight: '500'
+          },
+          bodyFont: {
+            family: '微軟正黑體',
+            size: 13,
+            weight: '400'
+          },
           callbacks: {
             label: (context) => {
               const label = context.label || ''
@@ -179,7 +190,7 @@ onUnmounted(() => {
 }
 
 .chart-container {
-  width: 340px;
+  width: 290px;
   height: 320px;
 }
 

@@ -439,7 +439,7 @@ import { useSnackbar } from 'vuetify-use-dialog'
 
 definePage({
   meta: {
-    title: '異動紀錄 | ystravel',
+    title: '異動紀錄 | ysphere',
     login: true,
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
   }

@@ -18,7 +18,7 @@ import { VDateInput } from 'vuetify/labs/VDateInput'
 const myCustomLightTheme = {
   dark: false,
   colors: {
-    background: '#F8F8F8',
+    background: '#ECEFF1',
     surface: '#FFFFFF',
     'surface-bright': '#FFFFFF',
     'surface-light': '#EEEEEE',

@@ -84,7 +84,7 @@ definePage({
   name: 'reset-password',
   path: '/reset-password/:token',
   meta: {
-    title: '重置密碼 | ystravel',
+    title: '重置密碼 | ysphere',
     layout: 'login'
   }
 })

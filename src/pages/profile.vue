@@ -716,7 +716,7 @@ const guideLicenseDisplay = computed(() => {
 
 definePage({
   meta: {
-    title: '個人資料管理 | ystravel',
+    title: '個人資料管理 | ysphere',
     login: true
   }
 })

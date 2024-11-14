@@ -286,7 +286,7 @@ export const useUserStore = defineStore('user', () => {
   }
 }, {
   persist: {
-    key: 'hrms',
+    key: 'erp',
     paths: ['token']
   }
 })

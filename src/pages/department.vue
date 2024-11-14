@@ -244,7 +244,7 @@ import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWi
 
 definePage({
   meta: {
-    title: '員工管理 | ystravel',
+    title: '員工管理 | ysphere',
     login: true,
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
   }

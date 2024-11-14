@@ -7,6 +7,7 @@
     >
       <v-app-bar-nav-icon
         class="ms-4"
+        color="blue-grey-darken-3"
         @click.stop="toggleDrawer"
       />
       <router-link
@@ -14,9 +15,9 @@
         class="d-flex"
       >
         <v-img
-          src="/src/assets/image/永信旅遊LOGO.png"
-          width="150"
-          class="ms-2"
+          src="/src/assets/image/logo_horizontal.png"
+          width="170"
+          class="ms-2 ms-sm-4"
         />
       </router-link>
       <v-spacer />
@@ -102,6 +103,7 @@
               v-for="userItem in userItems"
               :key="userItem.to"
               class="mt-2"
+              color="blue-grey-darken-3"
               :to="userItem.to"
             >
               <template #prepend>
@@ -121,6 +123,7 @@
               v-for="item in filteredAdminItems"
               :key="item.to"
               :to="item.to"
+              color="blue-grey-darken-3"
               class="mb-2"
             >
               <template #prepend>
@@ -198,6 +201,7 @@
               v-for="userItem in userItems"
               :key="userItem.to"
               :to="userItem.to"
+              color="blue-grey-darken-3"
               class="mt-4"
             >
               <template #prepend>
@@ -215,6 +219,7 @@
               v-for="item in filteredAdminItems"
               :key="item.to"
               :to="item.to"
+              color="blue-grey-darken-3"
               class="mt-4"
             >
               <template #prepend>
@@ -227,18 +232,9 @@
         <v-divider class="mt-4" />
         <div>
           <v-list-item
-            v-if="!user.isLogin"
-            to="/login"
-            class="mt-4"
-          >
-            <template #prepend>
-              <v-icon>mdi-account-arrow-left</v-icon>
-            </template>
-            <v-list-item-title>登入</v-list-item-title>
-          </v-list-item>
-          <v-list-item
             v-if="user.isLogin"
             class="mt-4"
+            color="blue-grey-darken-3"
             @click="logout"
           >
             <template #prepend>
@@ -374,10 +370,10 @@ const logout = async () => {
 <style lang="scss" scoped>
 .card-bg {
   // background: linear-gradient(135deg, #37474F 15%, #90aabe);
-  background: url(/src/assets/image/bg_profile.webp);
+  background: url(/src/assets/image/bg_profile_robot.png);
   background-size: cover;
 }
 .card-blur {
-  background: linear-gradient(135deg, #37474F 32%, rgba(255,255,255,0));
+  background: linear-gradient(135deg, #37474F 20%, rgba(255,255,255,0));
 }
 </style>

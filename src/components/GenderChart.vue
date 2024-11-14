@@ -1,0 +1,200 @@
+<template>
+  <div>
+    <v-row>
+      <v-col cols="12">
+        <v-card
+          class="mx-auto pa-8 pb-4 d-flex flex-column justify-center align-center"
+          elevation="4"
+          rounded="xl"
+        >
+          <h6 style="font-size: 16px;">
+            員工性別比例
+          </h6>
+          <v-card-text class="chart-container pb-0">
+            <div class="chart-wrapper">
+              <canvas ref="genderChartRef" />
+              <!-- 中心文字覆蓋層 -->
+              <div class="center-text">
+                <div
+                  class="text-grey-darken-1"
+                  style="font-size: 12px; font-weight: 600;"
+                >
+                  總在職人數
+                </div>
+                <div class="text-h6 font-weight-medium">
+                  {{ totalActiveEmployees }}
+                </div>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import Chart from 'chart.js/auto'
+import { useApi } from '@/composables/axios'
+import { useSnackbar } from 'vuetify-use-dialog'
+
+const { apiAuth } = useApi()
+const createSnackbar = useSnackbar()
+
+const genderChartRef = ref(null)
+const genderChart = ref(null)
+const totalActiveEmployees = ref(0)
+
+const fetchGenderStats = async () => {
+  try {
+    const response = await apiAuth.get('/user/all', {
+      params: {
+        page: 1,
+        itemsPerPage: 999999,
+        fields: 'gender employmentStatus'
+      }
+    })
+
+    const allEmployees = response.data.result.data
+    const activeEmployees = allEmployees.filter(emp => emp.employmentStatus === '在職')
+
+    totalActiveEmployees.value = activeEmployees.length
+
+    const maleCount = activeEmployees.filter(emp => emp.gender === '男性').length
+    const femaleCount = activeEmployees.filter(emp => emp.gender === '女性').length
+
+    initChart({
+      labels: ['男性', '女性'],
+      data: [maleCount, femaleCount]
+    })
+  } catch (error) {
+    console.error('獲取性別統計失敗:', error)
+    createSnackbar({
+      text: '獲取性別統計資料失敗',
+      snackbarProps: { color: 'error' }
+    })
+  }
+}
+
+defineExpose({
+  refreshChart: fetchGenderStats
+})
+
+const initChart = (genderData) => {
+  if (!genderChartRef.value) return
+
+  if (genderChart.value) {
+    genderChart.value.destroy()
+  }
+
+  genderChart.value = new Chart(genderChartRef.value, {
+    type: 'doughnut',
+    data: {
+      labels: genderData.labels,
+      datasets: [{
+        data: genderData.data,
+        backgroundColor: [
+          '#36A2EB',
+          '#FF6384'
+        ],
+        borderWidth: 0,
+        hoverOffset: 15,
+        offset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '80%',
+      layout: {
+        padding: {
+          top: 20
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          boxHeight: 80,
+          labels: {
+            padding: 12,
+            font: {
+              family: '微軟正黑體',
+              size: 12,
+              weight: 500
+            },
+            usePointStyle: true,
+            pointStyle: 'circle',
+            boxWidth: 6,
+            boxHeight: 6
+          }
+        },
+        tooltip: {
+          titleFont: {
+            family: '微軟正黑體',
+            size: 14,
+            weight: '500'
+          },
+          bodyFont: {
+            family: '微軟正黑體',
+            size: 13,
+            weight: '400'
+          },
+          callbacks: {
+            label: (context) => {
+              const label = context.label || ''
+              const value = context.raw || 0
+              const percentage = ((value / totalActiveEmployees.value) * 100).toFixed(1)
+              return `${label}: ${value}人 (${percentage}%)`
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+// 監聽路由變化自動更新圖表
+watch(() => window.location.href, () => {
+  fetchGenderStats()
+})
+
+onMounted(() => {
+  fetchGenderStats()
+})
+
+onUnmounted(() => {
+  if (genderChart.value) {
+    genderChart.value.destroy()
+  }
+})
+</script>
+
+<style scoped>
+.v-card {
+  transition: all 0.3s ease;
+}
+
+.v-card:hover {
+  box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
+}
+
+.chart-container {
+  width: 290px;
+  height: 320px;
+}
+
+.chart-wrapper {
+  height: calc(100% - 30px);
+  position: relative;
+}
+
+.center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  text-align: center;
+  z-index: 1;
+}
+</style>

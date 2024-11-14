@@ -9,52 +9,52 @@
       <!-- 左側圖表，固定寬度 -->
       <v-col
         v-if="mdAndUp"
-        cols="auto"
         class="ps-4 py-0"
       >
         <EmployeeDoughnut ref="chartRef" />
       </v-col>
 
       <!-- 右側統計資訊，自適應寬度 -->
+      <!-- 性別統計圖 -->
+      <v-col
+        v-if="xlAndUp"
+        class="ps-4 py-0"
+      >
+        <GenderChart ref="genderChartRef" />
+      </v-col>
+
+      <!-- 生日提醒 -->
       <v-col
         v-if="isLgmUp"
-        class="pa-0"
+        class="ps-4 py-0"
       >
-        <v-card
-          class="mx-4 d-flex"
-          elevation="4"
-          rounded="xl"
-          height="100%"
-        >
-          <!-- 這裡放置您的統計資訊內容 -->
-          <v-card-text class="d-flex justify-center align-center text-h2 opacity-60">
-            待開發
-          </v-card-text>
-        </v-card>
+        <BirthdayReminder ref="birthdayReminderRef" />
       </v-col>
       <!-- 搜尋條件卡片 -->
       <v-col
-        xl="4"
-        xxl="3"
         class="pa-0 mb-6 mb-sm-0"
       >
         <v-card
-          class="mx-4 d-flex px-4 py-6 pa-sm-8"
+          class="d-flex mx-3 mx-sm-4 px-4 pt-5 pb-8 "
           elevation="4"
           rounded="xl"
           height="100%"
+          min-width="390"
         >
-          <v-card-text class="pa-2 d-flex align-center">
+          <v-card-text class="d-flex align-center">
             <v-row class="h-100">
               <!-- 搜尋條件區域 -->
               <v-col
                 cols="12"
-                class="d-flex flex-column justify-center"
+                class="d-flex flex-column justify-center "
               >
                 <v-row>
-                  <h3 class="ps-3 mb-3">
+                  <h6
+                    style="font-size: 16px;"
+                    class="ps-3 mb-3"
+                  >
                     搜尋篩選
-                  </h3>
+                  </h6>
                 </v-row>
                 <v-row>
                   <!-- 公司選擇 -->
@@ -1000,11 +1000,13 @@ import { useSnackbar } from 'vuetify-use-dialog'
 import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
 import ResignationDateDialog from '../components/ResignationDateDialog.vue'
 import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
+import GenderChart from '../components/GenderChart.vue'
+import BirthdayReminder from '../components/BirthdayReminder.vue'
 
 // ===== 頁面設定 =====
 definePage({
   meta: {
-    title: '員工管理 | ystravel',
+    title: '員工管理 | ysphere',
     login: true,
     roles: [UserRole.SUPER_ADMIN, UserRole.HR, UserRole.ADMIN]
   }
@@ -1017,7 +1019,7 @@ const createSnackbar = useSnackbar()
 
 // ===== 響應式設定與螢幕斷點 =====
 const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint, width } = useDisplay()
-const isLgmUp = computed(() => width.value >= 1500)
+const isLgmUp = computed(() => width.value >= 1400)
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })

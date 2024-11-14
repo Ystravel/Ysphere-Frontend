@@ -39,7 +39,7 @@
             <v-btn
               block
               elevation="2"
-              color="orange-darken-1"
+              color="blue-grey-darken-2"
               type="submit"
               :loading="isSubmitting"
             >
@@ -81,7 +81,7 @@ onMounted(() => {
 
 definePage({
   meta: {
-    title: '忘記密碼 | ystravel',
+    title: '忘記密碼 | ysphere',
     layout: 'login'
   }
 })
@@ -129,8 +129,9 @@ const submit = handleSubmit(async (values) => {
 #background {
   width: 100%;
   min-height: 100vh;
-  background-image: url(/src/assets/image/bg_login.png);
+  background-image: url(/src/assets/image/bg_login_1.webp);
   background-size: cover;
+  background-position: center;
 }
 
 .forgot-password-wrapper {

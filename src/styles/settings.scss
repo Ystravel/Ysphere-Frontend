@@ -15,6 +15,10 @@
   font-family: '微軟正黑體' !important;
 }
 
+.v-navigation-drawer .v-list-item-title {
+  font-size: 15px;
+}
+
 .v-field .v-icon {
   font-size: 18px;
 }
@@ -75,6 +79,10 @@ h3 {
 @include sm {
   h3{
     font-size: 18px;
+  }
+
+  .v-navigation-drawer .v-list-item-title {
+    font-size: 16px;
   }
 
   .v-field:not(.v-textarea .v-field) {
