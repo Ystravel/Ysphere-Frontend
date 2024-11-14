@@ -8,19 +8,19 @@
     >
       <!-- 左側圖表，固定寬度 -->
       <v-col
-        v-if="mdAndUp"
+        v-if="xlAndUp"
         class="ps-4 py-0"
       >
         <EmployeeDoughnut ref="chartRef" />
       </v-col>
 
       <!-- 右側統計資訊，自適應寬度 -->
-      <!-- 性別統計圖 -->
+      <!-- 員工流動趨勢圖-->
       <v-col
-        v-if="xlAndUp"
+        v-if="mdAndUp"
         class="ps-4 py-0"
       >
-        <GenderChart ref="genderChartRef" />
+        <EmployeeTurnoverChart ref="turnoverChartRef" />
       </v-col>
 
       <!-- 生日提醒 -->
@@ -1000,7 +1000,7 @@ import { useSnackbar } from 'vuetify-use-dialog'
 import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
 import ResignationDateDialog from '../components/ResignationDateDialog.vue'
 import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
-import GenderChart from '../components/GenderChart.vue'
+import EmployeeTurnoverChart from '../components/EmployeeTurnoverChart.vue'
 import BirthdayReminder from '../components/BirthdayReminder.vue'
 
 // ===== 頁面設定 =====
@@ -1019,7 +1019,7 @@ const createSnackbar = useSnackbar()
 
 // ===== 響應式設定與螢幕斷點 =====
 const { smAndUp, mdAndUp, lgAndUp, xlAndUp, name: currentBreakpoint, width } = useDisplay()
-const isLgmUp = computed(() => width.value >= 1400)
+const isLgmUp = computed(() => width.value >= 1520)
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
@@ -1043,6 +1043,8 @@ const dialog = ref({
   open: false,
   id: ''
 })
+const turnoverChartRef = ref(null)
+const birthdayReminderRef = ref(null)
 
 // ===== 選項列表設定 =====
 const companyList = ref(
@@ -1498,6 +1500,8 @@ const submit = handleSubmit(async (values) => {
       await tableLoadItems(false, currentPageNumber)
 
       await chartRef.value?.refreshChart()
+      await turnoverChartRef.value?.refreshChart()
+      await birthdayReminderRef.value?.refreshData()
 
       createSnackbar({
         text: '員工資料更新成功',
@@ -1539,6 +1543,8 @@ const submit = handleSubmit(async (values) => {
       await tableLoadItems(true)
 
       await chartRef.value?.refreshChart()
+      await turnoverChartRef.value?.refreshChart()
+      await birthdayReminderRef.value?.refreshData()
 
       createSnackbar({
         text: '員工新增成功',
@@ -1671,6 +1677,8 @@ const deleteUser = async () => {
     closeDialog()
     await tableLoadItems(true)
     await chartRef.value?.refreshChart()
+    await turnoverChartRef.value?.refreshChart()
+    await birthdayReminderRef.value?.refreshData()
 
     createSnackbar({
       text: '員工刪除成功',

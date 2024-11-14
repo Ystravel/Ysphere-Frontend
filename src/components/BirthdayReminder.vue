@@ -6,18 +6,19 @@
           class="mx-auto pa-8 pb-9"
           elevation="4"
           rounded="xl"
+          min-height="392"
         >
           <h6
             style="font-size: 16px;"
-            class="mb-5 d-flex align-center"
+            class="ps-1 mb-5 d-flex align-center"
           >
-            <v-icon
-              icon="mdi-cake-variant"
-              color="pink-lighten-2"
-              class="me-2"
-              size="20"
-            />
             近期壽星
+            <!-- <v-icon
+              icon="mdi-cake-variant-outline"
+              size="16"
+              color="orange-darken-"
+              class="ms-2"
+            /> -->
           </h6>
 
           <v-card-text class="pt-0 px-1  birthday-container">
@@ -25,7 +26,7 @@
               <div class="d-flex justify-center align-center ">
                 <v-progress-circular
                   indeterminate
-                  color="pink-lighten-1"
+                  color="blue-grey-darken-1"
                 />
               </div>
             </template>
@@ -45,7 +46,7 @@
                     <template #prepend>
                       <v-avatar
                         size="36"
-                        color="pink-lighten-4"
+                        color="blue-grey-darken-1"
                       >
                         <v-img
                           v-if="birthday.avatar"
@@ -55,7 +56,7 @@
                         <v-icon
                           v-else
                           icon="mdi-account"
-                          color="pink-darken-1"
+                          color="blue-grey-darken-1"
                           size="20"
                         />
                       </v-avatar>
@@ -73,7 +74,7 @@
                       </div>
                       <v-chip
                         size="small"
-                        :color="getDaysUntilBirthday(birthday.birthDate) === 0 ? 'red-lighten-3' : 'pink-lighten-4'"
+                        :color="getDaysUntilBirthday(birthday.birthDate) === 0 ? 'pink-lighten-1' : 'teal-lighten-2'"
                         variant="flat"
                         class="ms-2 font-weight-medium"
                       >
