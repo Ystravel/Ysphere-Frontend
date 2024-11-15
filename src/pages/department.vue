@@ -1,7 +1,7 @@
 <template>
   <v-container max-width="1400">
     <v-row
-      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
+      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <v-col
         cols="12"
@@ -244,7 +244,7 @@ import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWi
 
 definePage({
   meta: {
-    title: '員工管理 | ysphere',
+    title: '公司部門管理 | ysphere',
     login: true,
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
   }

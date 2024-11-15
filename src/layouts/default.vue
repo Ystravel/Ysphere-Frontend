@@ -268,7 +268,8 @@ const createSnackbar = useSnackbar()
 const router = useRouter()
 
 const userItems = [
-  { to: '/profile', text: '個人資料管理', icon: 'mdi-account' }
+  { to: '/profile', text: '個人資料管理', icon: 'mdi-account' },
+  { to: '/ITService', text: 'IT 服務', icon: 'mdi-wrench-outline' }
 ]
 
 const adminItems = [

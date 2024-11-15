@@ -1,17 +1,20 @@
 <template>
   <v-container max-width="2500">
     <!-- 搜尋條件區塊 -->
-    <v-row class="pt-md-10">
+    <v-row class="pt-md-5">
       <v-col
         cols="12"
-        lg="3"
+        lg="4"
+        xl="3"
       >
         <v-row>
           <v-col
             cols="12"
             class="mt-1 px-lg-10"
           >
-            <v-card class="elevation-4 rounded-xl py-8 px-4 px-sm-4 px-xl-8">
+            <v-card
+              class="elevation-4 rounded-xl py-8 px-4 px-sm-4 px-xl-8"
+            >
               <v-card-title class="font-weight-bold d-flex align-center">
                 搜尋條件
               </v-card-title>
@@ -187,6 +190,8 @@
                       density="compact"
                       hide-details
                       clearable
+                      :cancel-text="'取消'"
+                      :ok-text="'確認'"
                     />
                   </v-col>
                   <v-col
@@ -202,6 +207,8 @@
                       density="compact"
                       hide-details
                       clearable
+                      :cancel-text="'取消'"
+                      :ok-text="'確認'"
                       :min="searchCriteria.startDate"
                     />
                   </v-col>
@@ -248,7 +255,8 @@
       <!-- 表格區塊 -->
       <v-col
         cols="12"
-        lg="9"
+        lg="8"
+        xl="9"
         class="px-6 ps-lg-4 pe-lg-12 mb-6"
       >
         <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-1 bg-white">

@@ -470,6 +470,8 @@
                 variant="outlined"
                 density="compact"
                 clearable
+                :cancel-text="'取消'"
+                :ok-text="'確認'"
               />
             </v-col>
             <v-col
@@ -778,6 +780,8 @@
                 variant="outlined"
                 density="compact"
                 clearable
+                :cancel-text="'取消'"
+                :ok-text="'確認'"
               />
             </v-col>
             <v-col
@@ -881,6 +885,8 @@
                 variant="outlined"
                 density="compact"
                 clearable
+                :cancel-text="'取消'"
+                :ok-text="'確認'"
               />
             </v-col>
           </v-row>

@@ -69,7 +69,7 @@
                           style="font-size: 14px;"
                         >{{ birthday.name }}</span>
                         <div class="text-caption text-grey-darken-1">
-                          {{ birthday.department?.name || '未分配部門' }}
+                          {{ birthday.department?.name || '未分配部門' }}({{ birthday.departmentData?.departmentId }})
                         </div>
                       </div>
                       <v-chip
@@ -86,9 +86,9 @@
 
                 <div
                   class="text-center mt-4 text-grey-darken-1"
-                  style="font-size: 13px;"
+                  style="font-size: 14px;"
                 >
-                  未來兩週共 {{ birthdays.length }} 位壽星
+                  未來兩週共 <span class="text-pink-lighten-1 font-weight-bold">{{ birthdays.length }}</span> 位壽星
                 </div>
               </div>
 
@@ -176,6 +176,7 @@ const loadBirthdays = async () => {
     })
 
     if (data.success) {
+      console.log('Birthday data:', data.result.data)
       birthdays.value = data.result.data
         .filter(user =>
           user.employmentStatus === '在職' &&
