@@ -13,17 +13,11 @@
             class="ps-1 mb-5 d-flex align-center"
           >
             近期壽星
-            <!-- <v-icon
-              icon="mdi-cake-variant-outline"
-              size="16"
-              color="orange-darken-"
-              class="ms-2"
-            /> -->
           </h6>
 
-          <v-card-text class="pt-0 px-1  birthday-container">
+          <v-card-text class="pt-0 px-1 birthday-container">
             <template v-if="isLoading">
-              <div class="d-flex justify-center align-center ">
+              <div class="loading-overlay d-flex justify-center align-center">
                 <v-progress-circular
                   indeterminate
                   color="blue-grey-darken-1"
@@ -226,6 +220,18 @@ onMounted(() => {
 .birthday-container {
   max-height: 280px;
   overflow-y: auto;
+  position: relative;
+  min-height: 280px; /* 添加最小高度確保 loading 狀態時的顯示 */
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 2;
 }
 
 .birthday-list {
