@@ -4,6 +4,7 @@
       elevation="0"
       border="b-sm"
       height="100"
+      class="position-fixed"
     >
       <v-app-bar-nav-icon
         class="ms-4"
@@ -51,6 +52,7 @@
       v-model="drawer"
       :rail="rail"
       permanent
+      class="position-fixed"
     >
       <v-list class="h-100 d-flex flex-column pa-0">
         <div>
@@ -150,7 +152,7 @@
       v-if="!mdAndUp"
       v-model="mdDrawer"
       border="0"
-      class=" rounded-be-xl"
+      class=" rounded-be-xl position-fixed"
     >
       <v-list class="h-100 pa-0">
         <div>
@@ -269,7 +271,7 @@ const router = useRouter()
 
 const userItems = [
   { to: '/profile', text: '個人資料管理', icon: 'mdi-account' },
-  { to: '/ITService', text: 'IT 服務', icon: 'mdi-wrench-outline' }
+  { to: '/ITService', text: 'IT 維修服務', icon: 'mdi-wrench' }
 ]
 
 const adminItems = [
@@ -291,6 +293,12 @@ const adminItems = [
   //   icon: 'mdi-desktop-tower-monitor',
   //   roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
   // },
+  {
+    to: '/ITServiceAdmin',
+    text: 'IT 維修服務管理',
+    icon: 'mdi-wrench-cog',
+    roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
+  },
   {
     to: '/auditLog',
     text: '異動紀錄',

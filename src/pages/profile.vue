@@ -638,9 +638,9 @@
     max-width="360"
   >
     <v-card>
-      <v-card-title class="text-h6 ps-6 pt-6">
+      <div class="card-title ps-6 py-6">
         修改密碼
-      </v-card-title>
+      </div>
       <v-card-text class="pb-0">
         <v-form @submit.prevent="handlePasswordChange">
           <v-text-field
@@ -680,7 +680,7 @@
         <v-btn
           color="grey-darken-1"
           variant="outlined"
-          height="32"
+          :size="buttonSize"
           @click="closePasswordDialog"
         >
           取消
@@ -688,7 +688,7 @@
         <v-btn
           color="red-darken-1"
           variant="outlined"
-          height="32"
+          :size="buttonSize"
           :loading="isChangingPassword"
           @click="handlePasswordChange"
         >
@@ -708,10 +708,14 @@ import { useDisplay } from 'vuetify'
 import { companyNames } from '@/enums/Company'
 import FileUploadButton from '@/components/FileUploadButton.vue'
 
-const { mdAndUp, width } = useDisplay()
+const { mdAndUp, width, smAndUp } = useDisplay()
 const isLgmUp = computed(() => width.value >= 1500)
 const guideLicenseDisplay = computed(() => {
   return user.guideLicense ? '有' : '無'
+})
+
+const buttonSize = computed(() => {
+  return smAndUp.value ? 'default' : 'small'
 })
 
 definePage({

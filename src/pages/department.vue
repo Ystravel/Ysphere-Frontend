@@ -1,7 +1,7 @@
 <template>
   <v-container max-width="1400">
     <v-row
-      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
+      class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <v-col
         cols="12"
@@ -14,7 +14,7 @@
           v-tooltip="'人數為「在職」人數'"
           icon="mdi-information"
           size="small"
-          color="grey-darken-2"
+          color="blue-grey-darken-2"
           class="ms-4"
         />
       </v-col>
@@ -38,7 +38,8 @@
               />
               <v-col
                 cols="6"
-                sm="3"
+                sm="4"
+                md="3"
                 lg="2"
               >
                 <v-select
@@ -56,10 +57,18 @@
               </v-col>
               <v-col
                 cols="6"
-                sm="3"
-                lg="2"
-                class="d-flex justify-end"
+                sm="4"
+                md="3"
+                class="d-flex justify-end align-center ps-0"
               >
+                <v-icon
+                  v-if="smAndUp"
+                  v-tooltip:top="'可搜尋部門名稱或編號'"
+                  icon="mdi-information"
+                  size="small"
+                  color="blue-grey-darken-2"
+                  class="me-4 ps-2"
+                />
                 <v-text-field
                   v-model="tableSearch"
                   label="搜尋"
@@ -79,7 +88,7 @@
               v-model:items-per-page="tableItemsPerPage"
               v-model:sort-by="tableSortBy"
               :page="tablePage"
-              :headers="tableHeaders"
+              :headers="filteredHeaders"
               :items="departments"
               :header-props="headerProps"
               :items-length="tableItemsLength"
@@ -94,7 +103,9 @@
               <template #item="{ item, index }">
                 <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
                   <td>{{ item.departmentId || '尚未設定' }}</td>
-                  <td>{{ companyNames[item.companyId] || '未知公司' }}</td>
+                  <td v-if="smAndUp">
+                    {{ companyNames[item.companyId] || '未知公司' }}
+                  </td>
                   <td>{{ item.name }}</td>
                   <td>{{ item.memberCount || 0 }} 人</td>
                   <td class="text-center">
@@ -291,6 +302,17 @@ const tableHeaders = [
   { title: '人數', key: 'memberCount', align: 'start', sortable: true },
   { title: '操作', key: 'actions', align: 'center', sortable: false }
 ]
+const filteredHeaders = computed(() => {
+  // 最大尺寸顯示全部
+  if (smAndUp.value) {
+    return tableHeaders
+  }
+
+  // sm 以下只保留維修編號、標題和操作
+  return tableHeaders.filter(header =>
+    ['departmentId', 'name', 'memberCount', 'actions'].includes(header.key)
+  )
+})
 
 const handleTableUpdate = (options) => {
   console.log('表格更新選項:', options)
@@ -550,5 +572,11 @@ onUnmounted(() => {
 
 .even-row {
   background-color: rgb(247, 253, 255);
+}
+
+.v-data-table {
+  :deep(th):nth-child(1){
+    min-width: 80px !important;
+  }
 }
 </style>

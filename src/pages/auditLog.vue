@@ -13,7 +13,7 @@
             class="mt-1 px-lg-10"
           >
             <v-card
-              class="elevation-4 rounded-xl py-8 px-4 px-sm-4 px-xl-8"
+              class="elevation-4 rounded-xl py-4 py-sm-8 px-4 px-sm-4 px-xl-8"
             >
               <v-card-title class="font-weight-bold d-flex align-center">
                 搜尋條件
@@ -259,10 +259,10 @@
         xl="9"
         class="px-6 ps-lg-4 pe-lg-12 mb-6"
       >
-        <v-row class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-1 bg-white">
+        <v-row class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-4 px-md-10 mt-1 bg-white">
           <v-col
             cols="12"
-            class="ps-4 pb-6"
+            class="ps-4 pb-sm-6"
           >
             <h3>異動紀錄</h3>
           </v-col>
@@ -290,10 +290,10 @@
                     {{ formatOperator(item) }}
                   </td>
                   <td>{{ getModelDisplay(item.targetModel) }}</td>
-                  <td v-if="mdAndUp">
+                  <td v-if="smAndUp">
                     {{ item.action }}
                   </td>
-                  <td v-if="smAndUp">
+                  <td v-if="mdAndUp">
                     {{ formatTarget(item) }}
                   </td>
                   <td
@@ -562,7 +562,8 @@ const fieldTranslations = {
   IDNumber: '身分證號碼',
   userId: '員工編號',
   departmentId: '部門編號',
-  note: '備註'
+  note: '備註',
+  description: '描述'
 }
 
 // 表格標頭
@@ -894,8 +895,8 @@ const formatChanges = (item) => {
     // 檢查是否為有效的變更
     if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
 
-    const from = value.from ?? '-'
-    const to = value.to ?? '-'
+    const from = value.from === '' ? '(無)' : (value.from ?? '(無)')
+    const to = value.to === '' ? '(無)' : (value.to ?? '(無)')
     if (from === to) return
 
     const fieldName = getFieldName(key, item.targetModel) // 根據 targetModel 獲取正確的翻譯
@@ -903,13 +904,13 @@ const formatChanges = (item) => {
       switch (key) {
         case 'birthDate': // 特殊處理日期格式
         case 'resignationDate':
-          changes.push(`${fieldName}: ${formatDate(from)} → ${formatDate(to)}`)
+          changes.push(`${fieldName}: ${from === '(無)' ? from : formatDate(from)} → ${to === '(無)' ? to : formatDate(to)}`)
           break
         case 'salary': // 特殊處理金額格式
-          changes.push(`${fieldName}: ${from?.toLocaleString() || '-'} → ${to?.toLocaleString() || '-'}`)
+          changes.push(`${fieldName}: ${from === '(無)' ? from : from?.toLocaleString()} → ${to === '(無)' ? to : to?.toLocaleString()}`)
           break
         case 'guideLicense': // 特殊處理布林值
-          changes.push(`${fieldName}: ${from ? '有' : '無'} → ${to ? '有' : '無'}`)
+          changes.push(`${fieldName}: ${from === '(無)' ? from : (from ? '有' : '無')} → ${to === '(無)' ? to : (to ? '有' : '無')}`)
           break
         case 'company': // 特殊處理公司名稱
         case 'companyName':

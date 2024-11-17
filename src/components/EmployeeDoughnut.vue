@@ -19,7 +19,7 @@
                 class="center-text"
               >
                 <div
-                  class="text-grey-darken-1"
+                  class="text-grey-darken-1 mb-1"
                   style="font-size: 12px; font-weight: 600;"
                 >
                   總在職人數
@@ -203,7 +203,7 @@ onUnmounted(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -60%);
+  transform: translate(-50%, -66%);
   text-align: center;
   z-index: 1;
 }

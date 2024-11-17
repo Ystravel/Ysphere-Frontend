@@ -35,11 +35,10 @@
         class="pa-0 mb-6 mb-sm-0"
       >
         <v-card
-          class="d-flex mx-3 mx-sm-4 px-4 pt-5 pb-8 "
+          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-5 pb-4 pb-sm-8 "
           elevation="4"
           rounded="xl"
           height="100%"
-          min-width="390"
         >
           <v-card-text class="d-flex align-center">
             <v-row class="h-100">
@@ -147,7 +146,7 @@
                         <v-chip
                           filter
                           variant="outlined"
-                          color="orange-darken-3"
+                          color="blue-grey-darken-2"
                           :value="'男性'"
                           label
                         >
@@ -156,7 +155,7 @@
                         <v-chip
                           filter
                           variant="outlined"
-                          color="orange-darken-3"
+                          color="blue-grey-darken-2"
                           :value="'女性'"
                           label
                         >
@@ -181,7 +180,7 @@
                           filter
                           variant="outlined"
                           :value="true"
-                          color="orange-darken-3"
+                          color="blue-grey-darken-2"
                           label
                         >
                           有
@@ -190,7 +189,7 @@
                           filter
                           variant="outlined"
                           :value="false"
-                          color="orange-darken-3"
+                          color="blue-grey-darken-2"
                           label
                         >
                           無
@@ -239,7 +238,7 @@
       </v-col>
     </v-row>
     <v-row
-      class="elevation-4 rounded-xl py-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
+      class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <v-col
         cols="12"
@@ -984,7 +983,7 @@
   <ConfirmDeleteDialogWithTextField
     v-model="confirmDeleteDialog"
     title="確認刪除員工"
-    :message="`確定要刪除員工「${originalData?.name || ''}」(${originalData?.userId || ''})嗎？ 此操作無法復原。`"
+    :message="`確定要刪除員工「${originalData?.name || ''}」(${originalData?.userId || ''}) 嗎？ 此操作無法復原。`"
     :expected-name="originalData?.name || ''"
     input-label="員工姓名"
     @confirm="deleteUser"

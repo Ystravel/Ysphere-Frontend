@@ -10,6 +10,7 @@
     <!-- 大螢幕版本 -->
     <v-btn
       v-if="isLgmUp"
+      v-tooltip:top="'檔案不超過2MB。格式僅限JPG、PNG、WEBP。'"
       prepend-icon="mdi-camera-outline"
       color="blue-grey-darken-2"
       variant="outlined"
@@ -64,15 +65,15 @@ const handleFileChange = async (event) => {
 
   if (!['image/jpeg', 'image/png'].includes(file.type)) {
     createSnackbar({
-      text: '只能上傳 JPG 或 PNG 圖片',
+      text: '只能上傳 JPG、PNG、WEBP 格式的圖片',
       snackbarProps: { color: 'error' }
     })
     return
   }
 
-  if (file.size > 1024 * 1024) {
+  if (file.size > 2 * 1024 * 1024) {
     createSnackbar({
-      text: '圖片大小不能超過 1MB',
+      text: '圖片大小不能超過 2MB',
       snackbarProps: { color: 'error' }
     })
     return
