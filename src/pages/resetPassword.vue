@@ -154,7 +154,7 @@ const submit = async () => {
 
     createSnackbar({
       text: data.message,
-      snackbarProps: { color: 'success' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
 
     // 重置成功後導向登入頁
@@ -162,7 +162,7 @@ const submit = async () => {
   } catch (error) {
     createSnackbar({
       text: error?.response?.data?.message || '重置密碼失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   } finally {
     isSubmitting.value = false
