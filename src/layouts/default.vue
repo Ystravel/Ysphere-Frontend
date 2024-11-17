@@ -154,7 +154,7 @@
       border="0"
       class=" rounded-be-xl position-fixed"
     >
-      <v-list class="h-100 pa-0">
+      <v-list class="h-100 pa-0 overflow-auto">
         <div>
           <v-card
             elevation="0"
