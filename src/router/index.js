@@ -5,13 +5,13 @@
  */
 
 // Composables
-import { createRouter, createWebHistory, START_LOCATION } from 'vue-router/auto'
+import { createRouter, createWebHashHistory, START_LOCATION } from 'vue-router/auto'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { routes } from 'vue-router/auto-routes'
 import { useUserStore } from '@/stores/user'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: setupLayouts(routes),
   scrollBehavior (to, from) {
     // 只有當路徑發生變化時，才滾動到頂部
