@@ -190,8 +190,6 @@ const googleClientId = '890205288379-2bm447qt1rj7jkooc7luqej83if9inp4.apps.googl
 // Google 登入回調
 const googleLoginCallback = async (response) => {
   try {
-    console.log('Google Response:', response)
-
     // 檢查是否收到 code
     if (!response.code) {
       throw new Error('未收到 Google 授權碼')

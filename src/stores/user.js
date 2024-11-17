@@ -39,7 +39,6 @@ export const useUserStore = defineStore('user', () => {
   const isIT = computed(() => role.value === UserRole.IT)
 
   const login = async (values) => {
-    console.log(values)
     try {
       const { data } = await api.post('/user/login', values)
       token.value = data.result.token
@@ -66,7 +65,6 @@ export const useUserStore = defineStore('user', () => {
       role.value = data.result.role
       jobTitle.value = data.result.jobTitle
       avatar.value = data.result.avatar
-      console.log(data.result)
       await profile()
       return '登入成功'
     } catch (error) {
@@ -77,7 +75,6 @@ export const useUserStore = defineStore('user', () => {
 
   // 新增 Google 登入邏輯
   const googleLogin = async (code) => {
-    console.log('授權碼:', code)
     try {
       const response = await api.post('/user/google-login', {
         code // 改為發送 code

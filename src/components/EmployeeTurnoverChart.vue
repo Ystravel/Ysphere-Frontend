@@ -11,7 +11,18 @@
             員工流動趨勢
           </h6>
           <v-card-text class="chart-container pb-0">
-            <canvas ref="turnoverChartRef" />
+            <div class="chart-wrapper">
+              <canvas ref="turnoverChartRef" />
+              <div
+                v-if="isLoading"
+                class="loading-overlay d-flex justify-center align-center"
+              >
+                <v-progress-circular
+                  indeterminate
+                  color="blue-grey-darken-1"
+                />
+              </div>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -30,8 +41,10 @@ const createSnackbar = useSnackbar()
 
 const turnoverChartRef = ref(null)
 const turnoverChart = ref(null)
+const isLoading = ref(false)
 
 const fetchTurnoverStats = async () => {
+  isLoading.value = true
   try {
     const currentYear = new Date().getFullYear()
     const response = await apiAuth.get('/user/all', {
@@ -143,6 +156,8 @@ const fetchTurnoverStats = async () => {
       text: '獲取流動統計資料失敗',
       snackbarProps: { color: 'error' }
     })
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -182,5 +197,20 @@ onUnmounted(() => {
   @include xl {
     width: 360px;
   }
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 100%;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 2;
 }
 </style>

@@ -10,13 +10,21 @@
           <h6 style="font-size: 16px;">
             全公司人數分布
           </h6>
-          <!-- 增加上下內邊距和調整高度 -->
           <v-card-text class="chart-container pb-0">
             <div class="chart-wrapper">
               <canvas ref="companyChartRef" />
-              <!-- 中心文字覆蓋層 -->
+              <div
+                v-if="isLoading"
+                class="loading-overlay d-flex justify-center align-center"
+              >
+                <v-progress-circular
+                  indeterminate
+                  color="blue-grey-darken-1"
+                />
+              </div>
               <div
                 class="center-text"
+                :class="{ 'invisible': isLoading }"
               >
                 <div
                   class="text-grey-darken-1 mb-1"
@@ -49,8 +57,10 @@ const createSnackbar = useSnackbar()
 const companyChartRef = ref(null)
 const companyChart = ref(null)
 const totalEmployees = ref(0)
+const isLoading = ref(false)
 
 const fetchEmployeeStats = async () => {
+  isLoading.value = true
   try {
     const response = await apiAuth.get('/user/all', {
       params: {
@@ -82,6 +92,8 @@ const fetchEmployeeStats = async () => {
       text: '獲取員工統計資料失敗',
       snackbarProps: { color: 'error' }
     })
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -206,5 +218,19 @@ onUnmounted(() => {
   transform: translate(-50%, -66%);
   text-align: center;
   z-index: 1;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 2;
+}
+
+.invisible {
+  visibility: hidden;
 }
 </style>
