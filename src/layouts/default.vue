@@ -1,3 +1,4 @@
+<!-- default layout -->
 <template>
   <v-app>
     <v-app-bar

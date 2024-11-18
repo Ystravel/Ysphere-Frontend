@@ -12,7 +12,6 @@
           IT維修服務
         </h3>
         <v-btn
-          v-if="smAndUp"
           size="x-small"
           color="grey-darken-1"
           class="ms-4"
@@ -402,7 +401,7 @@
                   >
                     緊急
                   </v-chip>
-                  <div class="text-body-1 mt-1">
+                  <div class="priority-content mt-1">
                     系統完全無法運作或造成重大業務影響，需要立即處理的問題。
                     <br>
                     例如：系統當機、網路完全中斷、資料遺失等。
@@ -419,7 +418,7 @@
                   >
                     高
                   </v-chip>
-                  <div class="text-body-1 mt-1">
+                  <div class="priority-content mt-1">
                     影響工作進行但有暫時替代方案，需要優先處理的問題。
                     <br>
                     例如：系統緩慢、部分功能異常、列印設備故障等。
@@ -436,7 +435,7 @@
                   >
                     中
                   </v-chip>
-                  <div class="text-body-1 mt-1">
+                  <div class="priority-content mt-1">
                     造成不便但不影響主要工作，可以排程處理的問題。
                     <br>
                     例如：軟體安裝、設備維護、功能諮詢等。
@@ -453,7 +452,7 @@
                   >
                     低
                   </v-chip>
-                  <div class="text-body-1 mt-1">
+                  <div class="priority-content mt-1">
                     一般性問題或建議，可以安排在較空閒時處理。
                     <br>
                     例如：新功能建議、系統優化、預防性維護等。
@@ -978,10 +977,9 @@ onUnmounted(() => {
   }
 }
 
-.text-body-1 {
-  line-height: 1.5;
-  color: #424242;
-  font-size: 14px !important;
+.priority-content {
+  font-size: 14px;
+  line-height: 2;
 }
 
 @include sm {
