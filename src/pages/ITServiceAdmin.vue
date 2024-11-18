@@ -162,7 +162,7 @@
                 >
                   <v-icon
                     v-if="smAndUp"
-                    v-tooltip:start="'可搜尋維修編號、標題、分機、地點、描述'"
+                    v-tooltip:start="'可搜尋維修編號、標題、分機、地點、問題描述'"
                     icon="mdi-information"
                     size="small"
                     color="blue-grey-darken-2"
@@ -472,7 +472,7 @@
 
                 <div>
                   <div class="text-grey-darken-1 list-title">
-                    描述
+                    問題描述
                   </div>
                   <div
                     style="white-space: pre-wrap;"
@@ -580,7 +580,7 @@ const headers = [
   { title: '狀態', align: 'start', key: 'status', sortable: true },
   { title: '地點', align: 'start', key: 'location', sortable: true, minWidth: '64px' },
   { title: '圖片', align: 'center', key: 'attachments', sortable: false, minWidth: '100px' },
-  { title: '描述', align: 'start', key: 'description', sortable: false },
+  { title: '問題描述', align: 'start', key: 'description', sortable: false },
   { title: '操作', align: 'center', key: 'actions', sortable: false }
 ]
 

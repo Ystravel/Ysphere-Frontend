@@ -46,7 +46,7 @@
               >
                 <v-icon
                   v-if="smAndUp"
-                  v-tooltip:start="'可搜尋維修編號、標題、地點、描述'"
+                  v-tooltip:start="'可搜尋維修編號、標題、地點、問題描述'"
                   icon="mdi-information"
                   size="small"
                   color="blue-grey-darken-2"
@@ -248,7 +248,7 @@
                 <v-textarea
                   v-model="description.value.value"
                   :error-messages="description.errorMessage.value"
-                  label="*描述"
+                  label="*問題描述"
                   variant="outlined"
                   density="comfortable"
                   required
@@ -530,7 +530,7 @@ const headers = [
   { title: '狀態', align: 'start', key: 'status', sortable: true },
   { title: '地點', align: 'start', key: 'location', sortable: true },
   { title: '圖片', align: 'start', key: 'attachments', sortable: false },
-  { title: '描述', align: 'start', key: 'description', sortable: false },
+  { title: '問題描述', align: 'start', key: 'description', sortable: false },
   {
     title: '操作',
     align: 'center',
@@ -764,7 +764,7 @@ const ticketSchema = yup.object({
     .required('請輸入地點'),
   description: yup
     .string()
-    .required('請輸入描述')
+    .required('請輸入問題描述')
 })
 
 // 使用 vee-validate 設置表單
