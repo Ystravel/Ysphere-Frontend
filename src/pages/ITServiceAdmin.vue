@@ -250,7 +250,7 @@
                   v-if="item.attachments?.length"
                   v-tooltip:start="`查看${item.attachments.length}張圖片`"
                   icon
-                  variant="text"
+                  variant="plain"
                   color="blue-grey-darken-1"
                   :ripple="false"
                   @click="openImageDialog(item.attachments)"
@@ -273,7 +273,7 @@
                     sm="4"
                     md="3"
                     lg="2"
-                    class="pa-0 mx-1"
+                    class="pa-0 "
                   >
                     <v-btn
                       v-tooltip:start="item.solution ? '編輯處理方案':'新增處理方案'"
@@ -285,7 +285,7 @@
                       :size="buttonSize"
                       @click="openSolutionDialog(item)"
                     >
-                      <v-icon>
+                      <v-icon size="small">
                         {{ item.solution ? 'mdi-note-edit' : 'mdi-note-plus' }}
                       </v-icon>
                     </v-btn>
@@ -295,16 +295,19 @@
                     sm="4"
                     md="3"
                     lg="2"
-                    class="pa-0 mx-1"
+                    class="pa-0 "
                   >
                     <v-btn
-                      icon="mdi-book-open-variant-outline"
                       color="blue-grey-darken-2"
                       variant="plain"
                       :ripple="false"
                       :size="buttonSize"
                       @click="showDetail(item)"
-                    />
+                    >
+                      <v-icon size="20">
+                        mdi-book-open-variant-outline
+                      </v-icon>
+                    </v-btn>
                   </v-col>
                 </div>
               </template>
