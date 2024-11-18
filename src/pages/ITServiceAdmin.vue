@@ -186,6 +186,7 @@
           <!-- 表格 -->
           <v-col cols="12">
             <v-data-table-server
+              :key="tableKey"
               v-model:items-per-page="tableItemsPerPage"
               v-model:sort-by="tableSortBy"
               v-model:page="tablePage"
@@ -242,6 +243,40 @@
               <!-- 分機號碼列 -->
               <template #[`item.requesterId.extNumber`]="{ item }">
                 {{ item.requesterId?.extNumber || '-' }}
+              </template>
+
+              <!-- 處理者欄位的模板 -->
+              <template #[`item.assigneeId`]="{ item }">
+                <v-menu>
+                  <template #activator="{ props }">
+                    <v-chip
+                      v-tooltip:start="'點擊選擇處理者'"
+                      v-bind="props"
+                      :color="item.assigneeId ? 'blue' : 'grey'"
+                      variant="outlined"
+                      label
+                      size="small"
+                    >
+                      {{ item.assigneeId?.name ? `${item.assigneeId.name} (${item.assigneeId.userId})` : '尚未指派' }}
+                    </v-chip>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                      v-for="assignee in assignees"
+                      :key="assignee._id"
+                      :active="item.assigneeId?._id === assignee._id"
+                      @click="handleAssigneeChange(item, assignee._id)"
+                    >
+                      <v-list-item-title>{{ assignee.name }} ({{ assignee.userId }})</v-list-item-title>
+                    </v-list-item>
+                    <v-divider />
+                    <v-list-item @click="handleAssigneeChange(item, null)">
+                      <v-list-item-title class="text-grey">
+                        移除指派
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
               </template>
 
               <!-- 圖片列 -->
@@ -304,7 +339,7 @@
                       :size="buttonSize"
                       @click="showDetail(item)"
                     >
-                      <v-icon size="20">
+                      <v-icon :size="buttonSize">
                         mdi-book-open-variant-outline
                       </v-icon>
                     </v-btn>
@@ -334,8 +369,17 @@
     >
       <v-form @submit.prevent="saveSolution">
         <v-card class="rounded-lg pa-4 pt-6">
-          <div class="ps-4 py-3 card-title">
+          <div class="ps-3 pt-3 pb-5 card-title d-inline">
             {{ solutionDialog.ticket?.solution ? '編輯處理方案' : '新增處理方案' }}
+            <!-- 最後更新時間 -->
+            <div
+              v-if="solutionDialog.ticket?.solutionUpdatedAt"
+              style="font-size: 12px;"
+              class="text-grey-darken-1"
+            >
+              ( <span>最後更新時間：</span>
+              {{ formatDate(solutionDialog.ticket.solutionUpdatedAt) }} )
+            </div>
           </div>
           <v-card-text class="px-3">
             <v-textarea
@@ -485,6 +529,16 @@
 
                 <div>
                   <div class="text-grey-darken-1 list-title">
+                    處理者
+                  </div>
+                  <div class="list-content">
+                    {{ detailDialog.ticket?.assigneeId?.name || '尚未指派' }}
+                  </div>
+                </div>
+                <v-divider class="my-2" />
+
+                <div>
+                  <div class="text-grey-darken-1 list-title">
                     處理方案
                   </div>
                   <div
@@ -492,6 +546,12 @@
                     class="list-content"
                   >
                     {{ detailDialog.ticket?.solution || '尚未填寫' }}
+                  </div>
+                  <div
+                    v-if="detailDialog.ticket?.solutionUpdatedAt"
+                    class="text-grey text-caption mt-1"
+                  >
+                    最後更新：{{ formatDate(detailDialog.ticket.solutionUpdatedAt) }}
                   </div>
                 </div>
               </div>
@@ -540,6 +600,23 @@ const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
 
+const formatDate = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+
+  // 補零函數
+  const pad = (num) => String(num).padStart(2, '0')
+
+  const year = d.getFullYear()
+  const month = pad(d.getMonth() + 1)
+  const day = pad(d.getDate())
+  const hours = pad(d.getHours())
+  const minutes = pad(d.getMinutes())
+  const seconds = pad(d.getSeconds())
+
+  return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+}
+
 // 表格相關狀態
 const loading = ref(false)
 const tickets = ref([])
@@ -554,6 +631,77 @@ const headerProps = {
 const requesterSuggestions = ref([])
 const requesterLoading = ref(false)
 const requesterSearchInput = ref('')
+const assignees = ref([])
+const assigneeLoading = ref(false)
+
+const loadAssignees = async () => {
+  try {
+    console.log('開始載入處理者清單')
+    const { data } = await apiAuth.get('/serviceTicket/assignees')
+
+    console.log('API 回應資料:', data)
+
+    if (data.success && Array.isArray(data.result)) {
+      assignees.value = data.result
+    } else {
+      console.error('API 回傳的資料格式不正確:', data)
+      assignees.value = []
+    }
+  } catch (error) {
+    console.error('載入處理者清單失敗:', error)
+    if (error.response) {
+      console.error('錯誤回應:', error.response.data)
+    }
+    createSnackbar({
+      text: error?.response?.data?.message || '載入處理者清單失敗',
+      snackbarProps: { color: 'error' }
+    })
+    assignees.value = []
+  }
+}
+
+const tableKey = ref(0) // 定義表格 key
+
+const refreshTable = () => {
+  tableKey.value += 1 // 遞增 key 強制渲染
+}
+
+const handleAssigneeChange = async (ticket, assigneeId) => {
+  try {
+    assigneeLoading.value = true
+    const { data } = await apiAuth.patch(`/serviceTicket/${ticket._id}`, {
+      assigneeId
+    })
+
+    const updatedAssignee = data.result.assigneeId
+
+    // 更新本地資料
+    const index = tickets.value.findIndex((t) => t._id === ticket._id)
+    if (index !== -1) {
+      tickets.value[index] = {
+        ...tickets.value[index],
+        assigneeId: updatedAssignee
+      }
+    }
+
+    // 觸發成功訊息
+    createSnackbar({
+      text: assigneeId ? '處理者更新成功' : '已移除指派',
+      snackbarProps: { color: 'success' }
+    })
+
+    refreshTable() // 強制刷新表格
+  } catch (error) {
+    console.error('更新處理者失敗:', error)
+
+    createSnackbar({
+      text: error?.response?.data?.message || '更新處理者失敗',
+      snackbarProps: { color: 'error' }
+    })
+  } finally {
+    assigneeLoading.value = false // 確保 loading 狀態重置
+  }
+}
 
 // 篩選條件
 const filters = ref({
@@ -580,6 +728,7 @@ const headers = [
   { title: '狀態', align: 'start', key: 'status', sortable: true },
   { title: '地點', align: 'start', key: 'location', sortable: true, minWidth: '64px' },
   { title: '圖片', align: 'center', key: 'attachments', sortable: false, minWidth: '100px' },
+  { title: '處理者', align: 'start', key: 'assigneeId', sortable: true, minWidth: '100px' },
   { title: '問題描述', align: 'start', key: 'description', sortable: false },
   { title: '操作', align: 'center', key: 'actions', sortable: false }
 ]
@@ -596,7 +745,7 @@ const filteredHeaders = computed(() => {
   }
   if (mdAndUp.value) {
     return headers.filter(header =>
-      !['description', 'category', 'location'].includes(header.key)
+      !['description', 'category', 'location', 'assigneeId.name'].includes(header.key)
     )
   }
 
@@ -890,8 +1039,14 @@ watch(
 )
 
 // 組件掛載時獲取數據
-onMounted(() => {
-  fetchTickets()
+onMounted(async () => {
+  console.log('組件載入') // debug
+  try {
+    await loadAssignees() // 先載入處理者清單
+    await fetchTickets() // 再載入請求列表
+  } catch (error) {
+    console.error('初始化失敗:', error)
+  }
 })
 </script>
 
