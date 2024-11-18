@@ -11,15 +11,16 @@
         <h3>
           IT維修服務
         </h3>
-        <v-icon
+        <v-btn
           v-if="smAndUp"
-          v-tooltip:end="'← 點擊查看報修相關說明'"
-          icon="mdi-information"
-          size="small"
-          color="blue-grey-darken-2"
+          size="x-small"
+          color="grey-darken-1"
           class="ms-4"
+          elevation="1"
           @click="priorityInfoDialog = true"
-        />
+        >
+          使用說明
+        </v-btn>
       </v-col>
 
       <!-- 操作按鈕和搜索欄 -->

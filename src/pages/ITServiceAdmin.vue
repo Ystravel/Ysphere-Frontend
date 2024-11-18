@@ -205,6 +205,7 @@
                 <v-menu>
                   <template #activator="{ props }">
                     <v-chip
+                      v-tooltip:start="'點擊更改狀態'"
                       v-bind="props"
                       :color="getStatusColor(item.status)"
                       variant="outlined"
@@ -247,13 +248,16 @@
               <template #[`item.attachments`]="{ item }">
                 <v-btn
                   v-if="item.attachments?.length"
+                  v-tooltip:start="`查看${item.attachments.length}張圖片`"
                   icon
                   variant="text"
                   color="blue-grey-darken-1"
                   :ripple="false"
                   @click="openImageDialog(item.attachments)"
                 >
-                  <v-icon size="small">
+                  <v-icon
+                    size="small"
+                  >
                     mdi-image-multiple
                   </v-icon>
                   <span class="ms-1">*{{ item.attachments.length }}</span>
@@ -264,28 +268,44 @@
               <!-- 操作列 -->
               <template #[`item.actions`]="{ item }">
                 <div class="d-flex justify-center align-center">
-                  <v-btn
-                    v-tooltip:start="'填寫處理方案'"
-                    icon
-                    color="light-blue-darken-4"
-                    class="me-2"
-                    variant="plain"
-                    :ripple="false"
-                    :size="buttonSize"
-                    @click="openSolutionDialog(item)"
+                  <v-col
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    lg="2"
+                    class="pa-0 mx-1"
                   >
-                    <v-icon>
-                      {{ item.solution ? 'mdi-note-edit' : 'mdi-note-plus' }}
-                    </v-icon>
-                  </v-btn>
-                  <v-btn
-                    icon="mdi-book-open-variant-outline"
-                    color="blue-grey-darken-2"
-                    variant="plain"
-                    :ripple="false"
-                    :size="buttonSize"
-                    @click="showDetail(item)"
-                  />
+                    <v-btn
+                      v-tooltip:start="item.solution ? '編輯處理方案':'新增處理方案'"
+                      icon
+                      :color="item.solution ? 'light-blue-darken-4':'green-darken-1'"
+                      class="me-2"
+                      variant="plain"
+                      :ripple="false"
+                      :size="buttonSize"
+                      @click="openSolutionDialog(item)"
+                    >
+                      <v-icon>
+                        {{ item.solution ? 'mdi-note-edit' : 'mdi-note-plus' }}
+                      </v-icon>
+                    </v-btn>
+                  </v-col>
+                  <v-col
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    lg="2"
+                    class="pa-0 mx-1"
+                  >
+                    <v-btn
+                      icon="mdi-book-open-variant-outline"
+                      color="blue-grey-darken-2"
+                      variant="plain"
+                      :ripple="false"
+                      :size="buttonSize"
+                      @click="showDetail(item)"
+                    />
+                  </v-col>
                 </div>
               </template>
             </v-data-table-server>
@@ -512,7 +532,7 @@ definePage({
 
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
-const { smAndUp, mdAndUp, lgAndUp } = useDisplay()
+const { smAndUp, mdAndUp, lgAndUp, xlAndUp } = useDisplay()
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
@@ -563,8 +583,13 @@ const headers = [
 
 // 響應式表頭
 const filteredHeaders = computed(() => {
-  if (lgAndUp.value) {
+  if (xlAndUp.value) {
     return headers
+  }
+  if (lgAndUp.value) {
+    return headers.filter(header =>
+      !['description'].includes(header.key)
+    )
   }
   if (mdAndUp.value) {
     return headers.filter(header =>
