@@ -31,6 +31,14 @@
                 >
                   新增部門
                 </v-btn>
+                <v-btn
+                  prepend-icon="mdi-domain"
+                  variant="outlined"
+                  color="blue-grey-darken-2"
+                  @click="openCompanyDialog"
+                >
+                  公司管理
+                </v-btn>
               </v-col>
               <v-col
                 v-if="!smAndUp"
@@ -160,6 +168,75 @@
       </v-col>
     </v-row>
 
+    <!-- 公司管理 Dialog -->
+    <v-dialog
+      v-model="companyDialog.open"
+      persistent
+      width="360"
+    >
+      <v-form @submit.prevent="submitCompany">
+        <v-card class="rounded-lg pa-4 pt-6">
+          <div class="ps-4 py-3 card-title">
+            公司管理
+          </div>
+          <v-card-text class="px-3">
+            <v-chip
+              v-for="(company, index) in companies"
+              :key="index"
+              class="me-2 my-1"
+              color="blue-grey-lighten-4"
+            >
+              {{ company.companyId }} {{ company.name }}
+              <v-icon
+                small
+                class="ms-2"
+                @click.stop="openEditCompany(company)"
+              >
+                mdi-pencil
+              </v-icon>
+              <v-icon
+                small
+                class="ms-2"
+                @click.stop="confirmDeleteCompany(company)"
+              >
+                mdi-delete
+              </v-icon>
+            </v-chip>
+            <v-text-field
+              v-model="companyName.value.value"
+              :error-messages="companyName.errorMessage.value"
+              label="公司名稱"
+              required
+              variant="outlined"
+              density="compact"
+              class="mb-4"
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="red-lighten-1"
+              variant="outlined"
+              :size="buttonSize"
+              :loading="isCompanySubmitting"
+              @click="closeCompanyDialog"
+            >
+              取消
+            </v-btn>
+            <v-btn
+              color="teal-darken-1"
+              variant="outlined"
+              type="submit"
+              :size="buttonSize"
+              :loading="isCompanySubmitting"
+            >
+              新增
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-form>
+    </v-dialog>
+
     <!-- 新增/編輯部門對話框 -->
     <v-dialog
       v-model="dialog.open"
@@ -185,11 +262,10 @@
             <v-select
               v-model="departmentCompanyId.value.value"
               :error-messages="departmentCompanyId.errorMessage.value"
-              :items="companyOptions"
-              item-title="name"
-              item-value="id"
+              :items="companies"
               label="選擇公司"
-              required
+              item-title="name"
+              item-value="companyId"
               variant="outlined"
               density="compact"
               class="mb-4"
@@ -230,6 +306,65 @@
       </v-form>
     </v-dialog>
 
+    <v-dialog
+      v-model="editDialog.open"
+      persistent
+      width="360"
+    >
+      <v-form @submit.prevent="submitCompany">
+        <v-card class="rounded-lg pa-4 pt-6">
+          <div class="ps-4 py-3 card-title">
+            編輯公司
+          </div>
+          <v-card-text class="px-3">
+            <v-text-field
+              v-model="departmentId.value.value"
+              label="公司編號"
+              variant="outlined"
+              density="compact"
+              class="mb-4"
+            />
+            <v-text-field
+              v-model="companyName.value.value"
+              :error-messages="companyName.errorMessage.value"
+              label="公司名稱"
+              required
+              variant="outlined"
+              density="compact"
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="red-lighten-1"
+              variant="outlined"
+              :size="buttonSize"
+              @click="editDialog.open = false"
+            >
+              取消
+            </v-btn>
+            <v-btn
+              color="teal-darken-1"
+              variant="outlined"
+              type="submit"
+              :size="buttonSize"
+            >
+              修改
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-form>
+    </v-dialog>
+
+    <ConfirmDeleteDialogWithTextField
+      v-model="deleteCompanyDialog.open"
+      title="確認刪除公司"
+      :message="`確定要刪除公司「${deleteCompanyDialog.name}」嗎？此操作無法復原。`"
+      :expected-name="deleteCompanyDialog.name || ''"
+      input-label="公司名稱"
+      @confirm="deleteCompany"
+    />
+
     <ConfirmDeleteDialogWithTextField
       v-model="deleteDialog"
       title="確認刪除部門"
@@ -267,6 +402,15 @@ const createSnackbar = useSnackbar()
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
+
+// 當前被編輯的公司
+const editingCompany = ref(null)
+
+const companyDialog = ref({ open: false })
+const deleteCompanyDialog = ref({ open: false, id: null, name: '' })
+const companies = ref([])
+const companyLoading = ref(false)
+const editDialog = ref({ open: false })
 
 // 公司選項
 const companyOptions = [
@@ -349,9 +493,21 @@ const schema = yup.object({
     .nullable()
 })
 
+const companySchema = yup.object({
+  companyName: yup
+    .string()
+    .required('請輸入公司名稱')
+})
+
+const { handleSubmit: handleCompanySubmit, isSubmitting: isCompanySubmitting, resetForm: resetCompanyForm } = useForm({
+  validationSchema: companySchema
+})
+
 const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: schema
 })
+
+const companyName = useField('companyName')
 
 const departmentName = useField('name')
 const departmentCompanyId = useField('companyId')
@@ -416,6 +572,38 @@ const loadDepartments = async (reset = false) => {
   }
 }
 
+const loadCompanies = async () => {
+  try {
+    const { data } = await apiAuth.get('/company/all')
+    companies.value = data.result
+  } catch (error) {
+    createSnackbar({ text: '載入公司失敗', snackbarProps: { color: 'red-lighten-1' } })
+  }
+}
+
+const openCompanyDialog = () => {
+  companyDialog.value.open = true
+  loadCompanies()
+}
+
+const closeCompanyDialog = () => {
+  companyDialog.value.open = false
+  companyName.value.value = ''
+  resetCompanyForm()
+  editingCompany.value = null
+}
+
+const openEditCompanyDialog = (company) => {
+  editingCompany.value = company
+  editDialog.value.open = true
+  companyName.value.value = company.name
+}
+
+// 打開編輯公司對話框
+const openEditCompany = (company) => {
+  openEditCompanyDialog(company)
+}
+
 // 開啟新增部門對話框
 const openDepartmentDialog = () => {
   dialog.value = { open: true, id: null }
@@ -475,6 +663,33 @@ const hasChanges = computed(() => {
   })
 })
 
+const submitCompany = handleCompanySubmit(async (values) => {
+  companyLoading.value = true
+  try {
+    if (editingCompany.value) {
+      const { data } = await apiAuth.patch(`/company/${editingCompany.value._id}`, {
+        name: companyName.value.value // 修改這裡,使用 .value.value
+      })
+      const index = companies.value.findIndex((c) => c._id === editingCompany.value._id)
+      if (index !== -1) {
+        companies.value[index].name = data.result.name
+      }
+      createSnackbar({ text: '公司名稱更新成功', snackbarProps: { color: 'teal-lighten-1' } })
+    } else {
+      const { data } = await apiAuth.post('/company', {
+        name: values.companyName // 這裡沒問題,因為是從 values 取值
+      })
+      companies.value.push(data.result)
+      createSnackbar({ text: '新增公司成功', snackbarProps: { color: 'teal-lighten-1' } })
+    }
+    closeCompanyDialog()
+  } catch (error) {
+    createSnackbar({ text: error?.response?.data?.message || '操作失敗', snackbarProps: { color: 'red-lighten-1' } })
+  } finally {
+    companyLoading.value = false
+  }
+})
+
 // 提交部門表單
 const submitDepartment = handleSubmit(async (values) => {
   tableLoading.value = true
@@ -506,6 +721,21 @@ const submitDepartment = handleSubmit(async (values) => {
   }
   tableLoading.value = false
 })
+
+const confirmDeleteCompany = (company) => {
+  deleteCompanyDialog.value = { open: true, id: company._id, name: company.name }
+}
+
+const deleteCompany = async () => {
+  try {
+    await apiAuth.delete(`/company/${deleteCompanyDialog.value.id}`)
+    companies.value = companies.value.filter((c) => c._id !== deleteCompanyDialog.value.id)
+    createSnackbar({ text: '刪除公司成功', snackbarProps: { color: 'teal-lighten-1' } })
+    deleteCompanyDialog.value.open = false
+  } catch (error) {
+    createSnackbar({ text: error?.response?.data?.message || '刪除失敗', snackbarProps: { color: 'red-lighten-1' } })
+  }
+}
 
 // 刪除部門
 const deleteDepartment = async () => {

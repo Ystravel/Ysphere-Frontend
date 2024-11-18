@@ -88,14 +88,15 @@
 
               <v-alert
                 v-else
-                type="info"
+                color="blue-grey-darken-1"
                 variant="tonal"
                 class="mb-0 mt-4"
               >
                 <template #prepend>
                   <v-icon
                     icon="mdi-information"
-                    color="info"
+                    size="18"
+                    color="blue-grey-lighten-1"
                   />
                 </template>
                 未來兩週內無壽星

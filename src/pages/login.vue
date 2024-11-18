@@ -221,9 +221,9 @@ const googleLoginCallback = async (response) => {
 
 const submit = handleSubmit(async (values) => {
   if (rememberMe.value) {
-    localStorage.setItem('savedEmail', values.email) // 記住 email
+    localStorage.setItem('savedEmail', values.email)
   } else {
-    localStorage.removeItem('savedEmail') // 沒勾選則刪除
+    localStorage.removeItem('savedEmail')
   }
 
   const result = await user.login(values)
@@ -235,6 +235,9 @@ const submit = handleSubmit(async (values) => {
       }
     })
     router.push('/profile')
+  } else if (result === '首次登入,請修改密碼') {
+    // 如果是首次登入,導向到修改密碼頁面
+    router.push('/first-time-login')
   } else {
     createSnackbar({
       text: result,

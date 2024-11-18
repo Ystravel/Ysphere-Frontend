@@ -353,6 +353,20 @@
                     >
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
+                    <!-- 添加密碼重置按鈕 -->
+                    <v-btn
+                      v-if="item.isFirstLogin"
+                      icon
+                      color="teal-darken-1"
+                      variant="plain"
+                      width="28"
+                      height="48"
+                      :size="buttonSize"
+                      :ripple="false"
+                      @click="openResetPasswordDialog(item)"
+                    >
+                      <v-icon>mdi-key-variant</v-icon>
+                    </v-btn>
                   </td>
                 </tr>
               </template>
@@ -362,6 +376,40 @@
       </v-col>
     </v-row>
   </v-container>
+
+  <!-- 添加密碼重置確認對話框 -->
+  <v-dialog
+    v-model="resetPasswordDialog.open"
+    persistent
+    max-width="400"
+  >
+    <v-card class="rounded-lg">
+      <v-card-title class="text-h6 pa-4">
+        發送初始密碼
+      </v-card-title>
+      <v-card-text class="pb-4">
+        確定要發送系統生成的初始密碼給 {{ resetPasswordDialog.userName }} 嗎？
+      </v-card-text>
+      <v-card-actions class="pa-4 pt-0">
+        <v-spacer />
+        <v-btn
+          color="grey"
+          variant="outlined"
+          @click="closeResetPasswordDialog"
+        >
+          取消
+        </v-btn>
+        <v-btn
+          color="teal-darken-1"
+          variant="outlined"
+          :loading="resetPasswordDialog.loading"
+          @click="sendInitialPassword"
+        >
+          確認發送
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- 新增或編輯dialog -->
   <v-dialog
@@ -889,45 +937,6 @@
               />
             </v-col>
           </v-row>
-
-          <v-row v-if="!dialog.id">
-            <v-col
-              cols="12"
-              sm="6"
-              class="pb-0"
-            >
-              <v-text-field
-                v-model="password.value.value"
-                :error-messages="password.errorMessage.value"
-                label="*密碼"
-                variant="outlined"
-                density="compact"
-                clearable
-                autocomplete="new-password"
-                :type="showPassword ? 'text' : 'password'"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showPassword = !showPassword"
-              />
-            </v-col>
-            <v-col
-              cols="12"
-              sm="6"
-              class="pb-0"
-            >
-              <v-text-field
-                v-model="passwordConfirm.value.value"
-                :error-messages="passwordConfirm.errorMessage.value"
-                label="*確認密碼"
-                :type="showPasswordConfirm ? 'text' : 'password'"
-                :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
-                variant="outlined"
-                density="compact"
-                clearable
-                autocomplete="new-password"
-                @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
-              />
-            </v-col>
-          </v-row>
         </v-card-text>
         <v-card-actions
           class="px-3 mt-4"
@@ -1030,8 +1039,6 @@ const buttonSize = computed(() => {
 })
 
 // ===== 基礎狀態管理 =====
-const showPassword = ref(false)
-const showPasswordConfirm = ref(false)
 const isEditing = ref(false)
 const originalData = ref(null)
 const currentPage = ref(1)
@@ -1050,6 +1057,12 @@ const dialog = ref({
 })
 const turnoverChartRef = ref(null)
 const birthdayReminderRef = ref(null)
+const resetPasswordDialog = ref({
+  open: false,
+  userId: '',
+  userName: '',
+  loading: false
+})
 
 // ===== 選項列表設定 =====
 const companyList = ref(
@@ -1175,35 +1188,7 @@ const userSchema = yup.object({
   note: yup
     .string(),
   userId: yup
-    .string(),
-  password: yup
     .string()
-    .test('password', '請輸入密碼', function (value) {
-      if (!isEditing.value) {
-        return !!value
-      }
-      return true
-    })
-    .test('password-length', '密碼至少需輸入8個字', function (value) {
-      if (!isEditing.value && value) {
-        return value.length >= 8
-      }
-      return true
-    }),
-  passwordConfirm: yup
-    .string()
-    .test('passwordConfirm', '請再次輸入密碼', function (value) {
-      if (!isEditing.value) {
-        return !!value
-      }
-      return true
-    })
-    .test('passwords-match', '密碼不一致', function (value) {
-      if (!isEditing.value) {
-        return value === this.parent.password
-      }
-      return true
-    })
 })
 
 // ===== 表單初始化與欄位設定 =====
@@ -1234,9 +1219,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     emergencyCellphone: '',
     emergencyRelationship: '',
     note: '',
-    userId: '',
-    password: '',
-    passwordConfirm: ''
+    userId: ''
   },
   validateOnMount: false,
   validateOnChange: true,
@@ -1284,8 +1267,6 @@ const userId = useField('userId', undefined, {
   validateOnValueUpdate: false,
   transform: (value) => value ?? ''
 })
-const password = useField('password')
-const passwordConfirm = useField('passwordConfirm')
 
 // ===== 表格相關設定 =====
 const tableItemsPerPage = ref(10)
@@ -1457,38 +1438,43 @@ const performSearch = async (fromQuickSearch = false) => {
   }
 }
 
+// 發送初始密碼
+const sendInitialPassword = async () => {
+  try {
+    resetPasswordDialog.value.loading = true
+    await apiAuth.post(`/user/${resetPasswordDialog.value.userId}/send-initial-password`)
+
+    // 更新表格中的 isFirstLogin 狀態
+    const userIndex = tableItems.value.findIndex(u => u._id === resetPasswordDialog.value.userId)
+    if (userIndex !== -1) {
+      tableItems.value[userIndex].isFirstLogin = false
+    }
+
+    createSnackbar({
+      text: '初始密碼已發送成功',
+      snackbarProps: { color: 'teal-lighten-1' }
+    })
+    closeResetPasswordDialog()
+  } catch (error) {
+    console.error('發送初始密碼失敗:', error)
+    createSnackbar({
+      text: error?.response?.data?.message || '發送初始密碼失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  } finally {
+    resetPasswordDialog.value.loading = false
+  }
+}
+
 // ===== 表單操作函數 =====
 const submit = handleSubmit(async (values) => {
   try {
     if (isEditing.value) {
+      // 編輯模式
       const currentPageNumber = tablePage.value
 
       const { data: updateResponse } = await apiAuth.patch(`/user/${dialog.value.id}`, {
-        email: values.email,
-        name: values.name,
-        englishName: values.englishName,
-        gender: values.gender,
-        IDNumber: values.IDNumber,
-        permanentAddress: values.permanentAddress,
-        contactAddress: values.contactAddress,
-        birthDate: values.birthDate,
-        company: values.company,
-        department: values.department,
-        cellphone: values.cellphone,
-        salary: values.salary,
-        extNumber: values.extNumber,
-        printNumber: values.printNumber,
-        guideLicense: values.guideLicense,
-        jobTitle: values.jobTitle,
-        role: values.role,
-        employmentStatus: values.employmentStatus,
-        hireDate: values.hireDate,
-        resignationDate: values.resignationDate,
-        emergencyName: values.emergencyName,
-        emergencyCellphone: values.emergencyCellphone,
-        emergencyRelationship: values.emergencyRelationship,
-        note: values.note,
-        userId: values.userId
+        ...values
       })
 
       const { data: departmentResponse } = await apiAuth.get(`/department/${values.department}`)
@@ -1503,19 +1489,10 @@ const submit = handleSubmit(async (values) => {
 
       localStorage.setItem('userTablePage', currentPageNumber.toString())
       await tableLoadItems(false, currentPageNumber)
-
-      await chartRef.value?.refreshChart()
-      await turnoverChartRef.value?.refreshChart()
-      await birthdayReminderRef.value?.refreshData()
-
-      createSnackbar({
-        text: '員工資料更新成功',
-        snackbarProps: {
-          color: 'teal-lighten-1'
-        }
-      })
     } else {
-      await apiAuth.post('/user', {
+      // 新增模式
+      // 只傳必要的資料，不含密碼相關
+      const userData = {
         email: values.email,
         name: values.name,
         englishName: values.englishName,
@@ -1539,37 +1516,48 @@ const submit = handleSubmit(async (values) => {
         emergencyName: values.emergencyName,
         emergencyCellphone: values.emergencyCellphone,
         emergencyRelationship: values.emergencyRelationship,
-        note: values.note,
-        userId: values.userId,
-        password: values.password
-      })
+        note: values.note
+      }
 
+      await apiAuth.post('/user', userData)
       localStorage.setItem('userTablePage', '1')
       await tableLoadItems(true)
-
-      await chartRef.value?.refreshChart()
-      await turnoverChartRef.value?.refreshChart()
-      await birthdayReminderRef.value?.refreshData()
-
-      createSnackbar({
-        text: '員工新增成功',
-        snackbarProps: {
-          color: 'teal-lighten-1'
-        }
-      })
     }
+
+    // 重新整理相關元件
+    await chartRef.value?.refreshChart()
+    await turnoverChartRef.value?.refreshChart()
+    await birthdayReminderRef.value?.refreshData()
+
+    createSnackbar({
+      text: isEditing.value ? '員工資料更新成功' : '員工新增成功',
+      snackbarProps: { color: 'teal-lighten-1' }
+    })
 
     closeDialog()
   } catch (error) {
-    console.log(error)
+    const message = handleSubmitError(error)
     createSnackbar({
-      text: error?.response?.data?.message || '發生錯誤',
-      snackbarProps: {
-        color: 'red-lighten-1'
-      }
+      text: message,
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
 })
+
+const handleSubmitError = (error) => {
+  if (!error.response) return '發生錯誤'
+
+  const errorMessages = {
+    Email已註冊: 'Email已經被註冊,請使用其他Email',
+    身分證號碼已註冊: '身分證號碼已經被使用,請確認是否輸入正確',
+    手機號碼已註冊: '手機號碼已經被使用,請確認是否輸入正確',
+    分機號碼已註冊: '分機號碼已經被使用,請使用其他號碼',
+    列印編號已註冊: '列印編號已經存在,請使用其他編號',
+    員工編號已註冊: '員工編號已經被使用,請重新輸入'
+  }
+
+  return errorMessages[error.response.data.message] || error.response.data.message
+}
 
 // ===== 對話框操作函數 =====
 const openDialog = (item) => {
@@ -1619,6 +1607,16 @@ const openDialog = (item) => {
       emergencyRelationship: item.emergencyRelationship ?? '',
       note: item.note ?? '',
       userId: item.userId ?? ''
+    }
+
+    if (!item) {
+      isEditing.value = false
+      dialog.value.id = ''
+      originalData.value = null
+      selectedCompany.value = 1
+      fetchDepartments()
+      resetForm()
+      hireDate.value.value = new Date()
     }
 
     // 設置表單值
@@ -1671,6 +1669,26 @@ const closeDialog = () => {
   filteredDepartments.value = []
   originalData.value = null
   resetForm()
+}
+
+// 開啟重置密碼對話框
+const openResetPasswordDialog = (user) => {
+  resetPasswordDialog.value = {
+    open: true,
+    userId: user._id,
+    userName: user.name,
+    loading: false
+  }
+}
+
+// 關閉重置密碼對話框
+const closeResetPasswordDialog = () => {
+  resetPasswordDialog.value = {
+    open: false,
+    userId: '',
+    userName: '',
+    loading: false
+  }
 }
 
 // ===== 刪除用戶函數 =====

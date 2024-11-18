@@ -28,6 +28,7 @@ export const useUserStore = defineStore('user', () => {
   const printNumber = ref('')
   const guideLicense = ref('')
   const avatar = ref('')
+  const password = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
   const isUser = computed(() => role.value === UserRole.USER)
@@ -41,32 +42,40 @@ export const useUserStore = defineStore('user', () => {
   const login = async (values) => {
     try {
       const { data } = await api.post('/user/login', values)
-      token.value = data.result.token
-      name.value = data.result.name
-      englishName.value = data.result.englishName
-      birthDate.value = data.result.birthDate
-      gender.value = data.result.gender
-      cellphone.value = data.result.cellphone
-      email.value = data.result.email
-      permanentAddress.value = data.result.permanentAddress
-      contactAddress.value = data.result.contactAddress
-      emergencyName.value = data.result.emergencyName
-      emergencyCellphone.value = data.result.emergencyCellphone
-      userId.value = data.result.userId
-      department.value = {
-        _id: data.result.department._id,
-        name: data.result.department.name,
-        companyId: data.result.department.companyId
+
+      if (data.result.isFirstLogin) {
+        // 如果是首次登入,僅存儲 token 和密碼
+        token.value = data.result.token
+        password.value = values.password
+        return '首次登入,請修改密碼'
+      } else {
+        token.value = data.result.token
+        name.value = data.result.name
+        englishName.value = data.result.englishName
+        birthDate.value = data.result.birthDate
+        gender.value = data.result.gender
+        cellphone.value = data.result.cellphone
+        email.value = data.result.email
+        permanentAddress.value = data.result.permanentAddress
+        contactAddress.value = data.result.contactAddress
+        emergencyName.value = data.result.emergencyName
+        emergencyCellphone.value = data.result.emergencyCellphone
+        userId.value = data.result.userId
+        department.value = {
+          _id: data.result.department._id,
+          name: data.result.department.name,
+          companyId: data.result.department.companyId
+        }
+        hireDate.value = data.result.hireDate
+        extNumber.value = data.result.extNumber
+        printNumber.value = data.result.printNumber
+        guideLicense.value = data.result.guideLicense
+        role.value = data.result.role
+        jobTitle.value = data.result.jobTitle
+        avatar.value = data.result.avatar
+        await profile()
+        return '登入成功'
       }
-      hireDate.value = data.result.hireDate
-      extNumber.value = data.result.extNumber
-      printNumber.value = data.result.printNumber
-      guideLicense.value = data.result.guideLicense
-      role.value = data.result.role
-      jobTitle.value = data.result.jobTitle
-      avatar.value = data.result.avatar
-      await profile()
-      return '登入成功'
     } catch (error) {
       console.log(error)
       return error?.response?.data?.message || '登入失敗，請稍後再試'
