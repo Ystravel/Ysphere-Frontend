@@ -826,6 +826,9 @@ const formatChanges = (item) => {
   const addedKeys = new Set() // 用於追蹤已處理的欄位，避免重複添加
 
   Object.entries(item.changes).forEach(([key, value]) => {
+    // 跳過 c_id 變更
+    if (key === 'c_id') return
+
     // 檢查是否為有效的變更
     if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
 
@@ -835,10 +838,9 @@ const formatChanges = (item) => {
     const from = value.from === '' || value.from === null ? '(無)' : value.from
     const to = value.to === '' || value.to === null ? '(無)' : value.to
 
-    const fieldName = getFieldName(key, item.targetModel) // 根據 targetModel 獲取正確的翻譯
+    const fieldName = getFieldName(key, item.targetModel)
 
     if (key === 'cowellAccount' || key === 'cowellPassword') {
-      // 對於敏感字段，只顯示「已設定」
       changes.push(`${fieldName}: 已設定`)
       addedKeys.add(key)
       return
@@ -848,7 +850,7 @@ const formatChanges = (item) => {
     if (item.action === '創建') {
       if (to !== '(無)') {
         changes.push(
-          key === 'birthDate' || key === 'hireDate' // 檢查是否是日期欄位
+          key === 'birthDate' || key === 'hireDate'
             ? `${fieldName}: ${formatDate(to)}`
             : `${fieldName}: ${to}`
         )
@@ -862,26 +864,24 @@ const formatChanges = (item) => {
 
     if (fieldName) {
       switch (key) {
-        case 'birthDate': // 特殊處理日期格式
+        case 'birthDate':
         case 'hireDate':
         case 'resignationDate':
           changes.push(`${fieldName}: ${from === '(無)' ? from : formatDate(from)} → ${to === '(無)' ? to : formatDate(to)}`)
           break
-        case 'salary': // 特殊處理金額格式
+        case 'salary':
           changes.push(`${fieldName}: ${from === '(無)' ? from : from?.toLocaleString()} → ${to === '(無)' ? to : to?.toLocaleString()}`)
           break
-        case 'guideLicense': // 特殊處理布林值
+        case 'guideLicense':
           changes.push(`${fieldName}: ${from === '(無)' ? from : (from ? '有' : '無')} → ${to === '(無)' ? to : (to ? '有' : '無')}`)
           break
         default:
           changes.push(`${fieldName}: ${from} → ${to}`)
       }
-      // 標記欄位已處理
       addedKeys.add(key)
     }
   })
 
-  // 處理創建操作時未顯示任何欄位的情況
   if (item.action === '創建' && changes.length === 0) {
     changes.push(`新增${getModelDisplay(item.targetModel)}`)
   }

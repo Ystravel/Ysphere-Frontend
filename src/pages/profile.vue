@@ -793,19 +793,23 @@
     max-width="360"
   >
     <v-card>
-      <div class="card-title ps-6 py-6">
-        輸入密碼以查看
+      <div class="card-title ps-6 pt-6 pb-4">
+        輸入密碼
+      </div>
+      <div
+        class="ps-6 pb-2"
+        style="font-size: 15px;"
+      >
+        查看科威帳號與密碼
       </div>
       <v-card-text class="pb-0">
         <v-text-field
           v-model="cowellPassword"
-          :error-messages="cowellPasswordError"
           label="輸入密碼"
           type="password"
           variant="outlined"
           density="compact"
           class="mb-4"
-          @update:model-value="cowellPasswordError = ''"
         />
       </v-card-text>
       <v-card-actions class="me-4 mb-3">
@@ -813,6 +817,7 @@
         <v-btn
           color="grey-darken-1"
           variant="outlined"
+          :size="buttonSize"
           @click="closeCowellDialog"
         >
           取消
@@ -820,6 +825,7 @@
         <v-btn
           color="red-darken-1"
           variant="outlined"
+          :size="buttonSize"
           :loading="isVerifyingCowell"
           @click="verifyCowellPassword"
         >
@@ -975,7 +981,10 @@ const verifyCowellPassword = async () => {
     const data = await response.json()
 
     if (!response.ok) {
-      cowellPasswordError.value = data.message || '驗證失敗，請稍後重試'
+      createSnackbar({
+        text: data.message || '驗證失敗，請稍後重試',
+        snackbarProps: { color: 'red-lighten-1' }
+      })
       return
     }
 

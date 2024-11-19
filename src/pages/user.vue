@@ -35,7 +35,7 @@
         class="pa-0 mb-6 mb-sm-0"
       >
         <v-card
-          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-5 pb-4 pb-sm-8 "
+          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-5 pb-4 pb-sm-5 "
           elevation="4"
           rounded="xl"
           height="100%"
@@ -50,7 +50,7 @@
                 <v-row>
                   <h6
                     style="font-size: 16px;"
-                    class="ps-3 mb-3"
+                    class="ps-3 mb-1"
                   >
                     搜尋篩選
                   </h6>
@@ -131,10 +131,43 @@
                   </v-col>
                 </v-row>
                 <v-row>
+                  <!-- 身分別選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                    <v-select
+                      v-model="searchCriteria.dateType"
+                      :items="dateTypes"
+                      label="篩選類型"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                    />
+                  </v-col>
+                  <!-- 任職狀態選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                    <v-date-input
+                      v-model="searchCriteria.dateRange"
+                      label="日期區間"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      multiple="range"
+                      prepend-icon
+                      clearable
+                    />
+                  </v-col>
+                </v-row>
+                <v-row>
                   <!-- 性別選擇 -->
                   <v-col
                     cols="6"
-                    class="pe-0"
+                    class="pe-0 py-0"
                   >
                     <div class="d-flex flex-column gap-2">
                       <label class="text-grey-darken-1 search-label">性別</label>
@@ -168,6 +201,7 @@
                   <!-- 領隊證選擇 -->
                   <v-col
                     cols="6"
+                    class="py-0"
                   >
                     <div class="d-flex flex-column gap-2">
                       <label class="text-grey-darken-1 search-label">領隊證</label>
@@ -343,19 +377,19 @@
                   <td v-if="xlAndUp">
                     {{ item.employmentStatus }}
                   </td>
-                  <td>
+                  <td class="d-flex align-center overflow-hidden h-25">
                     <v-btn
                       icon
                       color="light-blue-darken-4"
                       variant="plain"
                       width="28"
-                      height="48"
                       :size="buttonSize"
                       :ripple="false"
                       @click="openDialog(item)"
                     >
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
+
                     <!-- 添加密碼重置按鈕 -->
                     <v-btn
                       v-if="item.isFirstLogin"
@@ -363,7 +397,7 @@
                       color="teal-darken-1"
                       variant="plain"
                       width="28"
-                      height="48"
+                      class="ms-2"
                       :size="buttonSize"
                       :ripple="false"
                       @click="openResetPasswordDialog(item)"
@@ -384,13 +418,13 @@
   <v-dialog
     v-model="resetPasswordDialog.open"
     persistent
-    max-width="400"
+    max-width="360"
   >
-    <v-card class="rounded-lg">
-      <v-card-title class="text-h6 pa-4">
+    <v-card class="rounded-lg pa-4">
+      <div class="card-title pa-4">
         發送初始密碼
-      </v-card-title>
-      <v-card-text class="pb-4">
+      </div>
+      <v-card-text class="ps-4 py-3">
         確定要發送系統生成的初始密碼給 {{ resetPasswordDialog.userName }} 嗎？
       </v-card-text>
       <v-card-actions class="pa-4 pt-0">
@@ -398,6 +432,7 @@
         <v-btn
           color="grey"
           variant="outlined"
+          :size="buttonSize"
           @click="closeResetPasswordDialog"
         >
           取消
@@ -405,6 +440,7 @@
         <v-btn
           color="teal-darken-1"
           variant="outlined"
+          :size="buttonSize"
           :loading="resetPasswordDialog.loading"
           @click="sendInitialPassword"
         >
@@ -880,10 +916,13 @@
                 v-model="cowellAccount.value.value"
                 :error-messages="cowellAccount.errorMessage.value"
                 label="*科威帳號"
-                type="text"
+                :type="showCowellAccount ? 'text' : 'password'"
+                :append-inner-icon="showCowellAccount ? 'mdi-eye-off' : 'mdi-eye'"
                 variant="outlined"
                 density="compact"
                 clearable
+                autocomplete="new-password"
+                @click:append-inner="showCowellAccount = !showCowellAccount"
               />
             </v-col>
             <v-col
@@ -897,10 +936,13 @@
                 v-model="cowellPassword.value.value"
                 :error-messages="cowellPassword.errorMessage.value"
                 label="*科威密碼"
-                type="text"
+                :type="showCowellPassword ? 'text' : 'password'"
+                :append-inner-icon="showCowellPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 variant="outlined"
                 density="compact"
                 clearable
+                autocomplete="new-password"
+                @click:append-inner="showCowellPassword = !showCowellPassword"
               />
             </v-col>
             <v-col
@@ -1083,6 +1125,16 @@ const confirmDeleteDialog = ref(false)
 const headerProps = {
   class: 'header-bg'
 }
+
+const dateTypes = ref([
+  { title: '入職日期', value: 'hireDate' },
+  { title: '離職日期', value: 'resignationDate' },
+  { title: '生日', value: 'birthDate' }
+])
+
+const showCowellAccount = ref(false)
+const showCowellPassword = ref(false)
+
 const resignationDateDialog = ref(false)
 const chartRef = ref(null)
 const lastValidIDNumber = ref('')
@@ -1358,7 +1410,9 @@ const searchCriteria = ref({
   department: '',
   gender: '',
   guideLicense: '',
-  employmentStatus: ''
+  employmentStatus: '',
+  dateType: '',
+  dateRange: []
 })
 
 const quickSearchText = ref('')
@@ -1390,9 +1444,9 @@ const filteredHeaders = computed(() => {
     return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
   }
   if (['sm'].includes(currentBreakpoint.value)) {
-    return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
+    return tableHeaders.filter(header => header.key !== 'company.name' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
   }
-  return tableHeaders.filter(header => header.key !== 'department.companyId' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus')
+  return tableHeaders.filter(header => header.key !== 'company.name' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus')
 })
 
 // ===== API 相關函數 =====
@@ -1475,13 +1529,35 @@ const performSearch = async () => {
       quickSearch: quickSearchText.value
     }
 
-    // 修改這裡的參數映射邏輯
+    console.log('搜尋參數:', params)
+
+    // 處理日期搜尋
+    if (searchCriteria.value.dateType && searchCriteria.value.dateRange?.length >= 2) {
+      const startDate = searchCriteria.value.dateRange[0] ? new Date(searchCriteria.value.dateRange[0]).toISOString() : null
+      const endDate = searchCriteria.value.dateRange[searchCriteria.value.dateRange.length - 1] ? new Date(searchCriteria.value.dateRange[searchCriteria.value.dateRange.length - 1]).toISOString() : null
+
+      if (startDate && endDate) {
+        if (searchCriteria.value.dateType === 'hireDate') {
+          params.hireDateStart = startDate
+          params.hireDateEnd = endDate
+        } else if (searchCriteria.value.dateType === 'resignationDate') {
+          params.resignationDateStart = startDate
+          params.resignationDateEnd = endDate
+        } else if (searchCriteria.value.dateType === 'birthDate') {
+          params.birthDateStart = startDate
+          params.birthDateEnd = endDate
+        }
+      }
+    }
+
+    console.log('日期區間:', searchCriteria.value.dateRange)
+    console.log('篩選類型:', searchCriteria.value.dateType)
+
+    // 處理其他搜尋條件
     if (searchCriteria.value.companyId) {
-      // 直接使用 companyId
       params.companyId = searchCriteria.value.companyId
     }
     if (searchCriteria.value.department) {
-      // 直接使用 department ID
       params.departmentId = searchCriteria.value.department
     }
     if (searchCriteria.value.role !== '') {
@@ -1497,16 +1573,16 @@ const performSearch = async () => {
       params.employmentStatus = searchCriteria.value.employmentStatus
     }
 
-    console.log('Search params:', params) // 加入這行來檢查發送的參數
+    console.log('搜尋參數:', params)
 
     const response = await apiAuth.get('/user/all', { params })
+
+    console.log('後端返回資料:', response.data)
 
     if (response.data.success) {
       const { data: users, totalItems } = response.data.result
       tableItems.value = users
       tableItemsLength.value = totalItems
-
-      console.log('Response data:', users) // 加入這行來檢查返回的數據
     } else {
       throw new Error(response.data.message)
     }
@@ -1820,7 +1896,10 @@ const resetSearch = () => {
     department: '',
     gender: '',
     guideLicense: '',
-    employmentStatus: ''
+    employmentStatus: '',
+    dateType: '', // 加入
+    startDate: null, // 加入
+    endDate: null // 加入
   }
   filteredDepartments.value = []
   tableSearch.value = ''
@@ -1951,6 +2030,10 @@ watch(() => searchCriteria.value.companyId, async (newVal) => {
   } else {
     filteredDepartments.value = []
   }
+})
+
+watch(() => searchCriteria.value.dateRange, (newVal) => {
+  console.log('選擇的日期區間:', newVal)
 })
 
 watch(company.value, (newVal) => {

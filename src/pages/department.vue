@@ -20,7 +20,38 @@
         <v-row>
           <v-col>
             <v-row>
-              <v-col>
+              <v-col
+                v-if="!mdAndUp"
+                cols="6"
+              >
+                <v-btn
+                  prepend-icon="mdi-domain"
+                  variant="outlined"
+                  color="blue-grey-darken-2"
+                  class="me-2"
+                  block
+                  @click="openCompanyDialog"
+                >
+                  公司管理
+                </v-btn>
+              </v-col>
+              <v-col
+                v-if="!mdAndUp"
+                cols="6"
+              >
+                <v-btn
+                  prepend-icon="mdi-account-multiple-plus"
+                  variant="outlined"
+                  color="blue-grey-darken-2"
+                  block
+                  @click="openDepartmentDialog"
+                >
+                  新增部門
+                </v-btn>
+              </v-col>
+              <v-col
+                v-if="mdAndUp"
+              >
                 <v-btn
                   prepend-icon="mdi-domain"
                   variant="outlined"
@@ -34,6 +65,7 @@
                   prepend-icon="mdi-account-multiple-plus"
                   variant="outlined"
                   color="blue-grey-darken-2"
+                  class="ms-3"
                   @click="openDepartmentDialog"
                 >
                   新增部門
@@ -41,7 +73,6 @@
               </v-col>
               <v-col
                 cols="6"
-                sm="4"
                 md="3"
                 lg="2"
               >
@@ -60,10 +91,18 @@
               </v-col>
               <v-col
                 cols="6"
-                sm="4"
                 md="3"
+                lg="2"
                 class="d-flex justify-end align-center"
               >
+                <v-icon
+                  v-if="smAndUp"
+                  v-tooltip:top="'可搜尋部門編號、部門名稱'"
+                  icon="mdi-information"
+                  size="small"
+                  color="blue-grey-darken-2"
+                  class="me-4"
+                />
                 <v-text-field
                   v-model="tableSearch"
                   label="搜尋"
@@ -102,12 +141,12 @@
                   </td>
                   <td>{{ item.name }}</td>
                   <td>{{ item.employeeCount }} 人</td>
-                  <td class="text-center">
+                  <td class="d-flex justify-center h-25">
                     <v-btn
                       icon
                       color="light-blue-darken-4"
                       variant="plain"
-                      class="me-2"
+                      :size="buttonSize"
                       @click="openEditDepartment(item)"
                     >
                       <v-icon>mdi-pencil</v-icon>
@@ -116,6 +155,7 @@
                       icon
                       color="red-lighten-1"
                       variant="plain"
+                      :size="buttonSize"
                       @click="confirmDeleteDepartment(item)"
                     >
                       <v-icon>mdi-delete</v-icon>
@@ -136,10 +176,10 @@
       width="444"
     >
       <v-card class="rounded-lg pa-4">
-        <v-card-title class="text-h6 ps-6 py-3">
+        <div class="card-title ps-6 py-3">
           公司管理
-        </v-card-title>
-        <v-card-text class="px-4">
+        </div>
+        <v-card-text class="px-4 pb-2">
           <div class="mb-8">
             <v-chip
               v-for="company in companies"
@@ -187,6 +227,7 @@
               <v-btn
                 color="red-lighten-1"
                 variant="outlined"
+                :size="buttonSize"
                 @click="closeCompanyDialog"
               >
                 取消
@@ -195,6 +236,7 @@
                 color="teal-darken-1"
                 variant="outlined"
                 type="submit"
+                :size="buttonSize"
                 :loading="isSubmitting"
                 class="ms-2"
               >
@@ -261,12 +303,12 @@
     <v-dialog
       v-model="departmentDialog.open"
       persistent
-      width="400"
+      width="360"
     >
-      <v-card class="rounded-lg pa-4">
-        <v-card-title class="text-h6 ps-4 py-3">
+      <v-card class="rounded-lg px-4 pt-4 pb-1">
+        <div class="card-title ps-6 py-3">
           {{ departmentDialog.id ? '編輯部門' : '新增部門' }}
-        </v-card-title>
+        </div>
         <v-card-text>
           <v-form @submit.prevent="submitDepartment">
             <template v-if="departmentDialog.id">
@@ -303,6 +345,7 @@
               <v-btn
                 color="red-lighten-1"
                 variant="outlined"
+                :size="buttonSize"
                 @click="closeDepartmentDialog"
               >
                 取消
@@ -310,6 +353,7 @@
               <v-btn
                 color="teal-darken-1"
                 variant="outlined"
+                :size="buttonSize"
                 type="submit"
                 :loading="isSubmitting"
                 :disabled="departmentDialog.id ? !hasFormChanges : false"
@@ -362,9 +406,12 @@ definePage({
   }
 })
 
-const { smAndUp } = useDisplay()
+const { smAndUp, mdAndUp } = useDisplay()
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
+const buttonSize = computed(() => {
+  return smAndUp.value ? 'default' : 'small'
+})
 
 // 表格相關
 const tableLoading = ref(false)
@@ -379,9 +426,9 @@ const headerProps = {
 }
 
 const tableHeaders = [
-  { title: '部門編號', key: 'departmentId', align: 'start', width: '15%', sortable: true },
-  { title: '公司', key: 'c_id.name', align: 'start', width: '25%', sortable: true },
-  { title: '部門', key: 'name', align: 'start', width: '30%', sortable: true },
+  { title: '部編', key: 'departmentId', align: 'start', minWidth: '68px', sortable: true },
+  { title: '公司', key: 'c_id.name', align: 'start', minWidth: '68px', sortable: true },
+  { title: '部門', key: 'name', align: 'start', minWidth: '68px', sortable: true },
   { title: '人數', key: 'memberCount', align: 'start', sortable: true },
   { title: '操作', key: 'actions', align: 'center', sortable: false }
 ]
@@ -634,6 +681,7 @@ const submitDepartment = async () => {
   departmentNameError.value = []
   departmentCompanyError.value = []
 
+  // 前端驗證
   if (!departmentForm.value.c_id) {
     departmentCompanyError.value = ['請選擇公司']
     return
@@ -674,17 +722,10 @@ const submitDepartment = async () => {
       }
     }
   } catch (error) {
-    const errorMessage = error?.response?.data?.message || '操作失敗'
-    if (error?.response?.data?.field === 'name') {
-      departmentNameError.value = [errorMessage]
-    } else if (error?.response?.data?.field === 'c_id') {
-      departmentCompanyError.value = [errorMessage]
-    } else {
-      createSnackbar({
-        text: errorMessage,
-        snackbarProps: { color: 'red-lighten-1' }
-      })
-    }
+    createSnackbar({
+      text: error?.response?.data?.message || '操作失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
   } finally {
     isSubmitting.value = false
   }
