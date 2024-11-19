@@ -1,53 +1,46 @@
 <template>
-  <div>
-    <v-row>
-      <v-col cols="12">
-        <v-card
-          class="mx-auto pa-8 pb-4 d-flex flex-column justify-center align-center"
-          elevation="4"
-          rounded="xl"
+  <v-card
+    class="mx-auto pa-8 pb-4 d-flex flex-column justify-center align-center"
+    elevation="4"
+    rounded="xl"
+  >
+    <h6 style="font-size: 16px;">
+      全公司人數分布
+    </h6>
+    <v-card-text class="chart-container pb-0">
+      <div class="chart-wrapper">
+        <canvas ref="companyChartRef" />
+        <div
+          v-if="isLoading"
+          class="loading-overlay d-flex justify-center align-center"
         >
-          <h6 style="font-size: 16px;">
-            全公司人數分布
-          </h6>
-          <v-card-text class="chart-container pb-0">
-            <div class="chart-wrapper">
-              <canvas ref="companyChartRef" />
-              <div
-                v-if="isLoading"
-                class="loading-overlay d-flex justify-center align-center"
-              >
-                <v-progress-circular
-                  indeterminate
-                  color="blue-grey-darken-1"
-                />
-              </div>
-              <div
-                class="center-text"
-                :class="{ 'invisible': isLoading }"
-              >
-                <div
-                  class="text-grey-darken-1 mb-1"
-                  style="font-size: 12px; font-weight: 600;"
-                >
-                  總在職人數
-                </div>
-                <div class="text-h6 font-weight-medium">
-                  {{ totalEmployees }}
-                </div>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </div>
+          <v-progress-circular
+            indeterminate
+            color="blue-grey-darken-1"
+          />
+        </div>
+        <div
+          class="center-text"
+          :class="{ invisible: isLoading }"
+        >
+          <div
+            class="text-grey-darken-1 mb-1"
+            style="font-size: 12px; font-weight: 600;"
+          >
+            總在職人數
+          </div>
+          <div class="text-h6 font-weight-medium">
+            {{ totalEmployees }}
+          </div>
+        </div>
+      </div>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import Chart from 'chart.js/auto'
-import { companyNames } from '@/enums/Company'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 
@@ -59,33 +52,22 @@ const companyChart = ref(null)
 const totalEmployees = ref(0)
 const isLoading = ref(false)
 
+// Fetch company stats from the backend
 const fetchEmployeeStats = async () => {
   isLoading.value = true
   try {
-    const response = await apiAuth.get('/user/all', {
-      params: {
-        page: 1,
-        itemsPerPage: 999999,
-        fields: 'department employmentStatus'
-      }
-    })
+    const { data } = await apiAuth.get('/user/employee-stats')
 
-    const allEmployees = response.data.result.data
-    const activeEmployees = allEmployees.filter(emp => emp.employmentStatus === '在職')
+    if (data.success) {
+      const stats = data.result
+      totalEmployees.value = stats.total
 
-    totalEmployees.value = activeEmployees.length
-
-    const companyStats = activeEmployees.reduce((acc, curr) => {
-      const companyId = curr.department?.companyId
-      const companyName = companyNames[companyId] || '未分類'
-      acc[companyName] = (acc[companyName] || 0) + 1
-      return acc
-    }, {})
-
-    initChart({
-      labels: Object.keys(companyStats),
-      data: Object.values(companyStats)
-    })
+      // 初始化圖表
+      initChart({
+        labels: stats.companies.map(company => company.companyName),
+        data: stats.companies.map(company => company.count)
+      })
+    }
   } catch (error) {
     console.error('獲取員工統計失敗:', error)
     createSnackbar({
@@ -97,10 +79,7 @@ const fetchEmployeeStats = async () => {
   }
 }
 
-defineExpose({
-  refreshChart: fetchEmployeeStats
-})
-
+// Initialize chart
 const initChart = (companyData) => {
   if (!companyChartRef.value) return
 
@@ -112,22 +91,24 @@ const initChart = (companyData) => {
     type: 'doughnut',
     data: {
       labels: companyData.labels,
-      datasets: [{
-        data: companyData.data,
-        backgroundColor: [
-          '#36A2EB',
-          '#4BC0C0',
-          '#FF5252',
-          '#FFCE56',
-          '#9966FF',
-          '#FF9F40',
-          '#5C6BC0',
-          '#FF6384'
-        ],
-        borderWidth: 0,
-        hoverOffset: 15,
-        offset: 4
-      }]
+      datasets: [
+        {
+          data: companyData.data,
+          backgroundColor: [
+            '#36A2EB',
+            '#4BC0C0',
+            '#FF5252',
+            '#FFCE56',
+            '#9966FF',
+            '#FF9F40',
+            '#5C6BC0',
+            '#FF6384'
+          ],
+          borderWidth: 0,
+          hoverOffset: 15,
+          offset: 4
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -137,14 +118,12 @@ const initChart = (companyData) => {
         padding: {
           top: 20
         }
-
       },
       plugins: {
         legend: {
           position: 'bottom',
-          boxHeight: 80,
           labels: {
-            padding: 12, // 增加標籤之間的間距
+            padding: 12,
             font: {
               family: '微軟正黑體',
               size: 12,
@@ -157,16 +136,6 @@ const initChart = (companyData) => {
           }
         },
         tooltip: {
-          titleFont: {
-            family: '微軟正黑體',
-            size: 14,
-            weight: '500'
-          },
-          bodyFont: {
-            family: '微軟正黑體',
-            size: 13,
-            weight: '400'
-          },
           callbacks: {
             label: (context) => {
               const label = context.label || ''
@@ -181,6 +150,11 @@ const initChart = (companyData) => {
   })
 }
 
+// 新增重新整理圖表的方法
+const refreshChart = async () => {
+  await fetchEmployeeStats()
+}
+
 onMounted(() => {
   fetchEmployeeStats()
 })
@@ -190,17 +164,14 @@ onUnmounted(() => {
     companyChart.value.destroy()
   }
 })
+
+// 暴露方法給父組件使用
+defineExpose({
+  refreshChart
+})
 </script>
 
 <style scoped>
-.v-card {
-  transition: all 0.3s ease;
-}
-
-.v-card:hover {
-  box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
-}
-
 .chart-container {
   width: 280px;
   height: 320px;

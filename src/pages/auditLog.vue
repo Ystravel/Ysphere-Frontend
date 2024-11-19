@@ -553,6 +553,7 @@ const fieldTranslations = {
   guideLicense: '領隊證',
   salary: '薪資',
   birthDate: '生日',
+  hireDate: '入職日期',
   resignationDate: '離職日期',
   emergencyName: '緊急聯絡人',
   emergencyCellphone: '緊急聯絡電話',
@@ -563,7 +564,9 @@ const fieldTranslations = {
   userId: '員工編號',
   departmentId: '部門編號',
   note: '備註',
-  description: '描述'
+  description: '描述',
+  cowellAccount: '科威帳號',
+  cowellPassword: '科威密碼'
 }
 
 // 表格標頭
@@ -820,89 +823,47 @@ const formatChanges = (item) => {
   if (!item?.changes) return []
 
   const changes = []
-  const addedKeys = new Set() // 避免重複添加的欄位
+  const addedKeys = new Set() // 用於追蹤已處理的欄位，避免重複添加
 
-  // 處理創建操作
-  if (item.action === '創建') {
-    Object.entries(item.changes).forEach(([key, value]) => {
-      // 忽略空值
-      if (!value?.to && typeof value !== 'boolean') return
-
-      // 避免重複添加
-      if (addedKeys.has(key)) return
-
-      switch (key) {
-        case 'birthDate': // 特殊處理生日
-          changes.push(`生日: ${formatDate(value.to)}`)
-          addedKeys.add(key)
-          break
-        case 'companyId': {
-          // 如果已處理過 company，則跳過處理 companyId
-          if (item.changes.company && addedKeys.has('company')) return
-
-          // 查找公司名稱對應
-          const companyName = companyNames[value.to]
-          if (companyName) {
-            changes.push(`公司: ${companyName}`)
-          } else {
-            changes.push(`公司ID: ${value.to}`)
-          }
-          addedKeys.add(key)
-          break
-        }
-        case 'company': {
-          // 如果已處理過 companyId，則跳過處理 company
-          if (item.changes.companyId && addedKeys.has('companyId')) return
-
-          changes.push(`公司: ${value.to}`)
-          addedKeys.add(key)
-          break
-        }
-        default: {
-          const fieldName = getFieldName(key, item.targetModel) // 根據 targetModel 獲取正確的翻譯
-          if (fieldName) {
-            changes.push(`${fieldName}: ${value.to || value}`)
-            addedKeys.add(key)
-          }
-        }
-      }
-    })
-
-    return changes.length > 0 ? changes : [`新增${getModelDisplay(item.targetModel)}`]
-  }
-
-  // 處理刪除操作
-  if (item.action === '刪除') {
-    switch (item.targetModel) {
-      case 'departments': {
-        const name = item.targetInfo?.name || item.changes.name?.from || item.changes.name || ''
-        const departmentId = item.targetInfo?.departmentId || item.changes.departmentId?.from || item.changes.departmentId || ''
-        const companyName = companyNames[item.targetInfo?.companyId] || companyNames[item.changes.companyId?.from] || ''
-        return [`刪除部門: ${name}${departmentId ? ` (${departmentId})` : ''}${companyName ? ` - ${companyName}` : ''}`]
-      }
-      case 'users': {
-        const name = item.targetInfo?.name || item.changes.name?.from || item.changes.name || ''
-        const userId = item.targetInfo?.userId || item.changes.userId?.from || item.changes.userId || ''
-        return [`刪除員工: ${name}${userId ? ` (${userId})` : ''}`]
-      }
-      default:
-        return [`刪除${getModelDisplay(item.targetModel)}`]
-    }
-  }
-
-  // 處理修改操作
   Object.entries(item.changes).forEach(([key, value]) => {
     // 檢查是否為有效的變更
     if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
 
-    const from = value.from === '' ? '(無)' : (value.from ?? '(無)')
-    const to = value.to === '' ? '(無)' : (value.to ?? '(無)')
-    if (from === to) return
+    // 跳過已處理的欄位
+    if (addedKeys.has(key)) return
+
+    const from = value.from === '' || value.from === null ? '(無)' : value.from
+    const to = value.to === '' || value.to === null ? '(無)' : value.to
 
     const fieldName = getFieldName(key, item.targetModel) // 根據 targetModel 獲取正確的翻譯
+
+    if (key === 'cowellAccount' || key === 'cowellPassword') {
+      // 對於敏感字段，只顯示「已設定」
+      changes.push(`${fieldName}: 已設定`)
+      addedKeys.add(key)
+      return
+    }
+
+    // 忽略創建操作中「無 → 值」的情況，僅保留新增的值
+    if (item.action === '創建') {
+      if (to !== '(無)') {
+        changes.push(
+          key === 'birthDate' || key === 'hireDate' // 檢查是否是日期欄位
+            ? `${fieldName}: ${formatDate(to)}`
+            : `${fieldName}: ${to}`
+        )
+        addedKeys.add(key)
+      }
+      return
+    }
+
+    // 忽略沒有實際變更的欄位
+    if (from === to) return
+
     if (fieldName) {
       switch (key) {
         case 'birthDate': // 特殊處理日期格式
+        case 'hireDate':
         case 'resignationDate':
           changes.push(`${fieldName}: ${from === '(無)' ? from : formatDate(from)} → ${to === '(無)' ? to : formatDate(to)}`)
           break
@@ -912,17 +873,18 @@ const formatChanges = (item) => {
         case 'guideLicense': // 特殊處理布林值
           changes.push(`${fieldName}: ${from === '(無)' ? from : (from ? '有' : '無')} → ${to === '(無)' ? to : (to ? '有' : '無')}`)
           break
-        case 'company': // 特殊處理公司名稱
-        case 'companyName':
-          if (!changes.some((c) => c.startsWith('公司:'))) {
-            changes.push(`${fieldName}: ${from} → ${to}`)
-          }
-          break
         default:
           changes.push(`${fieldName}: ${from} → ${to}`)
       }
+      // 標記欄位已處理
+      addedKeys.add(key)
     }
   })
+
+  // 處理創建操作時未顯示任何欄位的情況
+  if (item.action === '創建' && changes.length === 0) {
+    changes.push(`新增${getModelDisplay(item.targetModel)}`)
+  }
 
   return changes
 }

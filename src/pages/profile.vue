@@ -92,6 +92,40 @@
                   class="d-flex align-center"
                 >
                   <FileUploadButton />
+                  <v-btn
+                    v-tooltip:top="'查看科威帳號密碼'"
+                    icon=""
+                    color="blue-grey-darken-2"
+                    size="24"
+                    elevation="0"
+                    style="margin-top: 1px;"
+                    class="ms-4"
+                    @click="showCowellDialog = true"
+                  >
+                    <v-icon
+                      icon="mdi-eye-outline"
+                      size="14"
+                    />
+                  </v-btn>
+                </v-col>
+                <v-col
+                  v-if="isLgmUp"
+                  class="d-flex align-center"
+                >
+                  <v-btn
+                    v-tooltip:top="'查看科威帳號密碼'"
+                    icon=""
+                    color="blue-grey-darken-2"
+                    size="24"
+                    elevation="0"
+                    style="margin-top: 1px;"
+                    @click="showCowellDialog = true"
+                  >
+                    <v-icon
+                      icon="mdi-eye-outline"
+                      size="14"
+                    />
+                  </v-btn>
                 </v-col>
               </v-row>
             </div>
@@ -477,7 +511,7 @@
                       density="compact"
                       hide-details
                       readonly
-                      :value="getCompanyName(user.department.companyId)"
+                      :value="user.company?.name || ''"
                     />
                   </v-col>
                 </v-row>
@@ -505,9 +539,8 @@
                       density="compact"
                       hide-details
                       readonly
-                    >
-                      {{ user.department.name }}
-                    </v-text-field>
+                      :value="user.department?.name || ''"
+                    />
                   </v-col>
                 </v-row>
               </v-col>
@@ -537,6 +570,62 @@
                     >
                       {{ formatToDate(user.hireDate) }}
                     </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    科威帳號 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                      :value="isCowellRevealed ? user.cowellAccount : '******'"
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    科威密碼 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                      :value="isCowellRevealed ? user.cowellPassword : '******'"
+                    />
                   </v-col>
                 </v-row>
               </v-col>
@@ -697,6 +786,48 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- 查看科威帳號與密碼對話框 -->
+  <v-dialog
+    v-model="showCowellDialog"
+    max-width="360"
+  >
+    <v-card>
+      <div class="card-title ps-6 py-6">
+        輸入密碼以查看
+      </div>
+      <v-card-text class="pb-0">
+        <v-text-field
+          v-model="cowellPassword"
+          :error-messages="cowellPasswordError"
+          label="輸入密碼"
+          type="password"
+          variant="outlined"
+          density="compact"
+          class="mb-4"
+          @update:model-value="cowellPasswordError = ''"
+        />
+      </v-card-text>
+      <v-card-actions class="me-4 mb-3">
+        <v-spacer />
+        <v-btn
+          color="grey-darken-1"
+          variant="outlined"
+          @click="closeCowellDialog"
+        >
+          取消
+        </v-btn>
+        <v-btn
+          color="red-darken-1"
+          variant="outlined"
+          :loading="isVerifyingCowell"
+          @click="verifyCowellPassword"
+        >
+          確認
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -705,7 +836,6 @@ import { computed, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
-import { companyNames } from '@/enums/Company'
 import FileUploadButton from '@/components/FileUploadButton.vue'
 
 const { mdAndUp, width, smAndUp } = useDisplay()
@@ -725,9 +855,11 @@ definePage({
   }
 })
 
-const getCompanyName = (companyId) => {
-  return companyNames[companyId] || '未知公司'
-}
+const showCowellDialog = ref(false)
+const cowellPassword = ref('')
+const cowellPasswordError = ref('')
+const isCowellRevealed = ref(false)
+const isVerifyingCowell = ref(false)
 
 const showPasswordDialog = ref(false)
 const isChangingPassword = ref(false)
@@ -819,6 +951,60 @@ const closePasswordDialog = () => {
   currentPasswordError.value = ''
   newPasswordError.value = ''
   confirmPasswordError.value = ''
+}
+
+const verifyCowellPassword = async () => {
+  if (!cowellPassword.value) {
+    cowellPasswordError.value = '請輸入密碼'
+    return
+  }
+
+  try {
+    isVerifyingCowell.value = true
+
+    // 調用新 API
+    const response = await fetch(`${import.meta.env.VITE_API}/user/reveal-cowell`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${user.token}` // 加入 JWT token
+      },
+      body: JSON.stringify({ password: cowellPassword.value })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      cowellPasswordError.value = data.message || '驗證失敗，請稍後重試'
+      return
+    }
+
+    // 成功後更新顯示的科威帳號和密碼
+    isCowellRevealed.value = true
+    user.cowellAccount = data.result.cowellAccount
+    user.cowellPassword = data.result.cowellPassword
+
+    createSnackbar({
+      text: '密碼驗證成功，科威帳號與密碼已解鎖',
+      snackbarProps: { color: 'teal-lighten-1' }
+    })
+
+    closeCowellDialog()
+  } catch (error) {
+    console.error('驗證科威密碼錯誤:', error)
+    createSnackbar({
+      text: '驗證失敗，請稍後重試',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  } finally {
+    isVerifyingCowell.value = false
+  }
+}
+
+const closeCowellDialog = () => {
+  showCowellDialog.value = false
+  cowellPassword.value = ''
+  cowellPasswordError.value = ''
 }
 
 </script>

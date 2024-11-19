@@ -19,6 +19,7 @@ export const useUserStore = defineStore('user', () => {
   const permanentAddress = ref('')
   const contactAddress = ref('')
   const department = ref('')
+  const company = ref('')
   const jobTitle = ref('')
   const role = ref(UserRole.USER)
   const userId = ref('')
@@ -29,6 +30,8 @@ export const useUserStore = defineStore('user', () => {
   const guideLicense = ref('')
   const avatar = ref('')
   const password = ref('')
+  const cowellAccount = ref('')
+  const cowellPassword = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
   const isUser = computed(() => role.value === UserRole.USER)
@@ -61,11 +64,8 @@ export const useUserStore = defineStore('user', () => {
         emergencyName.value = data.result.emergencyName
         emergencyCellphone.value = data.result.emergencyCellphone
         userId.value = data.result.userId
-        department.value = {
-          _id: data.result.department._id,
-          name: data.result.department.name,
-          companyId: data.result.department.companyId
-        }
+        company.value = data.result.company // 直接存儲完整公司資料
+        department.value = data.result.department
         hireDate.value = data.result.hireDate
         extNumber.value = data.result.extNumber
         printNumber.value = data.result.printNumber
@@ -73,6 +73,8 @@ export const useUserStore = defineStore('user', () => {
         role.value = data.result.role
         jobTitle.value = data.result.jobTitle
         avatar.value = data.result.avatar
+        cowellAccount.value = data.result.cowellAccount
+        cowellPassword.value = data.result.cowellPassword
         await profile()
         return '登入成功'
       }
@@ -102,11 +104,8 @@ export const useUserStore = defineStore('user', () => {
         emergencyName.value = response.data.result.emergencyName
         emergencyCellphone.value = response.data.result.emergencyCellphone
         userId.value = response.data.result.userId
-        department.value = {
-          _id: response.data.result.department._id,
-          name: response.data.result.department.name,
-          companyId: response.data.result.department.companyId
-        }
+        company.value = response.data.result.company // 直接存儲完整公司資料
+        department.value = response.data.result.department
         hireDate.value = response.data.result.hireDate
         extNumber.value = response.data.result.extNumber
         printNumber.value = response.data.result.printNumber
@@ -114,6 +113,8 @@ export const useUserStore = defineStore('user', () => {
         role.value = response.data.result.role
         jobTitle.value = response.data.result.jobTitle
         avatar.value = response.data.result.avatar
+        cowellAccount.value = response.data.result.cowellAccount
+        cowellPassword.value = response.data.result.cowellPassword
         return '登入成功'
       } else {
         throw new Error(response.data.message)
@@ -140,11 +141,8 @@ export const useUserStore = defineStore('user', () => {
       birthDate.value = data.result.birthDate
       permanentAddress.value = data.result.permanentAddress
       contactAddress.value = data.result.contactAddress
-      department.value = {
-        _id: data.result.department._id,
-        name: data.result.department.name,
-        companyId: data.result.department.companyId
-      }
+      company.value = data.result.company // 直接存儲完整公司資料
+      department.value = data.result.department
       jobTitle.value = data.result.jobTitle
       role.value = data.result.role
       userId.value = data.result.userId
@@ -154,6 +152,10 @@ export const useUserStore = defineStore('user', () => {
       printNumber.value = data.result.printNumber
       guideLicense.value = data.result.guideLicense
       avatar.value = data.result.avatar
+      cowellAccount.value = data.result.cowellAccount
+      cowellPassword.value = data.result.cowellPassword
+
+      console.log('profile', data)
     } catch (error) {
       console.log(error)
       token.value = ''
@@ -168,6 +170,7 @@ export const useUserStore = defineStore('user', () => {
       birthDate.value = ''
       permanentAddress.value = ''
       contactAddress.value = ''
+      company.value = ''
       department.value = ''
       jobTitle.value = ''
       role.value = UserRole.USER
@@ -178,6 +181,8 @@ export const useUserStore = defineStore('user', () => {
       printNumber.value = ''
       guideLicense.value = ''
       avatar.value = ''
+      cowellAccount.value = ''
+      cowellPassword.value = ''
     }
   }
 
@@ -239,6 +244,7 @@ export const useUserStore = defineStore('user', () => {
     birthDate.value = ''
     permanentAddress.value = ''
     contactAddress.value = ''
+    company.value = ''
     department.value = ''
     jobTitle.value = ''
     role.value = ''
@@ -249,6 +255,8 @@ export const useUserStore = defineStore('user', () => {
     printNumber.value = ''
     guideLicense.value = ''
     avatar.value = ''
+    cowellAccount.value = ''
+    cowellPassword.value = ''
   }
 
   return {
@@ -264,6 +272,7 @@ export const useUserStore = defineStore('user', () => {
     birthDate,
     permanentAddress,
     contactAddress,
+    company,
     department,
     jobTitle,
     role,
@@ -274,6 +283,8 @@ export const useUserStore = defineStore('user', () => {
     printNumber,
     guideLicense,
     avatar,
+    cowellAccount,
+    cowellPassword,
     isLogin,
     isUser,
     isAdmin,

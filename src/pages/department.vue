@@ -47,10 +47,10 @@
               >
                 <v-select
                   v-model="companyFilter"
-                  :items="[{ name: '全部', id: '' }, ...companies]"
+                  :items="[{ name: '全部', _id: '' }, ...companies]"
                   label="選擇公司"
                   item-title="name"
-                  item-value="id"
+                  item-value="_id"
                   variant="outlined"
                   density="compact"
                   hide-details
@@ -82,24 +82,26 @@
               v-model:items-per-page="tableItemsPerPage"
               v-model:sort-by="tableSortBy"
               :headers="filteredHeaders"
+              :header-props="headerProps"
               :items="departments"
               :items-length="tableItemsLength"
               :loading="tableLoading"
               :page="tablePage"
+              density="compact"
               :items-per-page-options="[10, 20, 50]"
               :search="tableSearch"
               class="rounded-ts-lg rounded-te-lg py-3"
               hover
               @update:options="handleTableUpdate"
             >
-              <template #item="{ item }">
-                <tr>
+              <template #item="{ item, index }">
+                <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
                   <td>{{ item.departmentId || '尚未設定' }}</td>
                   <td v-if="smAndUp">
-                    {{ item.companyId?.name }}
+                    {{ item.c_id?.name || '未設定' }}
                   </td>
                   <td>{{ item.name }}</td>
-                  <td>{{ item.memberCount || 0 }} 人</td>
+                  <td>{{ item.employeeCount }} 人</td>
                   <td class="text-center">
                     <v-btn
                       icon
@@ -131,25 +133,29 @@
     <v-dialog
       v-model="companyDialog.open"
       persistent
-      width="600"
+      width="444"
     >
       <v-card class="rounded-lg pa-4">
-        <v-card-title class="text-h6 ps-4 py-3">
+        <v-card-title class="text-h6 ps-6 py-3">
           公司管理
         </v-card-title>
-        <v-card-text>
-          <div class="mb-4">
+        <v-card-text class="px-4">
+          <div class="mb-8">
             <v-chip
               v-for="company in companies"
               :key="company.id"
-              class="me-2 mb-2 pa-2"
-              color="blue-grey-lighten-4"
+              class="mx-2 mb-2 pa-4 pe-1"
+              color="blue-grey-darken-1"
+              label
             >
               {{ company.companyId }} {{ company.name }}
               <v-btn
                 icon
                 size="x-small"
+                variant="text"
                 class="ms-2"
+                :ripple="false"
+                color="light-blue-darken-4"
                 @click="openEditCompany(company)"
               >
                 <v-icon>mdi-pencil</v-icon>
@@ -157,7 +163,9 @@
               <v-btn
                 icon
                 size="x-small"
-                class="ms-1"
+                variant="text"
+                :ripple="false"
+                color="red-lighten-1"
                 @click="confirmDeleteCompany(company)"
               >
                 <v-icon>mdi-delete</v-icon>
@@ -172,8 +180,9 @@
               required
               variant="outlined"
               density="compact"
+              class="px-2"
             />
-            <v-card-actions class="pa-0 mt-4">
+            <v-card-actions class="pa-0 mt-2">
               <v-spacer />
               <v-btn
                 color="red-lighten-1"
@@ -270,7 +279,7 @@
               />
             </template>
             <v-select
-              v-model="departmentForm.companyId"
+              v-model="departmentForm.c_id"
               :items="companies"
               label="選擇公司"
               item-title="name"
@@ -362,13 +371,16 @@ const tableLoading = ref(false)
 const tableItemsPerPage = ref(10)
 const tableSortBy = ref([{ key: 'departmentId', order: 'asc' }])
 const tablePage = ref(1)
-const tableItemsLength = ref(0)
+const tableItemsLength = ref(0) // 確保有初始值
 const tableSearch = ref('')
 const companyFilter = ref('')
+const headerProps = {
+  class: 'header-bg'
+}
 
 const tableHeaders = [
-  { title: '編號', key: 'departmentId', align: 'start', width: '15%', sortable: true },
-  { title: '公司', key: 'companyId', align: 'start', width: '25%', sortable: true },
+  { title: '部門編號', key: 'departmentId', align: 'start', width: '15%', sortable: true },
+  { title: '公司', key: 'c_id.name', align: 'start', width: '25%', sortable: true },
   { title: '部門', key: 'name', align: 'start', width: '30%', sortable: true },
   { title: '人數', key: 'memberCount', align: 'start', sortable: true },
   { title: '操作', key: 'actions', align: 'center', sortable: false }
@@ -396,7 +408,7 @@ const departments = ref([])
 const departmentDialog = ref({ open: false, id: null })
 const deleteDepartmentDialog = ref({ open: false, id: '', name: '' })
 const departmentForm = ref({
-  companyId: '',
+  c_id: '',
   name: '',
   departmentId: '',
   hasChanges: true // 新增時預設為 true
@@ -429,25 +441,24 @@ const loadDepartments = async (reset = false) => {
 
   tableLoading.value = true
   try {
-    const { data } = await apiAuth.get('/department/all', {
-      params: {
-        page: tablePage.value,
-        itemsPerPage: tableItemsPerPage.value,
-        sortBy: tableSortBy.value[0]?.key || 'departmentId',
-        sortOrder: tableSortBy.value[0]?.order || 'asc',
-        search: tableSearch.value,
-        companyId: companyFilter.value
-      }
-    })
+    const params = {
+      companyId: companyFilter.value || null,
+      search: tableSearch.value || null // 加入搜尋參數
+    }
+
+    const { data } = await apiAuth.get('/department/all', { params })
+
     if (data.success) {
-      departments.value = data.result.data
-      tableItemsLength.value = data.result.totalItems
+      departments.value = data.result // 這裡的 result 已經包含 employeeCount
+      tableItemsLength.value = data.result.length || 0
     }
   } catch (error) {
     createSnackbar({
       text: '載入部門列表失敗',
       snackbarProps: { color: 'red-lighten-1' }
     })
+    departments.value = []
+    tableItemsLength.value = 0
   } finally {
     tableLoading.value = false
   }
@@ -496,7 +507,8 @@ const submitCompany = async () => {
     })
     if (data.success) {
       companies.value.push(data.result)
-      closeCompanyDialog()
+      companyForm.value = { name: '' }
+      companyErrors.value = []
       createSnackbar({
         text: '新增公司成功',
         snackbarProps: { color: 'teal-lighten-1' }
@@ -517,14 +529,21 @@ const submitEditCompany = async () => {
   isSubmitting.value = true
   try {
     const { data } = await apiAuth.patch(`/company/${editCompanyDialog.value._id}`, {
-      companyId: editCompanyDialog.value.companyId,
-      name: editCompanyDialog.value.name
+      name: editCompanyDialog.value.name,
+      companyId: editCompanyDialog.value.companyId
     })
     if (data.success) {
       const index = companies.value.findIndex(c => c._id === editCompanyDialog.value._id)
       if (index !== -1) {
         companies.value[index] = data.result
       }
+      editCompanyDialog.value = {
+        open: true, // 保持 dialog 打開
+        _id: '',
+        companyId: '',
+        name: ''
+      }
+      editCompanyErrors.value = []
       closeEditCompanyDialog()
       createSnackbar({
         text: '修改公司成功',
@@ -532,7 +551,10 @@ const submitEditCompany = async () => {
       })
     }
   } catch (error) {
-    editCompanyErrors.value = [error?.response?.data?.message || '修改失敗']
+    createSnackbar({
+      text: error?.response?.data?.message || '修改失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
   } finally {
     isSubmitting.value = false
   }
@@ -567,7 +589,7 @@ const deleteCompany = async () => {
 const openDepartmentDialog = () => {
   departmentDialog.value.open = true
   departmentForm.value = {
-    companyId: '',
+    c_id: '',
     name: '',
     departmentId: '',
     hasChanges: true // 新增時預設為 true
@@ -577,7 +599,7 @@ const openDepartmentDialog = () => {
 const closeDepartmentDialog = () => {
   departmentDialog.value = { open: false, id: null }
   departmentForm.value = {
-    companyId: '',
+    c_id: '', // 改為 c_id
     name: '',
     departmentId: '',
     originalData: null,
@@ -588,25 +610,31 @@ const closeDepartmentDialog = () => {
 }
 
 const openEditDepartment = (department) => {
-  departmentDialog.value = { open: true, id: department._id } // 改用 _id
+  console.log('編輯部門資料:', department) // 調試用
+  departmentDialog.value = { open: true, id: department._id }
+
+  const companyId = department.c_id?._id || department.c_id
+
   departmentForm.value = {
-    companyId: department.companyId._id, // 如果是 ref 的話需要拿到 _id
+    c_id: companyId,
     name: department.name,
     departmentId: department.departmentId,
     originalData: {
-      companyId: department.companyId._id,
+      c_id: companyId,
       name: department.name,
       departmentId: department.departmentId
     },
     hasChanges: false
   }
+
+  console.log('設置後的表單值:', departmentForm.value) // 調試用
 }
 
 const submitDepartment = async () => {
   departmentNameError.value = []
   departmentCompanyError.value = []
 
-  if (!departmentForm.value.companyId) {
+  if (!departmentForm.value.c_id) {
     departmentCompanyError.value = ['請選擇公司']
     return
   }
@@ -618,14 +646,13 @@ const submitDepartment = async () => {
   isSubmitting.value = true
   try {
     if (departmentDialog.value.id) {
-      // 編輯部門時移除 departmentId 欄位，因為不允許修改
       const { data } = await apiAuth.patch(`/department/${departmentDialog.value.id}`, {
-        companyId: departmentForm.value.companyId,
+        c_id: departmentForm.value.c_id,
         name: departmentForm.value.name,
         departmentId: departmentForm.value.departmentId
       })
       if (data.success) {
-        await loadDepartments() // 重新載入部門資料
+        await loadDepartments()
         closeDepartmentDialog()
         createSnackbar({
           text: '修改部門成功',
@@ -634,23 +661,23 @@ const submitDepartment = async () => {
       }
     } else {
       const { data } = await apiAuth.post('/department', {
-        companyId: departmentForm.value.companyId,
+        c_id: departmentForm.value.c_id,
         name: departmentForm.value.name
       })
       if (data.success) {
+        await loadDepartments()
+        closeDepartmentDialog()
         createSnackbar({
           text: '新增部門成功',
           snackbarProps: { color: 'teal-lighten-1' }
         })
       }
     }
-    await loadDepartments()
-    closeDepartmentDialog()
   } catch (error) {
     const errorMessage = error?.response?.data?.message || '操作失敗'
     if (error?.response?.data?.field === 'name') {
       departmentNameError.value = [errorMessage]
-    } else if (error?.response?.data?.field === 'companyId') {
+    } else if (error?.response?.data?.field === 'c_id') {
       departmentCompanyError.value = [errorMessage]
     } else {
       createSnackbar({
@@ -692,7 +719,7 @@ const hasFormChanges = computed(() => {
   if (!departmentForm.value.originalData) return true // 新增時永遠 true
 
   return (
-    departmentForm.value.companyId !== departmentForm.value.originalData.companyId ||
+    departmentForm.value.c_id !== departmentForm.value.originalData.c_id ||
     departmentForm.value.name !== departmentForm.value.originalData.name ||
     departmentForm.value.departmentId !== departmentForm.value.originalData.departmentId
   )
@@ -709,6 +736,10 @@ const handleTableUpdate = (options) => {
 const debouncedSearch = debounce(() => {
   loadDepartments(true)
 }, 300)
+
+watch(companyFilter, () => {
+  loadDepartments(true)
+})
 
 watch(tableSearch, () => {
   debouncedSearch()
@@ -729,7 +760,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.header-bg {
+
+:deep(.header-bg)  {
   background-color: #455A64;
   color: white;
 }

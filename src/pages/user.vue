@@ -222,7 +222,10 @@
                           color="cyan-darken-2"
                           :loading="tableLoading"
                           block
-                          @click="performSearch"
+                          @click="() => {
+                            console.log('Current search criteria:', searchCriteria.value);
+                            performSearch();
+                          }"
                         >
                           搜尋
                         </v-btn>
@@ -328,10 +331,10 @@
                     {{ item.cellphone }}
                   </td>
                   <td v-if="mdAndUp">
-                    {{ getCompanyName(item.department.companyId) }}
+                    {{ item.company?.name || '' }}
                   </td>
                   <td v-if="mdAndUp">
-                    {{ item.department.name }}
+                    {{ item.department?.name || '' }}
                   </td>
                   <td>{{ item.extNumber }}</td>
                   <td v-if="smAndUp">
@@ -728,13 +731,14 @@
               <v-select
                 v-model="selectedCompany"
                 :error-messages="company.errorMessage.value"
-                :items="Object.entries(companyNames).map(([id, name]) => ({ title: name, value: Number(id) }))"
+                :items="companyOptions"
                 label="*所屬公司"
                 item-title="title"
                 item-value="value"
                 variant="outlined"
                 density="compact"
                 clearable
+                @update:model-value="handleCompanyChange"
               />
             </v-col>
 
@@ -859,6 +863,40 @@
                 v-model="printNumber.value.value"
                 :error-messages="printNumber.errorMessage.value"
                 label="*列印編號"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="cowellAccount.value.value"
+                :error-messages="cowellAccount.errorMessage.value"
+                label="*科威帳號"
+                type="text"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="pb-0"
+            >
+              <v-text-field
+                v-model="cowellPassword.value.value"
+                :error-messages="cowellPassword.errorMessage.value"
+                label="*科威密碼"
                 type="text"
                 variant="outlined"
                 density="compact"
@@ -1008,7 +1046,6 @@ import { useForm, useField } from 'vee-validate'
 import { useDisplay } from 'vuetify'
 import { useUserStore } from '@/stores/user'
 import UserRole, { roleNames } from '@/enums/UserRole'
-import { companyNames } from '@/enums/Company'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
@@ -1064,15 +1101,7 @@ const resetPasswordDialog = ref({
   loading: false
 })
 
-// ===== 選項列表設定 =====
-const companyList = ref(
-  Object.entries(companyNames).map(([id, name]) => ({
-    title: name,
-    value: Number(id)
-  }))
-)
-
-const selectedCompany = ref(1)
+const selectedCompany = ref(null)
 const filteredDepartments = ref([])
 const departments = ref([])
 
@@ -1082,6 +1111,25 @@ const roles = ref(
     title
   }))
 )
+
+const companyOptions = computed(() => {
+  return companies.value.map(company => ({
+    title: `${company.name}`, // 移除 companyId
+    value: company._id // 直接使用 _id 作為 value
+  }))
+})
+
+const companies = ref([])
+
+const companyList = computed(() => {
+  return [
+    { title: '全部', value: '' },
+    ...companies.value.map(company => ({
+      title: company.name,
+      value: company._id // 直接使用 _id 作為 value
+    }))
+  ]
+})
 
 const employmentStatuses = ref([
   { title: '在職', value: '在職' },
@@ -1139,7 +1187,7 @@ const userSchema = yup.object({
     .nullable()
     .required('請選擇生日'),
   company: yup
-    .number()
+    .string()
     .nullable()
     .required('請選擇公司'),
   department: yup
@@ -1188,7 +1236,13 @@ const userSchema = yup.object({
   note: yup
     .string(),
   userId: yup
+    .string(),
+  cowellAccount: yup
     .string()
+    .required('請輸入Cowell帳號'),
+  cowellPassword: yup
+    .string()
+    .required('請輸入Cowell密碼')
 })
 
 // ===== 表單初始化與欄位設定 =====
@@ -1219,7 +1273,9 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     emergencyCellphone: '',
     emergencyRelationship: '',
     note: '',
-    userId: ''
+    userId: '',
+    cowellAccount: '',
+    cowellPassword: ''
   },
   validateOnMount: false,
   validateOnChange: true,
@@ -1267,6 +1323,8 @@ const userId = useField('userId', undefined, {
   validateOnValueUpdate: false,
   transform: (value) => value ?? ''
 })
+const cowellAccount = useField('cowellAccount')
+const cowellPassword = useField('cowellPassword')
 
 // ===== 表格相關設定 =====
 const tableItemsPerPage = ref(10)
@@ -1281,7 +1339,7 @@ const tableHeaders = [
   { title: '姓名', align: 'left', sortable: true, key: 'name' },
   { title: 'Email', align: 'left', sortable: true, key: 'email' },
   { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
-  { title: '所屬公司', align: 'left', sortable: true, key: 'department.companyId' },
+  { title: '所屬公司', align: 'left', sortable: true, key: 'company.name' },
   { title: '部門', align: 'left', sortable: true, key: 'department.name' },
   { title: '分機', align: 'left', sortable: true, key: 'extNumber' },
   { title: '身分別', align: 'left', sortable: true, key: 'role' },
@@ -1306,9 +1364,6 @@ const searchCriteria = ref({
 const quickSearchText = ref('')
 
 // ===== 輔助函數 =====
-const getCompanyName = (companyId) => {
-  return companyNames[companyId] || '未知公司'
-}
 
 const getRoleTitle = (roleValue) => {
   return roleNames[roleValue] || '未知'
@@ -1355,32 +1410,49 @@ const loadDepartments = async () => {
   }
 }
 
+const loadCompanies = async () => {
+  try {
+    const { data } = await apiAuth.get('/company/all')
+    if (data.success) {
+      companies.value = data.result
+    }
+  } catch (error) {
+    console.error('載入公司列表失敗:', error)
+    createSnackbar({
+      text: '載入公司列表失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  }
+}
+
 // 獲取特定公司的部門
 const fetchDepartments = async () => {
-  if (!selectedCompany.value) {
+  if (!searchCriteria.value.companyId) {
     filteredDepartments.value = []
     return
   }
 
   try {
-    const response = await apiAuth.get('/department/all', {
-      params: { companyId: selectedCompany.value }
+    const { data } = await apiAuth.get('/department/all', {
+      params: { companyId: searchCriteria.value.companyId }
     })
 
-    if (response.data && response.data.result && response.data.result.data) {
-      filteredDepartments.value = response.data.result.data.filter(
-        dept => dept.companyId === selectedCompany.value
-      )
+    // 確保資料結構一致
+    if (data.success) {
+      filteredDepartments.value = data.result?.data || [] // 加上 ?.data
     } else {
-      console.warn('No departments found for selected company.')
+      console.warn('找不到該公司的部門')
       filteredDepartments.value = []
     }
   } catch (error) {
-    console.error('部門加載失敗:', error)
+    console.error('載入部門失敗:', error)
+    createSnackbar({
+      text: '載入部門失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
     filteredDepartments.value = []
   }
 }
-
 // ===== 表格操作函數 =====
 const tableLoadItems = async (reset, page) => {
   if (reset) {
@@ -1392,7 +1464,7 @@ const tableLoadItems = async (reset, page) => {
 }
 
 // 搜尋相關函數
-const performSearch = async (fromQuickSearch = false) => {
+const performSearch = async () => {
   tableLoading.value = true
   try {
     const params = {
@@ -1400,16 +1472,32 @@ const performSearch = async (fromQuickSearch = false) => {
       itemsPerPage: tableItemsPerPage.value,
       sortBy: tableSortBy.value[0]?.key || 'userId',
       sortOrder: tableSortBy.value[0]?.order || 'asc',
-      ...Object.fromEntries(
-        Object.entries(searchCriteria.value).filter(
-          ([_, value]) => value !== '' && value !== null && value !== undefined
-        )
-      )
+      quickSearch: quickSearchText.value
     }
 
-    if (fromQuickSearch) {
-      params.quickSearch = quickSearchText.value
+    // 修改這裡的參數映射邏輯
+    if (searchCriteria.value.companyId) {
+      // 直接使用 companyId
+      params.companyId = searchCriteria.value.companyId
     }
+    if (searchCriteria.value.department) {
+      // 直接使用 department ID
+      params.departmentId = searchCriteria.value.department
+    }
+    if (searchCriteria.value.role !== '') {
+      params.role = searchCriteria.value.role
+    }
+    if (searchCriteria.value.gender !== '') {
+      params.gender = searchCriteria.value.gender
+    }
+    if (searchCriteria.value.guideLicense !== '') {
+      params.guideLicense = searchCriteria.value.guideLicense
+    }
+    if (searchCriteria.value.employmentStatus !== '') {
+      params.employmentStatus = searchCriteria.value.employmentStatus
+    }
+
+    console.log('Search params:', params) // 加入這行來檢查發送的參數
 
     const response = await apiAuth.get('/user/all', { params })
 
@@ -1418,10 +1506,7 @@ const performSearch = async (fromQuickSearch = false) => {
       tableItems.value = users
       tableItemsLength.value = totalItems
 
-      const maxPage = Math.ceil(totalItems / tableItemsPerPage.value)
-      if (tablePage.value > maxPage) {
-        tablePage.value = Math.max(1, maxPage)
-      }
+      console.log('Response data:', users) // 加入這行來檢查返回的數據
     } else {
       throw new Error(response.data.message)
     }
@@ -1470,72 +1555,53 @@ const sendInitialPassword = async () => {
 const submit = handleSubmit(async (values) => {
   try {
     if (isEditing.value) {
-      // 編輯模式
       const currentPageNumber = tablePage.value
 
+      // 直接使用選擇的公司 ID
       const { data: updateResponse } = await apiAuth.patch(`/user/${dialog.value.id}`, {
-        ...values
+        ...values,
+        company: selectedCompany.value
       })
-
-      const { data: departmentResponse } = await apiAuth.get(`/department/${values.department}`)
 
       const index = tableItems.value.findIndex(item => item._id === dialog.value.id)
       if (index !== -1) {
         tableItems.value[index] = {
           ...updateResponse.result,
-          department: departmentResponse.result
+          company: companies.value.find(c => c._id === selectedCompany.value),
+          department: {
+            _id: values.department,
+            name: filteredDepartments.value.find(d => d._id === values.department)?.name || ''
+          }
         }
       }
 
-      localStorage.setItem('userTablePage', currentPageNumber.toString())
       await tableLoadItems(false, currentPageNumber)
     } else {
-      // 新增模式
-      // 只傳必要的資料，不含密碼相關
-      const userData = {
-        email: values.email,
-        name: values.name,
-        englishName: values.englishName,
-        gender: values.gender,
-        IDNumber: values.IDNumber,
-        permanentAddress: values.permanentAddress,
-        contactAddress: values.contactAddress,
-        birthDate: values.birthDate,
-        company: values.company,
-        department: values.department,
-        cellphone: values.cellphone,
-        salary: values.salary,
-        extNumber: values.extNumber,
-        printNumber: values.printNumber,
-        guideLicense: values.guideLicense,
-        jobTitle: values.jobTitle,
-        role: values.role,
-        employmentStatus: values.employmentStatus,
-        hireDate: values.hireDate,
-        resignationDate: values.resignationDate,
-        emergencyName: values.emergencyName,
-        emergencyCellphone: values.emergencyCellphone,
-        emergencyRelationship: values.emergencyRelationship,
-        note: values.note
-      }
+      await apiAuth.post('/user', {
+        ...values,
+        company: selectedCompany.value
+      })
 
-      await apiAuth.post('/user', userData)
-      localStorage.setItem('userTablePage', '1')
       await tableLoadItems(true)
     }
 
     // 重新整理相關元件
-    await chartRef.value?.refreshChart()
-    await turnoverChartRef.value?.refreshChart()
-    await birthdayReminderRef.value?.refreshData()
+    await Promise.all([
+      chartRef.value?.refreshChart(),
+      turnoverChartRef.value?.refreshChart(),
+      birthdayReminderRef.value?.refreshData()
+    ])
 
+    // 顯示成功訊息
     createSnackbar({
       text: isEditing.value ? '員工資料更新成功' : '員工新增成功',
       snackbarProps: { color: 'teal-lighten-1' }
     })
 
+    // 關閉對話框
     closeDialog()
   } catch (error) {
+    // 錯誤處理
     const message = handleSubmitError(error)
     createSnackbar({
       text: message,
@@ -1553,34 +1619,77 @@ const handleSubmitError = (error) => {
     手機號碼已註冊: '手機號碼已經被使用,請確認是否輸入正確',
     分機號碼已註冊: '分機號碼已經被使用,請使用其他號碼',
     列印編號已註冊: '列印編號已經存在,請使用其他編號',
-    員工編號已註冊: '員工編號已經被使用,請重新輸入'
+    員工編號已註冊: '員工編號已經被使用,請重新輸入',
+    科威帳號已註冊: '科威帳號已經被使用,請使用其他帳號',
+    科威密碼已註冊: '科威密碼已經被使用,請使用其他密碼'
   }
 
   return errorMessages[error.response.data.message] || error.response.data.message
 }
 
 // ===== 對話框操作函數 =====
-const openDialog = (item) => {
-  isInitializingStatus.value = true
-  isInitialLoad.value = true
-
+const openDialog = async (item) => {
+  // 檢查權限
   if (!hasEditPermission.value) {
     createSnackbar({
       text: '權限不足',
-      snackbarProps: {
-        color: 'red-lighten-1'
-      }
+      snackbarProps: { color: 'red-lighten-1' }
     })
     return
   }
 
+  isInitializingStatus.value = true
+  isInitialLoad.value = true
   currentPage.value = tablePage.value
+  dialog.value.open = true
+
   if (item) {
+    // 編輯模式
     isEditing.value = true
     dialog.value.id = item._id
-    employmentStatus.value.value = item.employmentStatus
-    localStorage.setItem('userTablePage', tablePage.value.toString())
 
+    // 先設置公司資料
+    if (item.company) {
+      selectedCompany.value = item.company._id
+      company.value.value = item.company._id
+
+      // 等待部門資料載入完成
+      await handleCompanyChange(item.company._id)
+
+      // 確保部門資料載入後再設置部門值
+      if (item.department && item.department._id) {
+        department.value.value = item.department._id
+      }
+    }
+
+    // 直接設置各個表單欄位值
+    email.value.value = item.email
+    name.value.value = item.name
+    englishName.value.value = item.englishName
+    gender.value.value = item.gender
+    IDNumber.value.value = item.IDNumber
+    permanentAddress.value.value = item.permanentAddress
+    contactAddress.value.value = item.contactAddress
+    birthDate.value.value = formatToDate(item.birthDate)
+    cellphone.value.value = item.cellphone
+    salary.value.value = item.salary
+    extNumber.value.value = item.extNumber
+    printNumber.value.value = item.printNumber
+    guideLicense.value.value = item.guideLicense
+    jobTitle.value.value = item.jobTitle
+    role.value.value = item.role
+    employmentStatus.value.value = item.employmentStatus
+    hireDate.value.value = formatToDate(item.hireDate)
+    resignationDate.value.value = formatToDate(item.resignationDate)
+    emergencyName.value.value = item.emergencyName
+    emergencyCellphone.value.value = item.emergencyCellphone
+    emergencyRelationship.value.value = item.emergencyRelationship ?? ''
+    note.value.value = item.note ?? ''
+    userId.value.value = item.userId ?? ''
+    cowellAccount.value.value = item.cowellAccount
+    cowellPassword.value.value = item.cowellPassword
+
+    // 保存原始資料用於比對變更
     originalData.value = {
       email: item.email,
       name: item.name,
@@ -1590,8 +1699,6 @@ const openDialog = (item) => {
       permanentAddress: item.permanentAddress,
       contactAddress: item.contactAddress,
       birthDate: formatToDate(item.birthDate),
-      company: item.department?.companyId || 1,
-      department: item.department?._id,
       cellphone: item.cellphone,
       salary: item.salary,
       extNumber: item.extNumber,
@@ -1606,57 +1713,25 @@ const openDialog = (item) => {
       emergencyCellphone: item.emergencyCellphone,
       emergencyRelationship: item.emergencyRelationship ?? '',
       note: item.note ?? '',
-      userId: item.userId ?? ''
+      userId: item.userId ?? '',
+      cowellAccount: item.cowellAccount,
+      cowellPassword: item.cowellPassword
     }
 
-    if (!item) {
-      isEditing.value = false
-      dialog.value.id = ''
-      originalData.value = null
-      selectedCompany.value = 1
-      fetchDepartments()
-      resetForm()
-      hireDate.value.value = new Date()
-    }
-
-    // 設置表單值
-    email.value.value = item.email
-    name.value.value = item.name
-    englishName.value.value = item.englishName
-    gender.value.value = item.gender
-    IDNumber.value.value = item.IDNumber
-    permanentAddress.value.value = item.permanentAddress
-    contactAddress.value.value = item.contactAddress
-    birthDate.value.value = formatToDate(item.birthDate)
-    hireDate.value.value = formatToDate(item.hireDate)
-    resignationDate.value.value = formatToDate(item.resignationDate)
-    selectedCompany.value = item.department?.companyId || 1
-    fetchDepartments().then(() => {
-      department.value.value = item.department?._id
-    })
-    cellphone.value.value = item.cellphone
-    salary.value.value = item.salary
-    extNumber.value.value = item.extNumber
-    printNumber.value.value = item.printNumber
-    guideLicense.value.value = item.guideLicense
-    jobTitle.value.value = item.jobTitle
-    role.value.value = item.role
-    employmentStatus.value.value = item.employmentStatus
-    emergencyName.value.value = item.emergencyName
-    emergencyCellphone.value.value = item.emergencyCellphone
-    emergencyRelationship.value.value = item.emergencyRelationship ?? ''
-    note.value.value = item.note ?? ''
-    userId.value.value = item.userId ?? ''
+    // 保存當前頁碼
+    localStorage.setItem('userTablePage', tablePage.value.toString())
   } else {
+    // 新增模式
     isEditing.value = false
     dialog.value.id = ''
     originalData.value = null
-    selectedCompany.value = 1
-    fetchDepartments()
+    selectedCompany.value = null
+    filteredDepartments.value = []
     resetForm()
     hireDate.value.value = new Date()
   }
-  dialog.value.open = true
+
+  // 延遲重置狀態旗標
   setTimeout(() => {
     isInitializingStatus.value = false
     isInitialLoad.value = false
@@ -1749,6 +1824,7 @@ const resetSearch = () => {
   }
   filteredDepartments.value = []
   tableSearch.value = ''
+  quickSearchText.value = ''
   performSearch()
 }
 
@@ -1782,7 +1858,9 @@ const hasChanges = computed(() => {
     emergencyCellphone: emergencyCellphone.value.value,
     emergencyRelationship: emergencyRelationship.value.value ?? '',
     note: note.value.value ?? '',
-    userId: userId.value.value ?? ''
+    userId: userId.value.value ?? '',
+    cowellAccount: cowellAccount.value,
+    cowellPassword: cowellPassword.value
   }
 
   return Object.keys(originalData.value).some(key => {
@@ -1804,31 +1882,41 @@ const hasChanges = computed(() => {
 
 // ===== 監聽器 =====
 // 公司變更處理
-const handleCompanyChange = async (companyId) => {
+const handleCompanyChange = async (selectedCompanyId) => {
   try {
-    if (companyId) {
-      const response = await apiAuth.get('/department/all', {
-        params: { companyId }
-      })
-      if (response.data?.result?.data) {
-        filteredDepartments.value = response.data.result.data
-        const currentDepartment = filteredDepartments.value.find(
-          dept => dept._id === searchCriteria.value.department
-        )
-        if (!currentDepartment) {
-          searchCriteria.value.department = ''
-        }
-      }
+    if (dialog.value.open) {
+      selectedCompany.value = selectedCompanyId
+      // 不要在這裡清空部門，等待新的部門資料載入
     } else {
-      searchCriteria.value.department = ''
+      searchCriteria.value = {
+        ...searchCriteria.value,
+        companyId: selectedCompanyId,
+        department: ''
+      }
+    }
+
+    if (!selectedCompanyId) {
+      filteredDepartments.value = []
+      return
+    }
+
+    // 獲取部門列表
+    const { data } = await apiAuth.get('/department/all', {
+      params: { companyId: selectedCompanyId }
+    })
+
+    if (data.success) {
+      filteredDepartments.value = data.result
+    } else {
       filteredDepartments.value = []
     }
   } catch (error) {
     console.error('載入部門失敗:', error)
     createSnackbar({
       text: '載入部門資料失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
+    filteredDepartments.value = []
   }
 }
 
@@ -1848,11 +1936,19 @@ watch(quickSearchText, (newVal) => {
 watch(selectedCompany, async (newVal) => {
   if (newVal !== null && newVal !== undefined) {
     company.value.value = newVal
-    department.value.value = null
-    await fetchDepartments()
+    department.value.value = ''
+    await handleCompanyChange(newVal)
   } else {
     company.value.value = null
-    department.value.value = null
+    department.value.value = ''
+    filteredDepartments.value = []
+  }
+})
+
+watch(() => searchCriteria.value.companyId, async (newVal) => {
+  if (newVal) {
+    await handleCompanyChange(newVal)
+  } else {
     filteredDepartments.value = []
   }
 })
@@ -1917,6 +2013,7 @@ onMounted(async () => {
     tableKey.value++
   }
 
+  await loadCompanies()
   await loadDepartments()
   await fetchDepartments()
   await performSearch()
