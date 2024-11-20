@@ -212,10 +212,17 @@ const googleLoginCallback = async (response) => {
     }
   } catch (error) {
     console.error('Google 登入錯誤:', error)
-    createSnackbar({
-      text: 'Google 登入失敗,請稍後再試',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
+    if (error.response && error.response.data && error.response.data.message === '您是初次登入，請使用初始密碼登入') {
+      createSnackbar({
+        text: '您是初次登入，請使用初始密碼登入',
+        snackbarProps: { color: 'red-lighten-1' }
+      })
+    } else {
+      createSnackbar({
+        text: 'Google 登入失敗，請稍後再試',
+        snackbarProps: { color: 'red-lighten-1' }
+      })
+    }
   }
 }
 

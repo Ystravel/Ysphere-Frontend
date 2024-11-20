@@ -139,11 +139,12 @@
                     <v-select
                       v-model="searchCriteria.dateType"
                       :items="dateTypes"
-                      label="篩選類型"
+                      label="篩選類型(尚待修正)"
                       variant="outlined"
                       density="compact"
                       hide-details
                       clearable
+                      disabled="true"
                     />
                   </v-col>
                   <!-- 任職狀態選擇 -->
@@ -153,13 +154,15 @@
                   >
                     <v-date-input
                       v-model="searchCriteria.dateRange"
-                      label="日期區間"
+                      label="日期區間(尚待修正)"
                       variant="outlined"
                       density="compact"
                       hide-details
                       multiple="range"
                       prepend-icon
                       clearable
+                      persistent-placeholder
+                      disabled="true"
                     />
                   </v-col>
                 </v-row>
@@ -393,6 +396,7 @@
                     <!-- 添加密碼重置按鈕 -->
                     <v-btn
                       v-if="item.isFirstLogin"
+                      v-tooltip="'發送初始密碼'"
                       icon
                       color="teal-darken-1"
                       variant="plain"
@@ -424,9 +428,12 @@
       <div class="card-title pa-4">
         發送初始密碼
       </div>
-      <v-card-text class="ps-4 py-3">
-        確定要發送系統生成的初始密碼給 {{ resetPasswordDialog.userName }} 嗎？
-      </v-card-text>
+      <div class="list-content ps-4 py-3 mb-4">
+        確定要發送系統生成的初始密碼給<span
+          style="font-weight: 800;"
+          class="text-cyan-darken-2"
+        >{{ resetPasswordDialog.userName }}</span> 嗎？
+      </div>
       <v-card-actions class="pa-4 pt-0">
         <v-spacer />
         <v-btn
@@ -1072,7 +1079,7 @@
   <ConfirmDeleteDialogWithTextField
     v-model="confirmDeleteDialog"
     title="確認刪除員工"
-    :message="`確定要刪除員工「${originalData?.name || ''}」(${originalData?.userId || ''}) 嗎？ 此操作無法復原。`"
+    :message="`確定要刪除員工「<span class='text-pink-lighten-1' style='font-weight: 800;'>${originalData?.name || ''}</span>」(<span class='text-pink-lighten-1' style='font-weight: 800;'> ${originalData?.userId || ''} </span>)嗎？ 此操作無法復原。`"
     :expected-name="originalData?.name || ''"
     input-label="員工姓名"
     @confirm="deleteUser"
@@ -1165,10 +1172,17 @@ const roles = ref(
 )
 
 const companyOptions = computed(() => {
-  return companies.value.map(company => ({
-    title: `${company.name}`, // 移除 companyId
-    value: company._id // 直接使用 _id 作為 value
-  }))
+  return [...companies.value]
+    .sort((a, b) => {
+      // 確保 companyId 存在
+      const idA = a.companyId || ''
+      const idB = b.companyId || ''
+      return idA.localeCompare(idB)
+    })
+    .map(company => ({
+      title: `${company.name}`,
+      value: company._id
+    }))
 })
 
 const companies = ref([])
@@ -1176,10 +1190,17 @@ const companies = ref([])
 const companyList = computed(() => {
   return [
     { title: '全部', value: '' },
-    ...companies.value.map(company => ({
-      title: company.name,
-      value: company._id // 直接使用 _id 作為 value
-    }))
+    ...[...companies.value]
+      .sort((a, b) => {
+        // 確保 companyId 存在
+        const idA = a.companyId || ''
+        const idB = b.companyId || ''
+        return idA.localeCompare(idB)
+      })
+      .map(company => ({
+        title: company.name,
+        value: company._id
+      }))
   ]
 })
 
@@ -1427,6 +1448,17 @@ const formatToDate = (dateString) => {
   return dateString ? new Date(dateString) : null
 }
 
+// const formatDate = (date, dateType) => {
+//   if (!date) return '-'
+//   const d = new Date(date)
+//   const pad = (n) => String(n).padStart(2, '0')
+//   if (dateType === 'birthDate') {
+//     return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+//   } else {
+//     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+//   }
+// }
+
 // ===== 權限檢查 =====
 const hasEditPermission = computed(() => {
   return user.isSuperAdmin || user.isHR || user.isAdmin
@@ -1491,9 +1523,9 @@ const fetchDepartments = async () => {
       params: { companyId: searchCriteria.value.companyId }
     })
 
-    // 確保資料結構一致
+    // 直接使用 data.result，不需要 ?.data
     if (data.success) {
-      filteredDepartments.value = data.result?.data || [] // 加上 ?.data
+      filteredDepartments.value = data.result || []
     } else {
       console.warn('找不到該公司的部門')
       filteredDepartments.value = []
@@ -1507,6 +1539,7 @@ const fetchDepartments = async () => {
     filteredDepartments.value = []
   }
 }
+
 // ===== 表格操作函數 =====
 const tableLoadItems = async (reset, page) => {
   if (reset) {
@@ -1521,70 +1554,72 @@ const tableLoadItems = async (reset, page) => {
 const performSearch = async () => {
   tableLoading.value = true
   try {
-    const params = {
-      page: tablePage.value,
-      itemsPerPage: tableItemsPerPage.value,
-      sortBy: tableSortBy.value[0]?.key || 'userId',
-      sortOrder: tableSortBy.value[0]?.order || 'asc',
-      quickSearch: quickSearchText.value
-    }
-
-    console.log('搜尋參數:', params)
-
-    // 處理日期搜尋
-    if (searchCriteria.value.dateType && searchCriteria.value.dateRange?.length >= 2) {
-      const startDate = searchCriteria.value.dateRange[0] ? new Date(searchCriteria.value.dateRange[0]).toISOString() : null
-      const endDate = searchCriteria.value.dateRange[searchCriteria.value.dateRange.length - 1] ? new Date(searchCriteria.value.dateRange[searchCriteria.value.dateRange.length - 1]).toISOString() : null
-
-      if (startDate && endDate) {
-        if (searchCriteria.value.dateType === 'hireDate') {
-          params.hireDateStart = startDate
-          params.hireDateEnd = endDate
-        } else if (searchCriteria.value.dateType === 'resignationDate') {
-          params.resignationDateStart = startDate
-          params.resignationDateEnd = endDate
-        } else if (searchCriteria.value.dateType === 'birthDate') {
-          params.birthDateStart = startDate
-          params.birthDateEnd = endDate
-        }
+    // 檢查是否有日期搜尋
+    if (searchCriteria.value.dateType && searchCriteria.value.dateRange?.length > 0) {
+      // 使用日期搜尋 API
+      const params = {
+        dateType: searchCriteria.value.dateType,
+        startDate: searchCriteria.value.dateRange[0].toISOString(),
+        endDate: searchCriteria.value.dateRange[searchCriteria.value.dateRange.length - 1].toISOString(),
+        page: tablePage.value,
+        itemsPerPage: tableItemsPerPage.value,
+        sortBy: tableSortBy.value[0]?.key || 'userId',
+        sortOrder: tableSortBy.value[0]?.order || 'asc',
+        companyId: searchCriteria.value.companyId || undefined,
+        departmentId: searchCriteria.value.department || undefined,
+        employmentStatus: searchCriteria.value.employmentStatus || undefined
       }
-    }
 
-    console.log('日期區間:', searchCriteria.value.dateRange)
-    console.log('篩選類型:', searchCriteria.value.dateType)
+      console.log('Date search params:', params)
 
-    // 處理其他搜尋條件
-    if (searchCriteria.value.companyId) {
-      params.companyId = searchCriteria.value.companyId
-    }
-    if (searchCriteria.value.department) {
-      params.departmentId = searchCriteria.value.department
-    }
-    if (searchCriteria.value.role !== '') {
-      params.role = searchCriteria.value.role
-    }
-    if (searchCriteria.value.gender !== '') {
-      params.gender = searchCriteria.value.gender
-    }
-    if (searchCriteria.value.guideLicense !== '') {
-      params.guideLicense = searchCriteria.value.guideLicense
-    }
-    if (searchCriteria.value.employmentStatus !== '') {
-      params.employmentStatus = searchCriteria.value.employmentStatus
-    }
+      const response = await apiAuth.get('/user/date-search', { params })
 
-    console.log('搜尋參數:', params)
-
-    const response = await apiAuth.get('/user/all', { params })
-
-    console.log('後端返回資料:', response.data)
-
-    if (response.data.success) {
-      const { data: users, totalItems } = response.data.result
-      tableItems.value = users
-      tableItemsLength.value = totalItems
+      if (response.data.success) {
+        const { data: users, totalItems } = response.data.result
+        tableItems.value = users
+        tableItemsLength.value = totalItems
+      } else {
+        throw new Error(response.data.message)
+      }
     } else {
-      throw new Error(response.data.message)
+      // 使用原有的搜尋 API
+      const params = {
+        page: tablePage.value,
+        itemsPerPage: tableItemsPerPage.value,
+        sortBy: tableSortBy.value[0]?.key || 'userId',
+        sortOrder: tableSortBy.value[0]?.order || 'asc',
+        quickSearch: quickSearchText.value
+      }
+
+      // 添加其他搜尋條件
+      if (searchCriteria.value.companyId) {
+        params.companyId = searchCriteria.value.companyId
+      }
+      if (searchCriteria.value.department) {
+        params.departmentId = searchCriteria.value.department
+      }
+      if (searchCriteria.value.role !== '') {
+        params.role = searchCriteria.value.role
+      }
+      if (searchCriteria.value.gender !== '') {
+        params.gender = searchCriteria.value.gender
+      }
+      if (searchCriteria.value.guideLicense !== '') {
+        params.guideLicense = searchCriteria.value.guideLicense
+      }
+      if (searchCriteria.value.employmentStatus !== '') {
+        params.employmentStatus = searchCriteria.value.employmentStatus
+      }
+
+      const response = await apiAuth.get('/user/all', { params })
+
+      if (response.data.success) {
+        const { data: users, totalItems } = response.data.result
+        tableItems.value = users
+        tableItemsLength.value = totalItems
+      } else {
+        throw new Error(response.data.message)
+      }
     }
   } catch (error) {
     console.error('搜尋失敗:', error)
@@ -1963,9 +1998,9 @@ const hasChanges = computed(() => {
 // 公司變更處理
 const handleCompanyChange = async (selectedCompanyId) => {
   try {
+    // 先設置公司 ID
     if (dialog.value.open) {
       selectedCompany.value = selectedCompanyId
-      // 不要在這裡清空部門，等待新的部門資料載入
     } else {
       searchCriteria.value = {
         ...searchCriteria.value,
@@ -1974,19 +2009,31 @@ const handleCompanyChange = async (selectedCompanyId) => {
       }
     }
 
+    // 如果沒有選擇公司，清空部門列表並返回
     if (!selectedCompanyId) {
       filteredDepartments.value = []
       return
     }
 
+    console.log('正在載入公司ID的部門:', selectedCompanyId) // 新增除錯訊息
+
     // 獲取部門列表
     const { data } = await apiAuth.get('/department/all', {
-      params: { companyId: selectedCompanyId }
+      params: {
+        companyId: selectedCompanyId,
+        itemsPerPage: 100 // 確保獲取所有部門
+      }
     })
 
+    console.log('API 返回的部門數據:', data) // 新增除錯訊息
+
     if (data.success) {
-      filteredDepartments.value = data.result
+      // 確保從正確的位置獲取部門數據
+      filteredDepartments.value = data.result?.data || []
+
+      console.log('設置過濾後的部門列表:', filteredDepartments.value) // 新增除錯訊息
     } else {
+      console.warn('找不到該公司的部門')
       filteredDepartments.value = []
     }
   } catch (error) {

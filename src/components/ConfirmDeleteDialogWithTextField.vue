@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <v-dialog
     v-model="isOpen"
@@ -9,7 +10,7 @@
         {{ title }}
       </v-card-title>
       <v-card-text class="ms-1 pb-0">
-        {{ message }}
+        <div v-html="message" />
         <v-text-field
           v-model="inputName"
           :error-messages="errorMessage"
@@ -23,7 +24,7 @@
       <v-card-actions class="me-4 mb-2">
         <v-spacer />
         <v-btn
-          :size="cancelButtonSize"
+          :size="buttonSize"
           :color="cancelButtonColor"
           variant="outlined"
           @click="cancel"
@@ -31,7 +32,7 @@
           {{ cancelButtonText }}
         </v-btn>
         <v-btn
-          :size="confirmButtonSize"
+          :size="buttonSize"
           :color="confirmButtonColor"
           variant="outlined"
           :disabled="!props.expectedName || inputName !== props.expectedName || inputName === ''"
@@ -46,6 +47,12 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
+import { useDisplay } from 'vuetify'
+
+const { smAndUp } = useDisplay()
+const buttonSize = computed(() => {
+  return smAndUp.value ? 'default' : 'small'
+})
 
 const props = defineProps({
   title: {
@@ -76,14 +83,6 @@ const props = defineProps({
   cancelButtonText: {
     type: String,
     default: '取消'
-  },
-  cancelButtonSize: {
-    type: String,
-    default: 'small'
-  },
-  confirmButtonSize: {
-    type: String,
-    default: 'small'
   },
   inputLabel: {
     type: String,
@@ -125,6 +124,10 @@ const confirm = () => {
 }
 </script>
 
-<style scoped>
-/* 根據需要定義樣式 */
+<style lang="scss" scoped>
+:deep(.v-card-text) {
+  .text-red {
+    color: #ef5350 !important;
+  }
+}
 </style>

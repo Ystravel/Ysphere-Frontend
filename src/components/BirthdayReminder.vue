@@ -63,7 +63,7 @@
                           style="font-size: 14px;"
                         >{{ birthday.name }}</span>
                         <div class="text-caption text-grey-darken-1">
-                          {{ birthday.department?.name || '未分配部門' }}({{ birthday.departmentData?.departmentId }})
+                          {{ birthday.department?.name || '未分配部門' }}({{ birthday.department?.departmentId }})
                         </div>
                       </div>
                       <v-chip

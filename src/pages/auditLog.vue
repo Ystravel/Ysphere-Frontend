@@ -709,7 +709,7 @@ const formatDateTime = (date) => {
 
 // 格式化日期
 const formatDate = (date) => {
-  if (!date) return '-'
+  if (!date) return '(無)'
   const d = new Date(date)
   const pad = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -826,58 +826,35 @@ const formatChanges = (item) => {
   const addedKeys = new Set() // 用於追蹤已處理的欄位，避免重複添加
 
   Object.entries(item.changes).forEach(([key, value]) => {
-    // 跳過 c_id 變更
-    if (key === 'c_id') return
-
-    // 檢查是否為有效的變更
     if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
+    if (addedKeys.has(key)) return // 跳過已處理的欄位
 
-    // 跳過已處理的欄位
-    if (addedKeys.has(key)) return
+    // 檢查 from 和 to 的值，如果是日期則格式化
+    const formatDateIfNecessary = (val) => {
+      if (!val || val === '(無)') return '(無)'
+      if (typeof val === 'string' && val.includes('T')) {
+        return formatDate(val) // 使用修改後的 formatDate 方法
+      }
+      return val
+    }
 
-    const from = value.from === '' || value.from === null ? '(無)' : value.from
-    const to = value.to === '' || value.to === null ? '(無)' : value.to
+    const from = formatDateIfNecessary(value.from)
+    const to = formatDateIfNecessary(value.to)
 
     const fieldName = getFieldName(key, item.targetModel)
 
-    if (key === 'cowellAccount' || key === 'cowellPassword') {
-      changes.push(`${fieldName}: 已設定`)
-      addedKeys.add(key)
-      return
-    }
-
-    // 忽略創建操作中「無 → 值」的情況，僅保留新增的值
     if (item.action === '創建') {
       if (to !== '(無)') {
-        changes.push(
-          key === 'birthDate' || key === 'hireDate'
-            ? `${fieldName}: ${formatDate(to)}`
-            : `${fieldName}: ${to}`
-        )
+        changes.push(`${fieldName}: ${to}`)
         addedKeys.add(key)
       }
       return
     }
 
-    // 忽略沒有實際變更的欄位
-    if (from === to) return
+    if (from === to) return // 忽略沒有變更的欄位
 
     if (fieldName) {
-      switch (key) {
-        case 'birthDate':
-        case 'hireDate':
-        case 'resignationDate':
-          changes.push(`${fieldName}: ${from === '(無)' ? from : formatDate(from)} → ${to === '(無)' ? to : formatDate(to)}`)
-          break
-        case 'salary':
-          changes.push(`${fieldName}: ${from === '(無)' ? from : from?.toLocaleString()} → ${to === '(無)' ? to : to?.toLocaleString()}`)
-          break
-        case 'guideLicense':
-          changes.push(`${fieldName}: ${from === '(無)' ? from : (from ? '有' : '無')} → ${to === '(無)' ? to : (to ? '有' : '無')}`)
-          break
-        default:
-          changes.push(`${fieldName}: ${from} → ${to}`)
-      }
+      changes.push(`${fieldName}: ${from} → ${to}`)
       addedKeys.add(key)
     }
   })

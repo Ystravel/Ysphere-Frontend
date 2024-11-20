@@ -78,7 +78,7 @@
               >
                 <v-select
                   v-model="companyFilter"
-                  :items="[{ name: '全部', _id: '' }, ...companies]"
+                  :items="[{ name: '全部', _id: '' }, ...sortedCompanies]"
                   label="選擇公司"
                   item-title="name"
                   item-value="_id"
@@ -118,18 +118,17 @@
 
           <v-col cols="12">
             <v-data-table-server
+              :key="tableKey"
               v-model:items-per-page="tableItemsPerPage"
               v-model:sort-by="tableSortBy"
-              :headers="filteredHeaders"
-              :header-props="headerProps"
               :items="departments"
               :items-length="tableItemsLength"
               :loading="tableLoading"
               :page="tablePage"
+              :headers="filteredHeaders"
+              :header-props="headerProps"
               density="compact"
               :items-per-page-options="[10, 20, 50]"
-              :search="tableSearch"
-              class="rounded-ts-lg rounded-te-lg py-3"
               hover
               @update:options="handleTableUpdate"
             >
@@ -147,6 +146,7 @@
                       color="light-blue-darken-4"
                       variant="plain"
                       :size="buttonSize"
+                      :ripple="false"
                       @click="openEditDepartment(item)"
                     >
                       <v-icon>mdi-pencil</v-icon>
@@ -156,6 +156,7 @@
                       color="red-lighten-1"
                       variant="plain"
                       :size="buttonSize"
+                      :ripple="false"
                       @click="confirmDeleteDepartment(item)"
                     >
                       <v-icon>mdi-delete</v-icon>
@@ -173,7 +174,7 @@
     <v-dialog
       v-model="companyDialog.open"
       persistent
-      width="444"
+      width="395"
     >
       <v-card class="rounded-lg pa-4">
         <div class="card-title ps-6 py-3">
@@ -182,41 +183,70 @@
         <v-card-text class="px-4 pb-2">
           <div class="mb-8">
             <v-chip
-              v-for="company in companies"
-              :key="company.id"
-              class="mx-2 mb-2 pa-4 pe-1"
-              color="blue-grey-darken-1"
+              v-for="company in sortedCompanies"
+              :key="company._id"
+              class="ms-2 me-4 mb-2 pa-4 pe-1"
+              color="blue-grey-darken-2"
               label
             >
-              {{ company.companyId }} {{ company.name }}
-              <v-btn
-                icon
-                size="x-small"
-                variant="text"
-                class="ms-2"
-                :ripple="false"
-                color="light-blue-darken-4"
-                @click="openEditCompany(company)"
-              >
-                <v-icon>mdi-pencil</v-icon>
-              </v-btn>
-              <v-btn
-                icon
-                size="x-small"
-                variant="text"
-                :ripple="false"
-                color="red-lighten-1"
-                @click="confirmDeleteCompany(company)"
-              >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
+              <span class="text-pink-lighten-2">{{ company.companyId }}&nbsp;</span>  {{ company.name }}
+              <v-menu>
+                <template #activator="{ props }">
+                  <v-btn
+                    icon
+                    size="x-small"
+                    variant="text"
+                    class="ms-2"
+                    :ripple="false"
+                    color="white"
+                    v-bind="props"
+                  >
+                    <v-icon color="cyan-darken-3">
+                      mdi-dots-vertical
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <v-list density="compact">
+                  <v-list-item
+                    density="compact"
+                    class="ps-2 pe-3 py-0"
+                    @click="openEditCompany(company)"
+                  >
+                    <v-icon
+                      icon="mdi-pencil"
+                      size="16"
+                      color="light-blue-darken-4"
+                    />
+                    <span
+                      style="font-size: 14px;"
+                      class="ps-2 text-blue-grey-darken-2"
+                    >編輯</span>
+                  </v-list-item>
+                  <v-list-item
+                    density="compact"
+                    class="ps-2 pe-3 py-0"
+                    color="red-lighten-1"
+                    @click="confirmDeleteCompany(company)"
+                  >
+                    <v-icon
+                      icon="mdi-delete"
+                      size="16"
+                      color="red-lighten-1"
+                    />
+                    <span
+                      style="font-size: 14px;"
+                      class="ps-2 text-blue-grey-darken-2"
+                    >刪除</span>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </v-chip>
           </div>
           <v-form @submit.prevent="submitCompany">
             <v-text-field
               v-model="companyForm.name"
               :error-messages="companyErrors"
-              label="公司名稱"
+              label="新增公司"
               required
               variant="outlined"
               density="compact"
@@ -322,7 +352,7 @@
             </template>
             <v-select
               v-model="departmentForm.c_id"
-              :items="companies"
+              :items="sortedCompanies"
               label="選擇公司"
               item-title="name"
               item-value="_id"
@@ -371,16 +401,17 @@
     <ConfirmDeleteDialogWithTextField
       v-model="deleteCompanyDialog.open"
       title="確認刪除公司"
-      :message="`確定要刪除公司「${deleteCompanyDialog.name}」嗎？此操作無法復原。`"
+      :message="`確定要刪除公司「<span class='text-pink-lighten-1' style='font-weight: 800;'>${deleteCompanyDialog.name}</span>」嗎？此操作無法復原。`"
       :expected-name="deleteCompanyDialog.name"
       input-label="公司名稱"
       @confirm="deleteCompany"
     />
 
+    <!-- 部門刪除確認 Dialog -->
     <ConfirmDeleteDialogWithTextField
       v-model="deleteDepartmentDialog.open"
       title="確認刪除部門"
-      :message="`確定要刪除部門「${deleteDepartmentDialog.name}」嗎？此操作無法復原。`"
+      :message="`確定要刪除「<span class='text-teal-darken-2' style='font-weight: 800;'>${deleteDepartmentDialog.companyName}</span>」的「<span class='text-pink-lighten-1' style='font-weight: 800;'>${deleteDepartmentDialog.name}</span>」嗎？此操作無法復原。`"
       :expected-name="deleteDepartmentDialog.name"
       input-label="部門名稱"
       @confirm="deleteDepartment"
@@ -414,6 +445,7 @@ const buttonSize = computed(() => {
 })
 
 // 表格相關
+const tableKey = ref(0)
 const tableLoading = ref(false)
 const tableItemsPerPage = ref(10)
 const tableSortBy = ref([{ key: 'departmentId', order: 'asc' }])
@@ -453,7 +485,7 @@ const editCompanyErrors = ref([])
 // 部門相關
 const departments = ref([])
 const departmentDialog = ref({ open: false, id: null })
-const deleteDepartmentDialog = ref({ open: false, id: '', name: '' })
+const deleteDepartmentDialog = ref({ open: false, id: '', name: '', companyName: '' })
 const departmentForm = ref({
   c_id: '',
   name: '',
@@ -480,6 +512,15 @@ const loadCompanies = async () => {
   }
 }
 
+const sortedCompanies = computed(() => {
+  return [...companies.value].sort((a, b) => {
+    // 確保 companyId 存在
+    const idA = a.companyId || ''
+    const idB = b.companyId || ''
+    return idA.localeCompare(idB)
+  })
+})
+
 // 載入部門列表
 const loadDepartments = async (reset = false) => {
   if (reset) {
@@ -489,15 +530,20 @@ const loadDepartments = async (reset = false) => {
   tableLoading.value = true
   try {
     const params = {
+      page: tablePage.value,
+      itemsPerPage: tableItemsPerPage.value,
+      sortBy: tableSortBy.value[0]?.key || 'departmentId',
+      sortOrder: tableSortBy.value[0]?.order || 'asc',
       companyId: companyFilter.value || null,
-      search: tableSearch.value || null // 加入搜尋參數
+      search: tableSearch.value || null
     }
 
     const { data } = await apiAuth.get('/department/all', { params })
 
     if (data.success) {
-      departments.value = data.result // 這裡的 result 已經包含 employeeCount
-      tableItemsLength.value = data.result.length || 0
+      departments.value = data.result.data
+      tableItemsLength.value = data.result.pagination.totalItems
+      console.log('Total items:', tableItemsLength.value) // 用於調試
     }
   } catch (error) {
     createSnackbar({
@@ -692,6 +738,7 @@ const submitDepartment = async () => {
   }
 
   isSubmitting.value = true
+  const currentPageNumber = tablePage.value // 保存當前頁碼
   try {
     if (departmentDialog.value.id) {
       const { data } = await apiAuth.patch(`/department/${departmentDialog.value.id}`, {
@@ -700,12 +747,14 @@ const submitDepartment = async () => {
         departmentId: departmentForm.value.departmentId
       })
       if (data.success) {
-        await loadDepartments()
         closeDepartmentDialog()
         createSnackbar({
           text: '修改部門成功',
           snackbarProps: { color: 'teal-lighten-1' }
         })
+        // 恢復先前的頁碼
+        tablePage.value = currentPageNumber
+        await loadDepartments(false) // 只需要加載一次
       }
     } else {
       const { data } = await apiAuth.post('/department', {
@@ -713,7 +762,7 @@ const submitDepartment = async () => {
         name: departmentForm.value.name
       })
       if (data.success) {
-        await loadDepartments()
+        await loadDepartments(true) // 新增時重置到第一頁
         closeDepartmentDialog()
         createSnackbar({
           text: '新增部門成功',
@@ -734,16 +783,31 @@ const submitDepartment = async () => {
 const confirmDeleteDepartment = (department) => {
   deleteDepartmentDialog.value = {
     open: true,
-    id: department._id, // 使用 _id
-    name: department.name
+    id: department._id,
+    name: department.name,
+    companyName: department.c_id?.name || '未知公司' // 添加公司名稱
   }
 }
 
 const deleteDepartment = async () => {
   try {
+    const currentPageNumber = tablePage.value // 保存當前頁碼
+
     await apiAuth.delete(`/department/${deleteDepartmentDialog.value.id}`)
-    await loadDepartments()
     deleteDepartmentDialog.value.open = false
+
+    // 計算刪除後的數據總數
+    tableItemsLength.value--
+
+    // 處理頁面跳轉邏輯
+    const totalPages = Math.ceil(tableItemsLength.value / tableItemsPerPage.value)
+    if (currentPageNumber > totalPages) {
+      tablePage.value = Math.max(1, totalPages)
+    } else {
+      tablePage.value = currentPageNumber
+    }
+
+    await loadDepartments(false)
     createSnackbar({
       text: '刪除部門成功',
       snackbarProps: { color: 'teal-lighten-1' }
@@ -766,14 +830,21 @@ const hasFormChanges = computed(() => {
   )
 })
 
-// 監聽和更新
-const handleTableUpdate = (options) => {
-  tablePage.value = options.page
-  tableItemsPerPage.value = options.itemsPerPage
-  tableSortBy.value = options.sortBy
-  loadDepartments()
+const handleTableUpdate = async (options) => {
+  const { page, itemsPerPage, sortBy } = options
+
+  // 更新表格狀態
+  tablePage.value = page
+  tableItemsPerPage.value = itemsPerPage
+  tableSortBy.value = sortBy
+
+  await loadDepartments(false) // 不重置頁碼
+
+  // 保存當前頁碼到 localStorage
+  localStorage.setItem('departmentTablePage', page.toString())
 }
 
+// 搜尋防抖
 const debouncedSearch = debounce(() => {
   loadDepartments(true)
 }, 300)
@@ -782,20 +853,36 @@ watch(companyFilter, () => {
   loadDepartments(true)
 })
 
+// 監聽搜尋和過濾條件變化
 watch(tableSearch, () => {
+  tablePage.value = 1 // 重置到第一頁
   debouncedSearch()
 })
 
-watch([tableItemsPerPage, tableSortBy, companyFilter], () => {
+watch([tableItemsPerPage, tableSortBy], () => {
+  loadDepartments(true) // 重置到第一頁
+})
+
+watch(companyFilter, () => {
+  tablePage.value = 1 // 重置到第一頁
   loadDepartments(true)
 })
 
 onMounted(async () => {
+  // 恢復保存的頁碼
+  const storedPage = localStorage.getItem('departmentTablePage')
+  if (storedPage && parseInt(storedPage) > 0) {
+    tablePage.value = parseInt(storedPage)
+    tableKey.value++
+  }
+
   await loadCompanies()
-  await loadDepartments()
+  await loadDepartments(false) // 不重置頁碼
 })
 
 onUnmounted(() => {
+  // 保存當前頁碼
+  localStorage.setItem('departmentTablePage', tablePage.value.toString())
   debouncedSearch.cancel()
 })
 </script>

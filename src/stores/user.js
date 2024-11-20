@@ -121,7 +121,8 @@ export const useUserStore = defineStore('user', () => {
       }
     } catch (error) {
       console.log('Google登入失敗:', error.message)
-      return '此Email尚未註冊，請聯絡人資'
+      // 修改這裡：返回正確的錯誤訊息
+      return error?.response?.data?.message || 'Google登入失敗，請稍後再試'
     }
   }
 

@@ -47,6 +47,24 @@
                       <template #selection="{ item }">
                         {{ item?.props?.title }}
                       </template>
+                      <template
+                        v-if="smAndUp"
+                        #append-inner
+                      >
+                        <v-tooltip
+                          location="top"
+                          close-delay="200"
+                        >
+                          <template #activator="{ props }">
+                            <v-icon
+                              v-bind="props"
+                              icon="mdi-information"
+                              size="18"
+                            />
+                          </template>
+                          輸入員編、姓名查詢
+                        </v-tooltip>
+                      </template>
                     </v-autocomplete>
                   </v-col>
 
