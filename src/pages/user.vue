@@ -429,7 +429,7 @@
         發送初始密碼
       </div>
       <div class="list-content ps-4 py-3 mb-4">
-        確定要發送系統生成的初始密碼給<span
+        確定要發送系統生成的初始密碼給 <span
           style="font-weight: 800;"
           class="text-cyan-darken-2"
         >{{ resetPasswordDialog.userName }}</span> 嗎？
@@ -480,6 +480,7 @@
             <v-divider />
           </v-col>
           <v-col
+            v-if="!isInitializingStatus || !isEditing"
             cols="4"
             md="2"
             class="info-title px-0 text-blue-grey-darken-2"
@@ -494,7 +495,21 @@
             <v-divider />
           </v-col>
         </v-row>
-        <v-card-text class="mt-3 pa-3">
+        <v-card-text
+          v-if="isInitializingStatus && isEditing"
+          class="d-flex justify-center align-center"
+          style="height: 600px;"
+        >
+          <v-progress-circular
+            indeterminate
+            color="blue-grey-darken-2"
+            :size="circularSize"
+          />
+        </v-card-text>
+        <v-card-text
+          v-if="!isInitializingStatus || !isEditing"
+          class="mt-3 pa-3"
+        >
           <v-row>
             <v-col
               cols="12"
@@ -1123,6 +1138,9 @@ const isLgmUp = computed(() => width.value >= 1520)
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
+const circularSize = computed(() => {
+  return smAndUp.value ? '64' : 'default'
+})
 
 // ===== 基礎狀態管理 =====
 const isEditing = ref(false)
@@ -1740,6 +1758,7 @@ const handleSubmitError = (error) => {
 
 // ===== 對話框操作函數 =====
 const openDialog = async (item) => {
+  isInitializingStatus.value = true
   // 檢查權限
   if (!hasEditPermission.value) {
     createSnackbar({

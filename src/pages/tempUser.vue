@@ -1,71 +1,29 @@
 <template>
   <v-container max-width="2500">
-    <!-- 搜尋條件卡片 -->
-    <v-row class="rounded-xl py-0 mt-2 ma-sm-1 ma-md-6">
-      <v-col class="pa-0 mb-6 mb-sm-0">
-        <v-card
-          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-5 pb-4 pb-sm-5"
-          elevation="4"
-          rounded="xl"
-        >
-          <v-card-text class="d-flex align-center">
-            <v-row class="h-100">
-              <v-col
-                cols="12"
-                class="d-flex flex-column justify-center"
-              >
+    <v-row>
+      <!-- 左側搜尋條件區塊 -->
+      <v-col
+        cols="12"
+        lg="4"
+        xl="3"
+      >
+        <v-row>
+          <v-col
+            cols="12"
+            class="mt-1 px-lg-10"
+          >
+            <v-card
+              class="elevation-4 rounded-xl py-4 py-sm-8 px-4 px-sm-4 px-xl-8"
+            >
+              <v-card-title class="font-weight-bold d-flex align-center">
+                搜尋條件
+              </v-card-title>
+              <v-card-text class="pa-2">
                 <v-row>
-                  <h6
-                    style="font-size: 16px;"
-                    class="ps-3 mb-1"
-                  >
-                    搜尋篩選
-                  </h6>
-                </v-row>
-                <v-row>
-                  <!-- 公司選擇 -->
                   <v-col
                     cols="12"
                     sm="6"
-                  >
-                    <v-select
-                      v-model="searchCriteria.plannedCompany"
-                      :items="companyList"
-                      label="預計任職公司"
-                      item-title="title"
-                      item-value="value"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      clearable
-                      @update:model-value="handleCompanyChange"
-                    />
-                  </v-col>
-
-                  <!-- 部門選擇 -->
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-select
-                      v-model="searchCriteria.plannedDepartment"
-                      :items="filteredDepartments"
-                      label="預計任職部門"
-                      item-title="name"
-                      item-value="_id"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      clearable
-                      :disabled="!searchCriteria.plannedCompany"
-                    />
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <!-- 狀態選擇 -->
-                  <v-col
-                    cols="12"
-                    sm="6"
+                    lg="12"
                   >
                     <v-select
                       v-model="searchCriteria.status"
@@ -79,57 +37,58 @@
                       clearable
                     />
                   </v-col>
-                  <!-- 日期區間選擇 -->
                   <v-col
                     cols="12"
                     sm="6"
+                    lg="12"
                   >
-                    <v-date-input
-                      v-model="searchCriteria.effectiveDateRange"
-                      label="生效日期區間"
+                    <v-select
+                      v-model="searchCriteria.companyId"
+                      :items="companyList"
+                      label="公司"
+                      item-title="title"
+                      item-value="value"
                       variant="outlined"
                       density="compact"
                       hide-details
-                      multiple="range"
-                      prepend-icon
                       clearable
-                      persistent-placeholder
+                      @update:model-value="handleCompanyChange"
                     />
                   </v-col>
-                </v-row>
-                <v-row>
-                  <!-- 性別選擇 -->
                   <v-col
                     cols="12"
-                    class="py-0"
+                    sm="6"
+                    lg="12"
                   >
-                    <div class="d-flex flex-column gap-2">
-                      <label class="text-grey-darken-1 search-label">性別</label>
-                      <v-chip-group
-                        v-model="searchCriteria.gender"
-                        column
-                        class="custom-chip-group"
-                      >
-                        <v-chip
-                          filter
-                          variant="outlined"
-                          color="blue-grey-darken-2"
-                          value="男性"
-                          label
-                        >
-                          男性
-                        </v-chip>
-                        <v-chip
-                          filter
-                          variant="outlined"
-                          color="blue-grey-darken-2"
-                          value="女性"
-                          label
-                        >
-                          女性
-                        </v-chip>
-                      </v-chip-group>
-                    </div>
+                    <v-select
+                      v-model="searchCriteria.department"
+                      :items="filteredDepartments"
+                      label="部門"
+                      item-title="name"
+                      item-value="_id"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                      :disabled="!searchCriteria.companyId"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="6"
+                    lg="12"
+                  >
+                    <v-date-input
+                      v-model="searchCriteria.effectiveDate"
+                      label="生效日期"
+                      prepend-icon
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                      :cancel-text="'取消'"
+                      :ok-text="'確認'"
+                    />
                   </v-col>
                 </v-row>
                 <v-row>
@@ -137,20 +96,24 @@
                     cols="12"
                     class="d-flex justify-end gap-2"
                   >
-                    <v-row>
+                    <v-row class="d-flex justify-space-between">
                       <v-col cols="3">
                         <v-btn
                           color="grey"
+                          width="40"
                           block
                           @click="resetSearch"
                         >
                           <v-icon>mdi-refresh</v-icon>
                         </v-btn>
                       </v-col>
-                      <v-col>
+                      <v-col
+                        cols="9"
+                        class="ps-0"
+                      >
                         <v-btn
+                          color="blue-grey-darken-1"
                           prepend-icon="mdi-magnify"
-                          color="cyan-darken-2"
                           :loading="tableLoading"
                           block
                           @click="performSearch"
@@ -161,31 +124,34 @@
                     </v-row>
                   </v-col>
                 </v-row>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
       </v-col>
-    </v-row>
 
-    <!-- 表格區域 -->
-    <v-row class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white">
+      <!-- 右側表格區塊 -->
       <v-col
         cols="12"
-        class="ps-3 pb-6"
+        lg="8"
+        xl="9"
+        class="px-6 ps-lg-4 pe-lg-12 mb-6"
       >
-        <h3>臨時員工管理</h3>
-      </v-col>
-      <v-col cols="12">
-        <v-row>
-          <v-col>
+        <v-row class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-4 px-md-10 mt-1 bg-white">
+          <v-col
+            cols="12"
+            class="ps-4 pb-sm-6"
+          >
+            <h3>臨時員工管理</h3>
+          </v-col>
+          <v-col cols="12">
             <v-row>
               <v-col>
                 <v-btn
                   prepend-icon="mdi-account-plus"
                   variant="outlined"
                   color="blue-grey-darken-2"
-                  @click="openDialog(null)"
+                  @click="openTempDialog(null)"
                 >
                   新增臨時員工
                 </v-btn>
@@ -202,7 +168,7 @@
                     class="ps-lg-5"
                   >
                     <v-icon
-                      v-tooltip:start="'可搜尋姓名、Email、手機、預計分機'"
+                      v-tooltip:start="'可搜尋姓名、Email、手機'"
                       icon="mdi-information"
                       size="small"
                       color="blue-grey-darken-2"
@@ -227,12 +193,13 @@
           </v-col>
           <v-col cols="12">
             <v-data-table-server
+              :key="tableKey"
               v-model:items-per-page="tableItemsPerPage"
               v-model:sort-by="tableSortBy"
               :page="tablePage"
               density="compact"
               class="rounded-ts-lg rounded-te-lg py-3"
-              :items-per-page-options="[10, 20, 50]"
+              :items-per-page-options="[10, 20 ,50]"
               :items="tableItems"
               :headers="filteredHeaders"
               :header-props="headerProps"
@@ -248,18 +215,22 @@
                 <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
                   <td>{{ item.name }}</td>
                   <td>{{ item.personalEmail }}</td>
-                  <td v-if="lgAndUp">
-                    {{ item.cellphone }}
+                  <td>{{ item.cellphone }}</td>
+                  <td v-if="mdAndUp">
+                    {{ item.company?.name || '' }}
                   </td>
                   <td v-if="mdAndUp">
-                    {{ item.plannedCompany?.name || '' }}
+                    {{ item.department?.name || '' }}
                   </td>
-                  <td v-if="mdAndUp">
-                    {{ item.plannedDepartment?.name || '' }}
-                  </td>
-                  <td>{{ item.plannedExtNumber }}</td>
                   <td>{{ formatDate(item.effectiveDate) }}</td>
-                  <td>{{ getStatusText(item.status) }}</td>
+                  <td>
+                    <v-chip
+                      :color="getStatusColor(item.status)"
+                      size="small"
+                    >
+                      {{ item.status }}
+                    </v-chip>
+                  </td>
                   <td class="d-flex align-center overflow-hidden h-25">
                     <v-btn
                       icon
@@ -268,10 +239,11 @@
                       width="28"
                       :size="buttonSize"
                       :ripple="false"
-                      @click="openDialog(item)"
+                      @click="openTempDialog(item)"
                     >
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
+
                     <v-btn
                       v-if="item.status === '待入職'"
                       v-tooltip="'轉為正式員工'"
@@ -282,9 +254,9 @@
                       class="ms-2"
                       :size="buttonSize"
                       :ripple="false"
-                      @click="openConvertDialog(item)"
+                      @click="openUserDialog(item)"
                     >
-                      <v-icon>mdi-account-convert</v-icon>
+                      <v-icon>mdi-account-arrow-right</v-icon>
                     </v-btn>
                   </td>
                 </tr>
@@ -295,22 +267,23 @@
       </v-col>
     </v-row>
 
-    <!-- 編輯對話框 -->
+    <!-- 臨時員工 Dialog -->
     <v-dialog
-      v-model="dialog.open"
+      v-model="tempDialog.open"
       persistent
       :width="dialogWidth"
     >
       <v-form
-        ref="form"
+        ref="tempForm"
         :disabled="isSubmitting"
-        @submit.prevent="submit"
+        @submit.prevent="submitTemp"
       >
         <v-card class="rounded-lg px-4 py-6">
           <div class="card-title ps-4 py-3">
-            {{ dialog.id ? '編輯臨員資料' : '新增臨員資料' }}
+            {{ tempDialog.id ? '臨時員工資料編輯' : '新增臨時員工' }}
           </div>
-          <!-- 基本資料區域 -->
+
+          <!-- 基本資料區塊 -->
           <v-row class="py-4">
             <v-col
               cols="4"
@@ -336,9 +309,7 @@
           </v-row>
 
           <v-card-text class="mt-3 pa-3">
-            <!-- 基本表單欄位 -->
             <v-row>
-              <!-- 姓名 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -350,13 +321,13 @@
                   v-model="name.value.value"
                   :error-messages="name.errorMessage.value"
                   label="*姓名"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 英文名 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -368,67 +339,13 @@
                   v-model="englishName.value.value"
                   :error-messages="englishName.errorMessage.value"
                   label="英文名"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 性別 -->
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-                lg="3"
-                class="pb-0"
-              >
-                <v-select
-                  v-model="gender.value.value"
-                  :items="genderOptions"
-                  label="性別"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                />
-              </v-col>
-
-              <!-- 生日 -->
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-                lg="3"
-                class="pb-0"
-              >
-                <v-date-input
-                  v-model="birthDate.value.value"
-                  label="生日"
-                  prepend-icon
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                />
-              </v-col>
-
-              <!-- 身分證號碼 -->
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-                lg="3"
-                class="pb-0"
-              >
-                <v-text-field
-                  v-model="IDNumber.value.value"
-                  label="身分證號碼"
-                  maxlength="10"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                />
-              </v-col>
-
-              <!-- Email -->
               <v-col
                 cols="12"
                 sm="6"
@@ -439,7 +356,7 @@
                 <v-text-field
                   v-model="personalEmail.value.value"
                   :error-messages="personalEmail.errorMessage.value"
-                  label="Email"
+                  label="個人Email"
                   type="email"
                   variant="outlined"
                   density="compact"
@@ -447,7 +364,42 @@
                 />
               </v-col>
 
-              <!-- 手機 -->
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="IDNumber.value.value"
+                  :error-messages="IDNumber.errorMessage.value"
+                  label="身分證號碼"
+                  maxlength="10"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="gender.value.value"
+                  :items="genderOptions"
+                  :error-messages="gender.errorMessage.value"
+                  label="性別"
+                  variant="outlined"
+                  density="compact"
+                />
+              </v-col>
+
               <v-col
                 cols="12"
                 sm="6"
@@ -460,13 +412,33 @@
                   :error-messages="cellphone.errorMessage.value"
                   label="手機號碼"
                   maxlength="10"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 戶籍地址 -->
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-date-input
+                  v-model="birthDate.value.value"
+                  :error-messages="birthDate.errorMessage.value"
+                  label="生日"
+                  prepend-icon
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :cancel-text="'取消'"
+                  :ok-text="'確認'"
+                />
+              </v-col>
+
               <v-col
                 cols="12"
                 sm="6"
@@ -474,14 +446,15 @@
               >
                 <v-text-field
                   v-model="permanentAddress.value.value"
+                  :error-messages="permanentAddress.errorMessage.value"
                   label="戶籍地址"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 聯絡地址 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -489,7 +462,9 @@
               >
                 <v-text-field
                   v-model="contactAddress.value.value"
+                  :error-messages="contactAddress.errorMessage.value"
                   label="聯絡地址"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
@@ -512,7 +487,7 @@
                 </v-text-field>
               </v-col>
 
-              <!-- 緊急聯絡人資料 -->
+              <!-- 緊急聯絡人資訊 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -521,7 +496,9 @@
               >
                 <v-text-field
                   v-model="emergencyName.value.value"
+                  :error-messages="emergencyName.errorMessage.value"
                   label="緊急聯絡人姓名"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
@@ -536,7 +513,9 @@
               >
                 <v-text-field
                   v-model="emergencyCellphone.value.value"
+                  :error-messages="emergencyCellphone.errorMessage.value"
                   label="緊急聯絡人電話"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
@@ -551,44 +530,44 @@
               >
                 <v-text-field
                   v-model="emergencyRelationship.value.value"
+                  :error-messages="emergencyRelationship.errorMessage.value"
                   label="緊急聯絡人關係"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
+            </v-row>
+          </v-card-text>
 
-              <!-- 預計任職資訊區域 -->
-              <v-col
-                cols="12"
-                class="pa-0"
-              >
-                <v-row class="py-4 mb-2">
-                  <v-col
-                    cols="4"
-                    md="5"
-                    class="d-flex align-center ps-6"
-                  >
-                    <v-divider />
-                  </v-col>
-                  <v-col
-                    cols="4"
-                    md="2"
-                    class="info-title text-blue-grey-darken-2"
-                  >
-                    預計任職資訊
-                  </v-col>
-                  <v-col
-                    cols="4"
-                    md="5"
-                    class="d-flex align-center pe-6"
-                  >
-                    <v-divider />
-                  </v-col>
-                </v-row>
-              </v-col>
+          <!-- 工作相關資訊區塊 -->
+          <v-row class="py-4">
+            <v-col
+              cols="4"
+              md="5"
+              class="d-flex align-center ps-6"
+            >
+              <v-divider />
+            </v-col>
+            <v-col
+              cols="4"
+              md="2"
+              class="info-title text-blue-grey-darken-2"
+            >
+              工作相關
+            </v-col>
+            <v-col
+              cols="4"
+              md="5"
+              class="d-flex align-center pe-6"
+            >
+              <v-divider />
+            </v-col>
+          </v-row>
 
-              <!-- 預計任職公司 -->
+          <v-card-text class="mt-3 pa-3">
+            <v-row>
               <v-col
                 cols="12"
                 sm="6"
@@ -598,9 +577,9 @@
               >
                 <v-select
                   v-model="selectedCompany"
-                  :error-messages="plannedCompany.errorMessage.value"
+                  :error-messages="company.errorMessage.value"
                   :items="companyOptions"
-                  label="預計任職公司"
+                  label="所屬公司"
                   item-title="title"
                   item-value="value"
                   variant="outlined"
@@ -610,7 +589,6 @@
                 />
               </v-col>
 
-              <!-- 預計任職部門 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -619,20 +597,18 @@
                 class="pb-0"
               >
                 <v-select
-                  v-model="plannedDepartment.value.value"
+                  v-model="department.value.value"
                   :items="filteredDepartments"
-                  :error-messages="plannedDepartment.errorMessage.value"
+                  :error-messages="department.errorMessage.value"
                   item-title="name"
                   item-value="_id"
-                  label="預計任職部門"
+                  label="選擇部門"
                   variant="outlined"
                   density="compact"
                   clearable
-                  :disabled="!selectedCompany"
                 />
               </v-col>
 
-              <!-- 預計職稱 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -641,16 +617,16 @@
                 class="pb-0"
               >
                 <v-text-field
-                  v-model="plannedJobTitle.value.value"
-                  :error-messages="plannedJobTitle.errorMessage.value"
+                  v-model="jobTitle.value.value"
+                  :error-messages="jobTitle.errorMessage.value"
                   label="預計職稱"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 預計薪資 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -659,16 +635,16 @@
                 class="pb-0"
               >
                 <v-text-field
-                  v-model="plannedSalary.value.value"
-                  :error-messages="plannedSalary.errorMessage.value"
+                  v-model="salary.value.value"
+                  :error-messages="salary.errorMessage.value"
                   label="預計薪資"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 預計分機 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -677,16 +653,16 @@
                 class="pb-0"
               >
                 <v-text-field
-                  v-model="plannedExtNumber.value.value"
-                  :error-messages="plannedExtNumber.errorMessage.value"
-                  label="預計分機"
+                  v-model="extNumber.value.value"
+                  :error-messages="extNumber.errorMessage.value"
+                  label="預計分機號碼"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 生效日期 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -697,15 +673,16 @@
                 <v-date-input
                   v-model="effectiveDate.value.value"
                   :error-messages="effectiveDate.errorMessage.value"
-                  label="生效日期"
+                  label="*生效日期"
                   prepend-icon
                   variant="outlined"
                   density="compact"
                   clearable
+                  :cancel-text="'取消'"
+                  :ok-text="'確認'"
                 />
               </v-col>
 
-              <!-- 狀態 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -719,31 +696,13 @@
                   :items="statusOptions"
                   item-title="title"
                   item-value="value"
-                  label="狀態"
+                  label="*狀態"
                   variant="outlined"
                   density="compact"
                   clearable
                 />
               </v-col>
 
-              <!-- 備註 -->
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-                lg="3"
-                class="pb-0"
-              >
-                <v-text-field
-                  v-model="note.value.value"
-                  label="備註"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                />
-              </v-col>
-
-              <!-- 座位描述 -->
               <v-col
                 cols="12"
                 sm="6"
@@ -753,7 +712,25 @@
               >
                 <v-text-field
                   v-model="seatDescription.value.value"
+                  :error-messages="seatDescription.errorMessage.value"
                   label="座位描述"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                sm="6"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="note.value.value"
+                  :error-messages="note.errorMessage.value"
+                  label="備註"
+                  type="text"
                   variant="outlined"
                   density="compact"
                   clearable
@@ -762,11 +739,11 @@
             </v-row>
           </v-card-text>
 
-          <!-- 操作按鈕 -->
           <v-card-actions class="px-3 mt-4">
-            <v-hover v-if="isEditing">
+            <v-hover>
               <template #default="{ isHovering, props }">
                 <v-btn
+                  v-if="isEditing"
                   v-bind="props"
                   :color="isHovering ? 'red-lighten-1' : 'grey'"
                   variant="outlined"
@@ -784,7 +761,7 @@
               variant="outlined"
               :size="buttonSize"
               :loading="isSubmitting"
-              @click="closeDialog"
+              @click="closeTempDialog"
             >
               取消
             </v-btn>
@@ -804,636 +781,1067 @@
       </v-form>
     </v-dialog>
 
-    <!-- 確認刪除對話框 -->
-    <ConfirmDeleteDialogWithTextField
-      v-model="confirmDeleteDialog"
-      title="確認刪除臨員資料"
-      :message="`確定要刪除「<span class='text-pink-lighten-1' style='font-weight: 800;'>${originalData?.name || ''}</span>」的資料嗎？此操作無法復原。`"
-      :expected-name="originalData?.name || ''"
-      input-label="姓名"
-      @confirm="deleteTempUser"
-    />
-
-    <!-- 轉換為正式員工確認對話框 -->
+    <!-- 正式員工 Dialog -->
     <v-dialog
-      v-model="convertDialog.open"
-      max-width="460"
+      v-model="userDialog.open"
+      persistent
+      :width="dialogWidth"
     >
-      <v-card class="rounded-lg pa-4">
-        <div class="card-title pa-4">
-          轉換為正式員工
-        </div>
-        <div class="list-content ps-4 py-3 mb-4">
-          確定要將「<span class="text-cyan-darken-2 font-weight-bold">{{ convertDialog.name }}</span>」轉換為正式員工嗎？
-          <div class="mt-2 text-grey">
-            系統將自動產生員工編號、Email 和初始密碼。
+      <v-form
+        ref="userForm"
+        :disabled="isUserSubmitting"
+        @submit.prevent="submitUser"
+      >
+        <v-card class="rounded-lg px-4 py-6">
+          <div class="card-title ps-4 py-3">
+            新增員工
           </div>
-        </div>
-        <v-card-actions class="pa-4 pt-0">
-          <v-spacer />
-          <v-btn
-            color="grey"
-            variant="outlined"
-            :size="buttonSize"
-            @click="closeConvertDialog"
+          <v-row class="py-4">
+            <v-col
+              cols="4"
+              md="5"
+              class="d-flex align-center ps-6 "
+            >
+              <v-divider />
+            </v-col>
+            <v-col
+              cols="4"
+              md="2"
+              class="info-title px-0 text-blue-grey-darken-2"
+            >
+              基本資料
+            </v-col>
+            <v-col
+              cols="4"
+              md="5"
+              class="d-flex align-center pe-6"
+            >
+              <v-divider />
+            </v-col>
+          </v-row>
+          <v-card-text class="mt-3 pa-3">
+            <v-row>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="name.value.value"
+                  :error-messages="name.errorMessage.value"
+                  label="*姓名"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="englishName.value.value"
+                  :error-messages="englishName.errorMessage.value"
+                  label="*英文名"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="IDNumber.value.value"
+                  :error-messages="IDNumber.errorMessage.value"
+                  label="*身分證號碼"
+                  maxlength="10"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-date-input
+                  v-model="birthDate.value.value"
+                  :error-messages="birthDate.errorMessage.value"
+                  label="*生日"
+                  prepend-icon
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :cancel-text="'取消'"
+                  :ok-text="'確認'"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="gender.value.value"
+                  :items="genderOptions"
+                  :error-messages="gender.errorMessage.value"
+                  item-title="title"
+                  item-value="value"
+                  label="*性別"
+                  variant="outlined"
+                  density="compact"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="cellphone.value.value"
+                  :error-messages="cellphone.errorMessage.value"
+                  label="*手機號碼"
+                  maxlength="10"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="email.value.value"
+                  :error-messages="email.errorMessage.value"
+                  label="*Email"
+                  type="email"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  autocomplete="username"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="permanentAddress.value.value"
+                  :error-messages="permanentAddress.errorMessage.value"
+                  label="*戶籍地址"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="contactAddress.value.value"
+                  :error-messages="contactAddress.errorMessage.value"
+                  label="*聯絡地址"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                >
+                  <template #append-inner>
+                    <v-tooltip
+                      location="top"
+                      close-delay="200"
+                    >
+                      <template #activator="{ props }">
+                        <v-icon
+                          v-bind="props"
+                          icon="mdi-content-copy"
+                          @click="copyPermanentAddress"
+                        />
+                      </template>
+                      複製戶籍地址
+                    </v-tooltip>
+                  </template>
+                </v-text-field>
+              </v-col>
+              <v-col
+                v-if="mdAndUp && !lgAndUp"
+                cols="6"
+              />
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="emergencyName.value.value"
+                  :error-messages="emergencyName.errorMessage.value"
+                  label="*緊急聯絡人姓名"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="emergencyCellphone.value.value"
+                  :error-messages="emergencyCellphone.errorMessage.value"
+                  label="*緊急聯絡人電話"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="emergencyRelationship.value.value"
+                  :error-messages="emergencyRelationship.errorMessage.value"
+                  label="緊急聯絡人關係"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                class="pa-0"
+              >
+                <v-row class="py-4 mb-2">
+                  <v-col
+                    cols="4"
+                    md="5"
+                    class="d-flex align-center ps-6"
+                  >
+                    <v-divider />
+                  </v-col>
+                  <v-col
+                    cols="4"
+                    md="2"
+                    class="info-title text-blue-grey-darken-2 "
+                  >
+                    任職資訊
+                  </v-col>
+                  <v-col
+                    cols="4"
+                    md="5"
+                    class="d-flex align-center pe-6"
+                  >
+                    <v-divider />
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                v-if="isEditing"
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="userId.value.value"
+                  :error-messages="userId.errorMessage.value"
+                  label="*員工編號"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  maxlength="4"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="selectedCompany"
+                  :error-messages="company.errorMessage.value"
+                  :items="companyOptions"
+                  label="*所屬公司"
+                  item-title="title"
+                  item-value="value"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  @update:model-value="handleCompanyChange"
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="department.value.value"
+                  :items="filteredDepartments"
+                  :error-messages="department.errorMessage.value"
+                  item-title="name"
+                  item-value="_id"
+                  label="*選擇部門"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="jobTitle.value.value"
+                  :error-messages="jobTitle.errorMessage.value"
+                  label="*職稱"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                v-if="user.isHR || user.isSuperAdmin"
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="salary.value.value"
+                  :error-messages="salary.errorMessage.value"
+                  label="*基本薪資"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                v-if="user.isHR || user.isSuperAdmin"
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="role.value.value"
+                  :error-messages="role.errorMessage.value"
+                  :items="roles"
+                  item-title="title"
+                  item-value="value"
+                  label="*權限"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-date-input
+                  v-model="hireDate.value.value"
+                  :error-messages="hireDate.errorMessage.value"
+                  label="*入職日期"
+                  prepend-icon
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :cancel-text="'取消'"
+                  :ok-text="'確認'"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="extNumber.value.value"
+                  :error-messages="extNumber.errorMessage.value"
+                  label="*分機號碼"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="printNumber.value.value"
+                  :error-messages="printNumber.errorMessage.value"
+                  label="*列印編號"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="cowellAccount.value.value"
+                  :error-messages="cowellAccount.errorMessage.value"
+                  label="*科威帳號"
+                  :type="showCowellAccount ? 'text' : 'password'"
+                  :append-inner-icon="showCowellAccount ? 'mdi-eye-off' : 'mdi-eye'"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  autocomplete="new-password"
+                  @click:append-inner="showCowellAccount = !showCowellAccount"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="cowellPassword.value.value"
+                  :error-messages="cowellPassword.errorMessage.value"
+                  label="*科威密碼"
+                  :type="showCowellPassword ? 'text' : 'password'"
+                  :append-inner-icon="showCowellPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  autocomplete="new-password"
+                  @click:append-inner="showCowellPassword = !showCowellPassword"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="guideLicense.value.value"
+                  :items="guideLicenseOptions"
+                  :error-messages="guideLicense.errorMessage.value"
+                  label="領隊證"
+                  variant="outlined"
+                  density="compact"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="employmentStatus.value.value"
+                  :error-messages="employmentStatus.errorMessage.value"
+                  :items="employmentStatuses"
+                  item-title="title"
+                  item-value="value"
+                  label="*任職狀態"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-text-field
+                  v-model="note.value.value"
+                  :error-messages="note.errorMessage.value"
+                  label="備註"
+                  type="text"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                v-if="resignationDate.value.value"
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-date-input
+                  v-model="resignationDate.value.value"
+                  label="離職日期"
+                  prepend-icon
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :cancel-text="'取消'"
+                  :ok-text="'確認'"
+                />
+              </v-col>
+            </v-row>
+          </v-card-text>
+          <v-card-actions
+            class="px-3 mt-4"
           >
-            取消
-          </v-btn>
-          <v-btn
-            color="teal-darken-1"
-            variant="outlined"
-            :size="buttonSize"
-            :loading="convertDialog.loading"
-            @click="convertToFormalUser"
-          >
-            確認轉換
-          </v-btn>
-        </v-card-actions>
-      </v-card>
+            <v-hover>
+              <template #default="{ isHovering, props}">
+                <v-btn
+                  v-if="isEditing"
+                  v-bind="props"
+                  :color="isHovering ? 'red-lighten-1' : 'grey'"
+                  variant="outlined"
+                  prepend-icon="mdi-delete"
+                  :size="buttonSize"
+                  @click="confirmDeleteDialog = true"
+                >
+                  永久刪除
+                </v-btn>
+              </template>
+            </v-hover>
+            <v-spacer />
+            <v-btn
+              color="red-lighten-1"
+              variant="outlined"
+              :size="buttonSize"
+              :loading="isUserSubmitting"
+              @click="closeUserDialog"
+            >
+              取消
+            </v-btn>
+            <v-btn
+              color="teal-darken-1"
+              variant="outlined"
+              type="submit"
+              class="ms-1"
+              :size="buttonSize"
+              :loading="isUserSubmitting"
+              :disabled="isEditing && !hasChanges"
+            >
+              送出
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-form>
     </v-dialog>
   </v-container>
+
+  <ConfirmDeleteDialogWithTextField
+    v-model="confirmDeleteDialog"
+    title="確認刪除臨時員工"
+    :message="tempDialog?.value?.originalData?.name ? `確定要刪除臨時員工「${tempDialog.value.originalData.name}」嗎？此操作無法復原。` : ''"
+    :expected-name="tempDialog?.value?.originalData?.name || ''"
+    input-label="員工姓名"
+    @confirm="deleteUser"
+  />
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { debounce } from 'lodash'
-import * as yup from 'yup'
-import { definePage } from 'vue-router/auto'
-import { useForm, useField } from 'vee-validate'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useDisplay } from 'vuetify'
-import UserRole from '@/enums/UserRole'
+import { useForm, useField } from 'vee-validate'
+import * as yup from 'yup'
+import { debounce } from 'lodash'
+import { definePage } from 'vue-router/auto'
 import { useApi } from '@/composables/axios'
+import { useUserStore } from '@/stores/user'
 import { useSnackbar } from 'vuetify-use-dialog'
+import UserRole, { roleNames } from '@/enums/UserRole'
 import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
 
 // ===== 頁面設定 =====
 definePage({
   meta: {
-    title: '臨時員工資料管理 | ysphere',
+    title: '臨時員工管理 | ysphere',
     login: true,
-    roles: [UserRole.SUPER_ADMIN, UserRole.HR, UserRole.ADMIN]
+    roles: [UserRole.HR, UserRole.SUPER_ADMIN]
   }
 })
 
-// ===== API 與 Store 初始化 =====
+// ===== API & Store =====
 const { apiAuth } = useApi()
+const user = useUserStore()
 const createSnackbar = useSnackbar()
 
-// ===== 響應式設定與螢幕斷點 =====
-const { smAndUp, mdAndUp, lgAndUp } = useDisplay()
+// ===== 響應式設定 =====
+const { smAndUp, mdAndUp, lgAndUp, xlAndUp } = useDisplay()
+const buttonSize = computed(() => smAndUp.value ? 'default' : 'small')
 
-const buttonSize = computed(() => {
-  return smAndUp.value ? 'default' : 'small'
-})
+// ===== 表格相關 =====
+const tableLoading = ref(false)
+const tableItems = ref([])
+const tablePage = ref(1)
+const tableItemsPerPage = ref(10)
+const tableItemsLength = ref(0)
+const tableKey = ref(0)
+const tableSortBy = ref([{ key: 'createdAt', order: 'desc' }])
+const tableSearch = ref('')
+const headerProps = { class: 'header-bg' }
+const tableLoadItems = async (reset) => {
+  if (reset) {
+    tablePage.value = 1
+  }
+  await performSearch()
+}
+const onUpdatePage = (page) => {
+  if (page < 1) page = 1
+  const maxPage = Math.ceil(tableItemsLength.value / tableItemsPerPage.value)
+  if (page > maxPage) page = maxPage
 
-// ===== 基礎狀態管理 =====
-const isEditing = ref(false)
-const originalData = ref(null)
-const confirmDeleteDialog = ref(false)
-const headerProps = {
-  class: 'header-bg'
+  tablePage.value = page
+  performSearch()
 }
 
+const tableHeaders = [
+  { title: '姓名', align: 'start', sortable: true, key: 'name' },
+  { title: '個人Email', align: 'start', sortable: true, key: 'personalEmail' },
+  { title: '手機', align: 'start', sortable: true, key: 'cellphone' },
+  { title: '公司', align: 'start', sortable: true, key: 'company.name' },
+  { title: '部門', align: 'start', sortable: true, key: 'department.name' },
+  { title: '生效日期', align: 'start', sortable: true, key: 'effectiveDate' },
+  { title: '狀態', align: 'start', sortable: true, key: 'status' },
+  { title: '操作', align: 'center', sortable: false, key: 'actions' }
+]
+
+// 響應式表頭
+const filteredHeaders = computed(() => {
+  if (!mdAndUp.value) {
+    return tableHeaders.filter(header =>
+      !['company.name', 'department.name'].includes(header.key)
+    )
+  }
+  return tableHeaders
+})
+
+// ===== 下拉選項 =====
 const statusOptions = [
   { title: '待面試', value: '待面試' },
   { title: '待入職', value: '待入職' },
-  { title: '待離職', value: '待離職' },
-  { title: '待留停', value: '待留停' },
-  { title: '待退休', value: '待退休' },
-  { title: '已處理', value: '已處理' },
+  { title: '已完成', value: '已完成' },
   { title: '已取消', value: '已取消' }
 ]
-
-const getStatusText = (status) => {
-  return statusOptions.find(option => option.value === status)?.title || status
-}
 
 const genderOptions = [
   { title: '男性', value: '男性' },
   { title: '女性', value: '女性' }
 ]
 
-const dialog = ref({
-  open: false,
-  id: ''
-})
-
-const convertDialog = ref({
-  open: false,
-  id: '',
-  name: '',
-  loading: false
-})
-
-const selectedCompany = ref(null)
-const filteredDepartments = ref([])
-const departments = ref([])
-const companies = ref([])
-
-const companyList = computed(() => {
-  return [
-    { title: '全部', value: '' },
-    ...[...companies.value]
-      .sort((a, b) => {
-        const idA = a.companyId || ''
-        const idB = b.companyId || ''
-        return idA.localeCompare(idB)
-      })
-      .map(company => ({
-        title: company.name,
-        value: company._id
-      }))
-  ]
-})
-
-const companyOptions = computed(() => {
-  return [...companies.value]
-    .sort((a, b) => {
-      const idA = a.companyId || ''
-      const idB = b.companyId || ''
-      return idA.localeCompare(idB)
-    })
-    .map(company => ({
-      title: company.name,
-      value: company._id
-    }))
-})
-
-// ===== 對話框設定 =====
-const dialogWidth = computed(() => {
-  if (lgAndUp.value) return '1200'
-  if (mdAndUp.value) return '800'
-  if (smAndUp.value) return '600'
-  return '100%'
-})
-
-// ===== 表單驗證架構 =====
-const tempUserSchema = yup.object({
-  name: yup.string().required('請輸入姓名'),
-  personalEmail: yup
-    .string()
-    .nullable()
-    .transform((value) => value || null)
-    .test('email', '請輸入正確的 email 格式', (value) => {
-      if (!value) return true // 空值通過驗證
-      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/
-      return emailRegex.test(value)
-    }),
-  gender: yup.string().nullable(),
-  cellphone: yup
-    .string()
-    .nullable()
-    .transform((value) => value || null)
-    .test('cellphone', '手機號碼格式不正確', (value) => {
-      if (!value) return true // 空值通過驗證
-      return /^\d{10}$/.test(value)
-    }),
-  plannedCompany: yup.string().nullable(),
-  plannedDepartment: yup.string().nullable(),
-  plannedJobTitle: yup.string().nullable(),
-  plannedSalary: yup.string().nullable(),
-  effectiveDate: yup.date().nullable(),
-  status: yup
-    .string()
-    .oneOf(['待面試', '待入職', '待離職', '待留停', '待退休', '待處理', '已處理', '已取消'])
-    .default('待入職'),
-  IDNumber: yup
-    .string()
-    .nullable()
-    .transform((value) => value || null)
-    .test('IDNumber', '身分證號碼格式不正確', (value) => {
-      if (!value) return true // 空值通過驗證
-      return /^[A-Za-z][12]\d{8}$/.test(value)
-    })
-})
-
-// ===== 表單初始化與欄位設定 =====
-const { handleSubmit, isSubmitting, resetForm } = useForm({
-  validationSchema: tempUserSchema,
-  initialValues: {
-    name: '', // 只有必填欄位保持空字串
-    englishName: null,
-    personalEmail: null,
-    gender: null,
-    cellphone: null,
-    birthDate: null,
-    IDNumber: null,
-    permanentAddress: null,
-    contactAddress: null,
-    plannedCompany: null,
-    plannedDepartment: null,
-    plannedJobTitle: null,
-    plannedSalary: null,
-    plannedExtNumber: null,
-    effectiveDate: null,
-    status: '待入職', // 預設值保持字串
-    seatDescription: null,
-    note: null,
-    emergencyName: null,
-    emergencyCellphone: null,
-    emergencyRelationship: null
+// 狀態顏色映射
+const getStatusColor = (status) => {
+  const colors = {
+    待面試: 'warning',
+    待入職: 'info',
+    已完成: 'success',
+    已取消: 'error'
   }
-})
+  return colors[status] || 'grey'
+}
 
-// ===== 表單欄位定義 =====
-const name = useField('name')
-const englishName = useField('englishName')
-const personalEmail = useField('personalEmail')
-const gender = useField('gender')
-const cellphone = useField('cellphone')
-const birthDate = useField('birthDate')
-const IDNumber = useField('IDNumber')
-const permanentAddress = useField('permanentAddress')
-const contactAddress = useField('contactAddress')
-const plannedCompany = useField('plannedCompany')
-const plannedDepartment = useField('plannedDepartment')
-const plannedJobTitle = useField('plannedJobTitle')
-const plannedSalary = useField('plannedSalary')
-const plannedExtNumber = useField('plannedExtNumber')
-const effectiveDate = useField('effectiveDate')
-const status = useField('status')
-const seatDescription = useField('seatDescription')
-const note = useField('note')
-const emergencyName = useField('emergencyName')
-const emergencyCellphone = useField('emergencyCellphone')
-const emergencyRelationship = useField('emergencyRelationship')
-
-// ===== 表格相關設定 =====
-const tableItemsPerPage = ref(10)
-const tableSortBy = ref([{ key: 'name', order: 'asc' }])
-const tablePage = ref(1)
-const tableItems = ref([])
-const tableLoading = ref(true)
-const tableItemsLength = ref(0)
-const tableSearch = ref('')
-
-const tableHeaders = [
-  { title: '姓名', align: 'left', sortable: true, key: 'name' },
-  { title: 'Email', align: 'left', sortable: true, key: 'personalEmail' },
-  { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
-  { title: '預計任職公司', align: 'left', sortable: true, key: 'plannedCompany.name' },
-  { title: '預計任職部門', align: 'left', sortable: true, key: 'plannedDepartment.name' },
-  { title: '預計分機', align: 'left', sortable: true, key: 'plannedExtNumber' },
-  { title: '生效日期', align: 'left', sortable: true, key: 'effectiveDate' },
-  { title: '狀態', align: 'left', sortable: true, key: 'status' },
-  { title: '操作', align: 'left', sortable: false, key: 'action' }
-]
-
-// ===== 搜尋相關設定 =====
+// ===== 搜尋條件 =====
 const searchCriteria = ref({
-  plannedCompany: '',
-  plannedDepartment: '',
-  gender: '',
   status: '',
-  effectiveDateRange: []
+  companyId: '',
+  department: '',
+  effectiveDate: null
 })
 
 const quickSearchText = ref('')
 
-// ===== 響應式表格抬頭設定 =====
-const filteredHeaders = computed(() => {
-  if (lgAndUp.value) {
-    return tableHeaders
-  }
-  if (mdAndUp.value) {
-    return tableHeaders.filter(header => header.key !== 'cellphone')
-  }
-  return tableHeaders.filter(header =>
-    !['cellphone', 'plannedCompany.name', 'plannedDepartment.name'].includes(header.key)
-  )
+// ===== 公司相關設定 =====
+const companies = ref([])
+const filteredDepartments = ref([])
+const selectedCompany = ref(null)
+
+const companyList = computed(() => [
+  { title: '全部', value: '' },
+  ...companies.value.map(company => ({
+    title: company.name,
+    value: company._id
+  }))
+])
+
+const companyOptions = computed(() =>
+  companies.value.map(company => ({
+    title: company.name,
+    value: company._id
+  }))
+)
+
+// ===== Dialog 設定 =====
+const dialogWidth = computed(() => {
+  if (xlAndUp.value) return '1200'
+  if (lgAndUp.value) return '900'
+  if (mdAndUp.value) return '800'
+  if (smAndUp.value) return '600'
+  return '100%'
+})
+const isEditing = ref(false)
+const tempDialog = ref({
+  open: false,
+  id: ''
 })
 
-const loadDepartments = async () => {
-  try {
-    const { data } = await apiAuth.get('/department/all')
-    departments.value = data.result
-  } catch (error) {
-    console.error('加載部門失敗', error)
-    createSnackbar({
-      text: '加載部門失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  }
-}
-
-// 載入公司列表
-const loadCompanies = async () => {
-  try {
-    const { data } = await apiAuth.get('/company/all')
-    if (data.success) {
-      companies.value = data.result
-    }
-  } catch (error) {
-    console.error('載入公司列表失敗:', error)
-    createSnackbar({
-      text: '載入公司列表失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  }
-}
-
-// ===== 表格操作函數 =====
-const tableLoadItems = async (reset = false) => {
-  if (reset) {
-    tablePage.value = 1
-  }
-  await performSearch()
-}
-
-// 搜尋相關函數
-const performSearch = async () => {
-  tableLoading.value = true
-  try {
-    // 構建查詢參數
-    const params = {
-      page: tablePage.value,
-      itemsPerPage: tableItemsPerPage.value,
-      sortBy: tableSortBy.value[0]?.key || 'createdAt',
-      sortOrder: tableSortBy.value[0]?.order || 'desc',
-      quickSearch: quickSearchText.value || undefined
-    }
-
-    // 添加篩選條件
-    if (searchCriteria.value.plannedCompany) {
-      params.plannedCompany = searchCriteria.value.plannedCompany
-    }
-    if (searchCriteria.value.plannedDepartment) {
-      params.plannedDepartment = searchCriteria.value.plannedDepartment
-    }
-    if (searchCriteria.value.gender) {
-      params.gender = searchCriteria.value.gender
-    }
-    if (searchCriteria.value.status) {
-      params.status = searchCriteria.value.status
-    }
-    if (searchCriteria.value.effectiveDateRange?.length === 2) {
-      params.startDate = searchCriteria.value.effectiveDateRange[0]
-      params.endDate = searchCriteria.value.effectiveDateRange[1]
-    }
-
-    const { data } = await apiAuth.get('/tempUser/all', { params })
-
-    if (data.success) {
-      tableItems.value = data.result.data
-      tableItemsLength.value = data.result.totalItems
-    }
-  } catch (error) {
-    console.error('搜尋失敗:', error)
-    createSnackbar({
-      text: error?.response?.data?.message || '搜尋失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-    tableItems.value = []
-    tableItemsLength.value = 0
-  } finally {
-    tableLoading.value = false
-  }
-}
-
-// ===== 表單相關函數 =====
-// ===== 表單相關函數 =====
-const submit = handleSubmit(async (values) => {
-  try {
-    // 處理空值為 null，而不是空字串
-    const processedValues = Object.entries(values).reduce((acc, [key, value]) => {
-      // 如果是空字串，轉換為 null
-      acc[key] = value === '' ? null : value
-      return acc
-    }, {})
-
-    if (isEditing.value) {
-      // 編輯模式
-      const { data } = await apiAuth.patch(`/tempUser/${dialog.value.id}`, {
-        ...processedValues,
-        plannedCompany: selectedCompany.value || null,
-        plannedDepartment: plannedDepartment.value.value || null
-      })
-
-      if (data.success) {
-        const index = tableItems.value.findIndex(item => item._id === dialog.value.id)
-        if (index !== -1) {
-          tableItems.value[index] = data.result
-        }
-
-        createSnackbar({
-          text: '臨時員工資料更新成功',
-          snackbarProps: { color: 'teal-lighten-1' }
-        })
-      }
-    } else {
-      // 新增模式
-      const { data } = await apiAuth.post('/tempUser', {
-        ...processedValues,
-        plannedCompany: selectedCompany.value || null,
-        plannedDepartment: plannedDepartment.value.value || null
-      })
-
-      if (data.success) {
-        await tableLoadItems(true)
-        createSnackbar({
-          text: '臨時員工資料新增成功',
-          snackbarProps: { color: 'teal-lighten-1' }
-        })
-      }
-    }
-
-    closeDialog()
-  } catch (error) {
-    console.error('提交失敗:', error)
-    if (error.response?.status === 400) {
-      // 處理驗證錯誤
-      let errorMessage = '資料驗證失敗：'
-      if (error.response.data?.message) {
-        errorMessage += error.response.data.message
-      }
-      createSnackbar({
-        text: errorMessage,
-        snackbarProps: { color: 'red-lighten-1' }
-      })
-    } else {
-      createSnackbar({
-        text: error?.response?.data?.message || '操作失敗',
-        snackbarProps: { color: 'red-lighten-1' }
-      })
-    }
-  }
+const userDialog = ref({
+  open: false,
+  id: ''
 })
 
-// ===== 對話框操作函數 =====
-const openDialog = async (item) => {
-  dialog.value.open = true
+// ===== 表單驗證 =====
+const userSchema = yup.object({
+  email: yup
+    .string()
+    .required('請輸入email')
+    .email('請輸入正確的 email 格式'),
+  name: yup
+    .string()
+    .required('請輸入姓名'),
+  englishName: yup
+    .string()
+    .required('請輸入英文名'),
+  gender: yup
+    .string()
+    .required('請選擇姓別'),
+  IDNumber: yup
+    .string()
+    .matches(/^[A-Za-z][12]\d{8}$/, '身分證號碼格式錯誤')
+    .required('請輸入身分證號碼'),
+  permanentAddress: yup
+    .string()
+    .required('請輸入戶籍地址'),
+  contactAddress: yup
+    .string()
+    .required('請輸入聯絡地址'),
+  birthDate: yup
+    .date()
+    .nullable()
+    .required('請選擇生日'),
+  company: yup
+    .string()
+    .nullable()
+    .required('請選擇公司'),
+  department: yup
+    .string()
+    .required('請選擇部門'),
+  cellphone: yup
+    .string()
+    .min(10, '手機號碼需為10位數字')
+    .max(10, '手機號碼勿超過10位數字')
+    .required('請輸入手機號碼'),
+  salary: yup
+    .string()
+    .required('請輸入基本薪資'),
+  extNumber: yup
+    .string()
+    .required('請輸入分機號碼'),
+  printNumber: yup
+    .string()
+    .required('請輸入列印編號'),
+  guideLicense: yup
+    .boolean(),
+  jobTitle: yup
+    .string()
+    .required('請輸入職稱'),
+  role: yup
+    .number()
+    .required('請選擇使用者身分別'),
+  employmentStatus: yup
+    .string()
+    .required('請選擇任職狀態'),
+  hireDate: yup
+    .date()
+    .nullable()
+    .required('請選擇入職日期'),
+  resignationDate: yup
+    .date()
+    .nullable(),
+  emergencyName: yup
+    .string()
+    .required('請輸入緊急聯絡人姓名'),
+  emergencyCellphone: yup
+    .string()
+    .required('請輸入緊急聯絡人連絡電話'),
+  emergencyRelationship: yup
+    .string(),
+  note: yup
+    .string(),
+  userId: yup
+    .string(),
+  cowellAccount: yup
+    .string()
+    .required('請輸入Cowell帳號'),
+  cowellPassword: yup
+    .string()
+    .required('請輸入Cowell密碼')
+})
 
-  if (item) {
-    // 編輯模式
-    isEditing.value = true
-    dialog.value.id = item._id
+const tempUserSchema = yup.object({
+  name: yup.string().required('請輸入姓名'),
+  englishName: yup.string(),
+  personalEmail: yup.string().email('請輸入正確的Email格式'),
+  IDNumber: yup.string().matches(/^[A-Za-z][12]\d{8}$/, '身分證號碼格式不正確'),
+  gender: yup.string(),
+  cellphone: yup.string().matches(/^09\d{8}$/, '手機號碼格式不正確'),
+  birthDate: yup.date().nullable(),
+  permanentAddress: yup.string(),
+  contactAddress: yup.string(),
+  emergencyName: yup.string(),
+  emergencyCellphone: yup.string(),
+  emergencyRelationship: yup.string(),
+  company: yup.string(),
+  department: yup.string(),
+  jobTitle: yup.string(),
+  salary: yup.string(),
+  extNumber: yup.string(),
+  effectiveDate: yup.date().required('請選擇生效日期'),
+  status: yup.string().required('請選擇狀態'),
+  seatDescription: yup.string(),
+  note: yup.string()
+})
 
-    if (item.plannedCompany) {
-      selectedCompany.value = item.plannedCompany._id
-      await handleCompanyChange(item.plannedCompany._id)
-    }
-
-    // 設置表單值
-    resetForm({
-      values: {
-        name: item.name,
-        englishName: item.englishName || '',
-        personalEmail: item.personalEmail,
-        gender: item.gender,
-        cellphone: item.cellphone,
-        birthDate: item.birthDate,
-        IDNumber: item.IDNumber || '',
-        permanentAddress: item.permanentAddress || '',
-        contactAddress: item.contactAddress || '',
-        plannedDepartment: item.plannedDepartment?._id,
-        plannedJobTitle: item.plannedJobTitle,
-        plannedSalary: item.plannedSalary,
-        plannedExtNumber: item.plannedExtNumber || '',
-        effectiveDate: item.effectiveDate,
-        status: item.status,
-        seatDescription: item.seatDescription || '',
-        note: item.note || '',
-        emergencyName: item.emergencyName || '',
-        emergencyCellphone: item.emergencyCellphone || '',
-        emergencyRelationship: item.emergencyRelationship || ''
-      }
-    })
-
-    originalData.value = { ...item }
-  } else {
-    // 新增模式
-    isEditing.value = false
-    dialog.value.id = ''
-    selectedCompany.value = null
-    originalData.value = null
-    filteredDepartments.value = []
-    resetForm()
-  }
-}
-
-const closeDialog = () => {
-  dialog.value.open = false
-  selectedCompany.value = null
-  filteredDepartments.value = []
-  originalData.value = null
-  resetForm()
-}
-
-// ===== 轉換相關函數 =====
-const openConvertDialog = (item) => {
-  convertDialog.value = {
-    open: true,
-    id: item._id,
-    name: item.name,
-    loading: false
-  }
-}
-
-const closeConvertDialog = () => {
-  convertDialog.value = {
-    open: false,
-    id: '',
+// ===== 表單初始化 =====
+const { handleSubmit, isSubmitting: isUserSubmitting } = useForm({
+  validationSchema: userSchema,
+  initialValues: {
+    email: '',
     name: '',
-    loading: false
+    englishName: '',
+    gender: '',
+    IDNumber: '',
+    permanentAddress: '',
+    contactAddress: '',
+    birthDate: null,
+    company: 1,
+    department: '',
+    cellphone: '',
+    salary: '',
+    extNumber: '',
+    printNumber: '',
+    guideLicense: false,
+    jobTitle: '',
+    role: 0,
+    employmentStatus: '在職',
+    hireDate: new Date(),
+    resignationDate: null,
+    emergencyName: '',
+    emergencyCellphone: '',
+    emergencyRelationship: '',
+    note: '',
+    userId: '',
+    cowellAccount: '',
+    cowellPassword: ''
+  },
+  validateOnMount: false,
+  validateOnChange: true,
+  validateOnBlur: true,
+  validateOnInput: false,
+  context: computed(() => ({
+    isEditing: isEditing.value
+  }))
+})
+
+const { handleSubmit: handleTempSubmit, isSubmitting, resetForm } = useForm({
+  validationSchema: tempUserSchema,
+  initialValues: {
+    name: '',
+    englishName: '',
+    personalEmail: '',
+    IDNumber: '',
+    gender: '',
+    cellphone: '',
+    birthDate: null,
+    permanentAddress: '',
+    contactAddress: '',
+    emergencyName: '',
+    emergencyCellphone: '',
+    emergencyRelationship: '',
+    company: '',
+    department: '',
+    jobTitle: '',
+    salary: '',
+    extNumber: '',
+    effectiveDate: null,
+    status: '待面試',
+    seatDescription: '',
+    note: ''
   }
-}
+})
 
-const convertToFormalUser = async () => {
-  convertDialog.value.loading = true
-  try {
-    const { data } = await apiAuth.post(`/tempUser/${convertDialog.value.id}/convert`)
+// ===== 表單欄位 =====
+const name = useField('name')
+const englishName = useField('englishName')
+const personalEmail = useField('personalEmail')
+const IDNumber = useField('IDNumber')
+const gender = useField('gender')
+const cellphone = useField('cellphone')
+const birthDate = useField('birthDate')
+const permanentAddress = useField('permanentAddress')
+const contactAddress = useField('contactAddress')
+const emergencyName = useField('emergencyName')
+const emergencyCellphone = useField('emergencyCellphone')
+const emergencyRelationship = useField('emergencyRelationship')
+const company = useField('company')
+const department = useField('department')
+const jobTitle = useField('jobTitle')
+const salary = useField('salary')
+const extNumber = useField('extNumber')
+const effectiveDate = useField('effectiveDate')
+const status = useField('status')
+const seatDescription = useField('seatDescription')
+const note = useField('note')
 
-    if (data.success) {
-      createSnackbar({
-        text: '成功轉換為正式員工',
-        snackbarProps: { color: 'teal-lighten-1' }
-      })
+const email = useField('email')
+const printNumber = useField('printNumber')
+const cowellAccount = useField('cowellAccount')
+const cowellPassword = useField('cowellPassword')
+const guideLicense = useField('guideLicense')
+const employmentStatus = useField('employmentStatus')
+const hireDate = useField('hireDate')
+const resignationDate = useField('resignationDate')
+const role = useField('role')
+const userId = useField('userId')
 
-      await tableLoadItems()
-      closeConvertDialog()
-    } else {
-      throw new Error(data.message)
-    }
-  } catch (error) {
-    console.error('轉換失敗:', error)
-    createSnackbar({
-      text: error?.response?.data?.message || error.message || '轉換失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  } finally {
-    convertDialog.value.loading = false
-  }
-}
+const showCowellAccount = ref(false)
+const showCowellPassword = ref(false)
 
-// ===== 刪除相關函數 =====
-const deleteTempUser = async () => {
-  try {
-    await apiAuth.delete(`/tempUser/${dialog.value.id}`)
-    await tableLoadItems()
+const guideLicenseOptions = [
+  { title: '有', value: true },
+  { title: '無', value: false }
+]
 
-    createSnackbar({
-      text: '臨時員工資料刪除成功',
-      snackbarProps: { color: 'teal-lighten-1' }
-    })
+const employmentStatuses = [
+  { title: '在職', value: '在職' },
+  { title: '離職', value: '離職' }
+]
 
-    closeDialog()
-  } catch (error) {
-    console.error('刪除失敗:', error)
-    createSnackbar({
-      text: error?.response?.data?.message || '刪除失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
-  } finally {
-    confirmDeleteDialog.value = false
-  }
-}
-
-// ===== 工具函數 =====
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('zh-TW')
-}
-
+const roles = ref(
+  Object.entries(roleNames).map(([value, title]) => ({
+    value: Number(value),
+    title
+  }))
+)
+// ===== 方法 =====
 const copyPermanentAddress = () => {
   if (permanentAddress.value.value) {
     contactAddress.value.value = permanentAddress.value.value
   }
 }
 
-const onUpdatePage = (page) => {
-  tablePage.value = page
-  tableLoadItems()
-}
+const hasChanges = computed(() => {
+  if (!isEditing.value || !tempDialog.value?.originalData) return true
 
-const resetSearch = () => {
-  searchCriteria.value = {
-    plannedCompany: '',
-    plannedDepartment: '',
-    gender: '',
-    status: '',
-    effectiveDateRange: []
+  const currentValues = {
+    name: name.value.value,
+    englishName: englishName.value.value,
+    personalEmail: personalEmail.value.value,
+    IDNumber: IDNumber.value.value,
+    gender: gender.value.value,
+    cellphone: cellphone.value.value,
+    birthDate: birthDate.value.value,
+    permanentAddress: permanentAddress.value.value,
+    contactAddress: contactAddress.value.value,
+    emergencyName: emergencyName.value.value,
+    emergencyCellphone: emergencyCellphone.value.value,
+    emergencyRelationship: emergencyRelationship.value.value,
+    company: company.value.value,
+    department: department.value.value,
+    jobTitle: jobTitle.value.value,
+    salary: salary.value.value,
+    extNumber: extNumber.value.value,
+    effectiveDate: effectiveDate.value.value,
+    status: status.value.value,
+    seatDescription: seatDescription.value.value,
+    note: note.value.value
   }
-  quickSearchText.value = ''
-  filteredDepartments.value = []
-  tableSearch.value = ''
-  performSearch()
+
+  const originalData = tempDialog.value.originalData
+
+  return Object.entries(currentValues).some(([key, value]) => {
+    if (key === 'birthDate' || key === 'effectiveDate') {
+      const originalDate = originalData[key] ? new Date(originalData[key]).toISOString() : null
+      const currentDate = value ? new Date(value).toISOString() : null
+      return originalDate !== currentDate
+    }
+    return originalData[key] !== value
+  })
+})
+
+const formatDate = (date) => {
+  if (!date) return '-'
+  const d = new Date(date)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-// ===== 監聽器 =====
-// 公司變更處理
 const handleCompanyChange = async (selectedCompanyId) => {
   try {
-    if (dialog.value.open) {
-      selectedCompany.value = selectedCompanyId
-      plannedCompany.value.value = selectedCompanyId // 修改這裡
-    } else {
-      searchCriteria.value = {
-        ...searchCriteria.value,
-        plannedCompany: selectedCompanyId, // 修改這裡
-        plannedDepartment: '' // 修改這裡
-      }
-    }
-
     if (!selectedCompanyId) {
       filteredDepartments.value = []
       return
@@ -1452,60 +1860,202 @@ const handleCompanyChange = async (selectedCompanyId) => {
       text: '載入部門資料失敗',
       snackbarProps: { color: 'red-lighten-1' }
     })
-    filteredDepartments.value = []
   }
 }
 
-// 快速搜尋防抖
-const debouncedQuickSearch = debounce(() => {
-  tablePage.value = 1
-  performSearch()
-}, 300)
-
-// 監聽快速搜尋
-watch(quickSearchText, () => {
-  debouncedQuickSearch()
-})
-
-// 監聽公司選擇
-watch(() => searchCriteria.value.plannedCompany, async (newVal) => {
-  if (newVal) {
-    await handleCompanyChange(newVal)
-  } else {
-    filteredDepartments.value = []
-  }
-})
-
-// 監聽身分證字號自動設置性別
-watch(() => IDNumber.value.value, (newVal) => {
-  if (!newVal) {
-    gender.value.value = null
-    return
-  }
-
-  const idNumberRegex = /^[A-Za-z][12]\d{8}$/
-  if (idNumberRegex.test(newVal)) {
-    const secondDigit = newVal.charAt(1)
-    if (secondDigit === '1') {
-      gender.value.value = '男性'
-    } else if (secondDigit === '2') {
-      gender.value.value = '女性'
+const loadCompanies = async () => {
+  try {
+    const { data } = await apiAuth.get('/company/all')
+    if (data.success) {
+      companies.value = data.result
     }
+  } catch (error) {
+    console.error('載入公司列表失敗:', error)
+    createSnackbar({
+      text: '載入公司列表失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  }
+}
+
+const performSearch = async () => {
+  tableLoading.value = true
+  try {
+    const params = {
+      page: tablePage.value,
+      itemsPerPage: tableItemsPerPage.value,
+      sortBy: tableSortBy.value[0]?.key || 'createdAt',
+      sortOrder: tableSortBy.value[0]?.order || 'desc',
+      quickSearch: quickSearchText.value,
+      ...searchCriteria.value
+    }
+
+    const { data } = await apiAuth.get('/tempUser/all', { params })
+
+    if (data.success) {
+      tableItems.value = data.result.data
+      tableItemsLength.value = data.result.totalItems
+    }
+  } catch (error) {
+    console.error('搜尋失敗:', error)
+    createSnackbar({
+      text: error?.response?.data?.message || '搜尋失敗',
+      snackbarProps: { color: 'error' }
+    })
+  } finally {
+    tableLoading.value = false
+  }
+}
+
+const resetSearch = () => {
+  searchCriteria.value = {
+    status: '',
+    companyId: '',
+    department: '',
+    effectiveDate: null
+  }
+  quickSearchText.value = ''
+  performSearch()
+}
+
+const submitTemp = handleTempSubmit(async (values) => {
+  try {
+    if (tempDialog.value.id) {
+      await apiAuth.patch(`/tempUser/${tempDialog.value.id}`, values)
+    } else {
+      await apiAuth.post('/tempUser', values)
+    }
+    await tableLoadItems(true)
+    closeTempDialog()
+    createSnackbar({
+      text: tempDialog.value.id ? '更新成功' : '新增成功',
+      snackbarProps: { color: 'success' }
+    })
+  } catch (error) {
+    createSnackbar({
+      text: error?.response?.data?.message || '操作失敗',
+      snackbarProps: { color: 'error' }
+    })
   }
 })
 
-// ===== 生命週期鉤子 =====
-onMounted(async () => {
-  await Promise.all([
-    loadCompanies(),
-    loadDepartments()
-  ])
-  await performSearch()
+const submitUser = handleSubmit(async (values) => {
+  try {
+    const { data } = await apiAuth.post('/user', values)
+    if (data.success) {
+      await apiAuth.patch(`/tempUser/${tempDialog.value.id}/mark-transferred/${data.result._id}`)
+      await tableLoadItems(true)
+      closeUserDialog()
+      createSnackbar({
+        text: '轉為正式員工成功',
+        snackbarProps: { color: 'success' }
+      })
+    }
+  } catch (error) {
+    createSnackbar({
+      text: error?.response?.data?.message || '操作失敗',
+      snackbarProps: { color: 'error' }
+    })
+  }
 })
 
-onUnmounted(() => {
-  debouncedQuickSearch.cancel()
+// ===== Dialog操作 =====
+const openTempDialog = async (item) => {
+  tempDialog.value = {
+    open: true,
+    id: item?._id || '',
+    originalData: item ? { ...item } : null
+  }
+
+  if (item) {
+    isEditing.value = true
+    name.value.value = item.name
+    englishName.value.value = item.englishName
+    personalEmail.value.value = item.personalEmail
+    IDNumber.value.value = item.IDNumber
+    gender.value.value = item.gender
+    cellphone.value.value = item.cellphone
+    birthDate.value.value = item.birthDate ? new Date(item.birthDate) : null
+    permanentAddress.value.value = item.permanentAddress
+    contactAddress.value.value = item.contactAddress
+    emergencyName.value.value = item.emergencyName
+    emergencyCellphone.value.value = item.emergencyCellphone
+    emergencyRelationship.value.value = item.emergencyRelationship
+    selectedCompany.value = item.company?._id
+    await handleCompanyChange(item.company?._id)
+    department.value.value = item.department?._id
+    jobTitle.value.value = item.jobTitle
+    salary.value.value = item.salary
+    extNumber.value.value = item.extNumber
+    effectiveDate.value.value = item.effectiveDate ? new Date(item.effectiveDate) : null
+    status.value.value = item.status
+    seatDescription.value.value = item.seatDescription
+    note.value.value = item.note
+  } else {
+    isEditing.value = false
+    resetForm()
+  }
+}
+
+const closeTempDialog = () => {
+  tempDialog.value.open = false
+  resetForm()
+}
+
+const openUserDialog = async (item) => {
+  try {
+    const { data } = await apiAuth.get(`/tempUser/${item._id}/format-for-transfer`)
+    if (data.success) {
+      userDialog.value = {
+        open: true,
+        id: ''
+      }
+      // 設置正式員工表單值
+    }
+  } catch (error) {
+    console.error('取得轉換資料失敗:', error)
+    createSnackbar({
+      text: error?.response?.data?.message || '取得轉換資料失敗',
+      snackbarProps: { color: 'error' }
+    })
+  }
+}
+
+const closeUserDialog = () => {
+  userDialog.value.open = false
+}
+
+const confirmDeleteDialog = ref(false)
+
+const deleteUser = async () => {
+  try {
+    await apiAuth.delete(`/tempUser/${tempDialog.value.id}`)
+    await tableLoadItems(true)
+    closeTempDialog()
+    confirmDeleteDialog.value = false
+    createSnackbar({
+      text: '刪除成功',
+      snackbarProps: { color: 'success' }
+    })
+  } catch (error) {
+    createSnackbar({
+      text: error?.response?.data?.message || '刪除失敗',
+      snackbarProps: { color: 'error' }
+    })
+  }
+}
+
+// ===== 生命週期 =====
+onMounted(async () => {
+  await performSearch()
+  await loadCompanies()
 })
+
+// ===== 監聽器 =====
+watch(quickSearchText, debounce(() => {
+  performSearch()
+}, 300))
+
 </script>
 
 <style lang="scss" scoped>
@@ -1529,11 +2079,6 @@ onUnmounted(() => {
   letter-spacing: 2px;
   font-size: 14px;
   font-weight: 900;
-}
-
-.search-label {
-  font-size: 13px;
-  font-weight: 500;
 }
 
 @include md {
