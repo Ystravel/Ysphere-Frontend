@@ -304,7 +304,7 @@ export const useUserStore = defineStore('user', () => {
   }
 }, {
   persist: {
-    key: 'erp',
+    key: 'eip',
     paths: ['token']
   }
 })

@@ -283,6 +283,12 @@ const adminItems = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT'] // 只有最高管理者和人資可以看到
   },
   {
+    to: '/tempUser',
+    text: '臨時員工管理',
+    icon: 'mdi-account-clock',
+    roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT'] // 只有最高管理者和人資可以看到
+  },
+  {
     to: '/department',
     text: '公司部門管理',
     icon: 'mdi-office-building-cog',

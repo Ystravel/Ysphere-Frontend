@@ -1,5 +1,5 @@
 {
-  "name": "ysphere-hrms-frontend",
+  "name": "ysphere-frontend",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
