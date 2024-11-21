@@ -130,6 +130,8 @@
               <!-- 有子選單的項目 -->
               <v-list-group
                 v-if="item.children"
+                v-model="openedGroups"
+                :value="item.text"
               >
                 <template #activator="{ props }">
                   <v-list-item
