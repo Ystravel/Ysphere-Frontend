@@ -613,7 +613,8 @@ definePage({
 
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
-const { smAndUp, mdAndUp, lgAndUp, xlAndUp } = useDisplay()
+const { smAndUp, mdAndUp, xlAndUp, width } = useDisplay()
+const is2200up = computed(() => width.value >= 2200)
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
@@ -753,12 +754,12 @@ const headers = [
 
 // 響應式表頭
 const filteredHeaders = computed(() => {
-  if (xlAndUp.value) {
+  if (is2200up.value) {
     return headers
   }
-  if (lgAndUp.value) {
+  if (xlAndUp.value) {
     return headers.filter(header =>
-      !['description'].includes(header.key)
+      !['description', 'category', 'location', 'assigneeId.name'].includes(header.key)
     )
   }
   if (mdAndUp.value) {
@@ -766,7 +767,6 @@ const filteredHeaders = computed(() => {
       !['description', 'category', 'location', 'assigneeId.name'].includes(header.key)
     )
   }
-
   return headers.filter(header =>
     ['ticketId', 'requesterId.name', 'requesterId.extNumber', 'title', 'status', 'actions', 'attachments'].includes(header.key)
   )

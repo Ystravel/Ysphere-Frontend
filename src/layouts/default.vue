@@ -130,8 +130,8 @@
               <!-- 有子選單的項目 -->
               <v-list-group
                 v-if="item.children"
-                v-model="openedGroups"
-                :value="item.text"
+                :value="openedGroups.includes(item.text)"
+                @click="toggleGroup(item.text)"
               >
                 <template #activator="{ props }">
                   <v-list-item
@@ -341,6 +341,14 @@ const router = useRouter()
 const route = useRoute()
 
 const openedGroups = ref([])
+
+const toggleGroup = (group) => {
+  if (openedGroups.value.includes(group)) {
+    openedGroups.value = openedGroups.value.filter(g => g !== group)
+  } else {
+    openedGroups.value.push(group)
+  }
+}
 
 const userItems = [
   { to: '/profile', text: '個人資料管理', icon: 'mdi-account' },
