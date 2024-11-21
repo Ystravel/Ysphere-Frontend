@@ -31,7 +31,9 @@
                 <div
                   class="text-subtitle-2 mb-4 opacity-70"
                 >
-                  {{ user.userId }}
+                  <span
+                    v-tooltip:end="'員工編號'"
+                  >{{ user.userId }}</span>
                 </div>
                 <div
                   style="font-size: 15px; font-weight: 600;"
@@ -302,35 +304,6 @@
               <v-col
                 class="py-0 mb-6"
                 cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-row>
-                  <v-col
-                    cols="3"
-                    sm="12"
-                    class="align-self-center py-0"
-                  >
-                    Email :
-                  </v-col>
-                  <v-col
-                    cols="9"
-                    sm="12"
-                  >
-                    <v-text-field
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      readonly
-                    >
-                      {{ user.email }}
-                    </v-text-field>
-                  </v-col>
-                </v-row>
-              </v-col>
-              <v-col
-                class="py-0 mb-6"
-                cols="12"
                 md="6"
                 lg="4"
               >
@@ -471,7 +444,7 @@
                     sm="12"
                     class="align-self-center py-0"
                   >
-                    員工編號 :
+                    公司 Email :
                   </v-col>
                   <v-col
                     cols="9"
@@ -483,7 +456,7 @@
                       hide-details
                       readonly
                     >
-                      {{ user.userId }}
+                      {{ user.email }}
                     </v-text-field>
                   </v-col>
                 </v-row>

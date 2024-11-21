@@ -53,6 +53,7 @@
       v-model="drawer"
       :rail="rail"
       permanent
+      :expand-on-hover="rail"
       class="position-fixed"
     >
       <v-list class="h-100 d-flex flex-column pa-0">
@@ -122,18 +123,52 @@
             class="my-2"
           />
           <template v-if="!user.isUser">
-            <v-list-item
+            <template
               v-for="item in filteredAdminItems"
-              :key="item.to"
-              :to="item.to"
-              color="blue-grey-darken-3"
-              class="mb-2"
+              :key="item.text"
             >
-              <template #prepend>
-                <v-icon>{{ item.icon }}</v-icon>
-              </template>
-              <v-list-item-title>{{ item.text }}</v-list-item-title>
-            </v-list-item>
+              <!-- 有子選單的項目 -->
+              <v-list-group
+                v-if="item.children"
+              >
+                <template #activator="{ props }">
+                  <v-list-item
+                    v-bind="props"
+                    color="blue-grey-darken-3"
+                  >
+                    <template #prepend>
+                      <v-icon>{{ item.icon }}</v-icon>
+                    </template>
+                    <v-list-item-title>{{ item.text }}</v-list-item-title>
+                  </v-list-item>
+                </template>
+
+                <v-list-item
+                  v-for="child in item.children"
+                  :key="child.to"
+                  :to="child.to"
+                  color="blue-grey-darken-3"
+                >
+                  <template #prepend>
+                    <v-icon>{{ child.icon }}</v-icon>
+                  </template>
+                  <v-list-item-title>{{ child.text }}</v-list-item-title>
+                </v-list-item>
+              </v-list-group>
+
+              <!-- 沒有子選單的項目 -->
+              <v-list-item
+                v-else
+                :to="item.to"
+                color="blue-grey-darken-3"
+                class="mt-2"
+              >
+                <template #prepend>
+                  <v-icon>{{ item.icon }}</v-icon>
+                </template>
+                <v-list-item-title>{{ item.text }}</v-list-item-title>
+              </v-list-item>
+            </template>
           </template>
         </div>
         <div>
@@ -218,18 +253,50 @@
             class="mt-4"
           />
           <template v-if="!user.isUser">
-            <v-list-item
+            <template
               v-for="item in filteredAdminItems"
-              :key="item.to"
-              :to="item.to"
-              color="blue-grey-darken-3"
-              class="mt-4"
+              :key="item.text"
             >
-              <template #prepend>
-                <v-icon>{{ item.icon }}</v-icon>
-              </template>
-              <v-list-item-title>{{ item.text }}</v-list-item-title>
-            </v-list-item>
+              <!-- 有子選單的項目 -->
+              <v-list-group v-if="item.children">
+                <template #activator="{ props }">
+                  <v-list-item
+                    v-bind="props"
+                    color="blue-grey-darken-3"
+                  >
+                    <template #prepend>
+                      <v-icon>{{ item.icon }}</v-icon>
+                    </template>
+                    <v-list-item-title>{{ item.text }}</v-list-item-title>
+                  </v-list-item>
+                </template>
+
+                <v-list-item
+                  v-for="child in item.children"
+                  :key="child.to"
+                  :to="child.to"
+                  color="blue-grey-darken-3"
+                >
+                  <template #prepend>
+                    <v-icon>{{ child.icon }}</v-icon>
+                  </template>
+                  <v-list-item-title>{{ child.text }}</v-list-item-title>
+                </v-list-item>
+              </v-list-group>
+
+              <!-- 沒有子選單的項目 -->
+              <v-list-item
+                v-else
+                :to="item.to"
+                color="blue-grey-darken-3"
+                class="mt-2"
+              >
+                <template #prepend>
+                  <v-icon>{{ item.icon }}</v-icon>
+                </template>
+                <v-list-item-title>{{ item.text }}</v-list-item-title>
+              </v-list-item>
+            </template>
           </template>
         </div>
         <v-divider class="mt-4" />
@@ -257,7 +324,7 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
 
@@ -269,6 +336,9 @@ const rail = ref(false)
 const user = useUserStore()
 const createSnackbar = useSnackbar()
 const router = useRouter()
+const route = useRoute()
+
+const openedGroups = ref([])
 
 const userItems = [
   { to: '/profile', text: '個人資料管理', icon: 'mdi-account' },
@@ -277,34 +347,35 @@ const userItems = [
 
 const adminItems = [
   {
-    to: '/user',
-    text: '員工管理',
-    icon: 'mdi-account-cog',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT'] // 只有最高管理者和人資可以看到
-  },
-  {
-    to: '/tempUser',
-    text: '臨時員工管理',
-    icon: 'mdi-account-clock',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT'] // 只有最高管理者和人資可以看到
+    text: '人事管理',
+    icon: 'mdi-account-group',
+    roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT'],
+    children: [
+      {
+        to: '/user',
+        text: '員工管理',
+        icon: 'mdi-account-cog',
+        roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT']
+      },
+      {
+        to: '/tempUser',
+        text: '臨時員工管理',
+        icon: 'mdi-account-clock',
+        roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT']
+      }
+    ]
   },
   {
     to: '/department',
     text: '公司部門管理',
     icon: 'mdi-office-building-cog',
-    roles: ['SUPER_ADMIN', 'ADMIN'] // 最高管理者、人資和經理可以看到
+    roles: ['SUPER_ADMIN', 'ADMIN']
   },
-  // {
-  //   to: '/asset',
-  //   text: '設備管理',
-  //   icon: 'mdi-desktop-tower-monitor',
-  //   roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
-  // },
   {
     to: '/ITServiceAdmin',
     text: 'IT 維修服務管理',
     icon: 'mdi-wrench-cog',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'IT'] // 最高管理者和 IT 人員可以看到
+    roles: ['SUPER_ADMIN', 'ADMIN', 'IT']
   },
   {
     to: '/auditLog',
@@ -317,7 +388,7 @@ const adminItems = [
 // 新增一個計算屬性來過濾可見的選單項目
 const filteredAdminItems = computed(() => {
   return adminItems.filter(item => {
-    return item.roles.some(role => {
+    const hasPermission = item.roles.some(role => {
       switch (role) {
         case 'SUPER_ADMIN':
           return user.isSuperAdmin
@@ -335,7 +406,40 @@ const filteredAdminItems = computed(() => {
           return false
       }
     })
+
+    // 如果有子項目，也需要檢查子項目的權限
+    if (item.children) {
+      item.children = item.children.filter(child => {
+        return child.roles.some(role => {
+          switch (role) {
+            case 'SUPER_ADMIN':
+              return user.isSuperAdmin
+            case 'HR':
+              return user.isHR
+            case 'MANAGER':
+              return user.isManager
+            case 'IT':
+              return user.isIT
+            case 'ACCOUNTANT':
+              return user.isAccountant
+            case 'ADMIN':
+              return user.isAdmin
+            default:
+              return false
+          }
+        })
+      })
+      // 只有當子項目不為空時才顯示父項目
+      return hasPermission && item.children.length > 0
+    }
+
+    return hasPermission
   })
+})
+
+// 監聽路由變化，當路由改變時收合所有子選單
+watch(() => route.path, () => {
+  openedGroups.value = []
 })
 
 // 監聽螢幕尺寸變化

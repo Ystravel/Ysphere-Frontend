@@ -8,6 +8,7 @@ export const useUserStore = defineStore('user', () => {
 
   const token = ref('')
   const email = ref('')
+  const personalEmail = ref('')
   const IDNumber = ref('')
   const gender = ref('')
   const name = ref('')
@@ -59,6 +60,7 @@ export const useUserStore = defineStore('user', () => {
         gender.value = data.result.gender
         cellphone.value = data.result.cellphone
         email.value = data.result.email
+        personalEmail.value = data.result.personalEmail
         permanentAddress.value = data.result.permanentAddress
         contactAddress.value = data.result.contactAddress
         emergencyName.value = data.result.emergencyName
@@ -99,6 +101,7 @@ export const useUserStore = defineStore('user', () => {
         gender.value = response.data.result.gender
         cellphone.value = response.data.result.cellphone
         email.value = response.data.result.email
+        personalEmail.value = response.data.result.personalEmail
         permanentAddress.value = response.data.result.permanentAddress
         contactAddress.value = response.data.result.contactAddress
         emergencyName.value = response.data.result.emergencyName
@@ -235,6 +238,7 @@ export const useUserStore = defineStore('user', () => {
     }
     token.value = ''
     email.value = ''
+    personalEmail.value = ''
     IDNumber.value = ''
     gender.value = ''
     name.value = ''
@@ -263,6 +267,7 @@ export const useUserStore = defineStore('user', () => {
   return {
     token,
     email,
+    personalEmail,
     IDNumber,
     gender,
     name,

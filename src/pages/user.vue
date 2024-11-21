@@ -139,12 +139,11 @@
                     <v-select
                       v-model="searchCriteria.dateType"
                       :items="dateTypes"
-                      label="篩選類型(尚待修正)"
+                      label="日期類型"
                       variant="outlined"
                       density="compact"
                       hide-details
                       clearable
-                      disabled="true"
                     />
                   </v-col>
                   <!-- 任職狀態選擇 -->
@@ -154,7 +153,7 @@
                   >
                     <v-date-input
                       v-model="searchCriteria.dateRange"
-                      label="日期區間(尚待修正)"
+                      label="日期區間"
                       variant="outlined"
                       density="compact"
                       hide-details
@@ -162,7 +161,6 @@
                       prepend-icon
                       clearable
                       persistent-placeholder
-                      disabled="true"
                     />
                   </v-col>
                 </v-row>
@@ -314,7 +312,7 @@
                     class="ps-lg-5"
                   >
                     <v-icon
-                      v-tooltip:start="'可搜尋員編、姓名、Email、手機、分機、職稱、備註'"
+                      v-tooltip:start="'可搜尋員編、姓名、公司Email、手機、分機、職稱、備註'"
                       icon="mdi-information"
                       size="small"
                       color="blue-grey-darken-2"
@@ -624,9 +622,9 @@
               class="pb-0"
             >
               <v-text-field
-                v-model="email.value.value"
-                :error-messages="email.errorMessage.value"
-                label="*Email"
+                v-model="personalEmail.value.value"
+                :error-messages="personalEmail.errorMessage.value"
+                label="個人Email"
                 type="email"
                 variant="outlined"
                 density="compact"
@@ -893,6 +891,7 @@
                 :ok-text="'確認'"
               />
             </v-col>
+
             <v-col
               cols="12"
               sm="6"
@@ -1003,23 +1002,6 @@
               />
             </v-col>
             <v-col
-              cols="12"
-              sm="6"
-              md="4"
-              lg="3"
-              class="pb-0"
-            >
-              <v-text-field
-                v-model="note.value.value"
-                :error-messages="note.errorMessage.value"
-                label="備註"
-                type="text"
-                variant="outlined"
-                density="compact"
-                clearable
-              />
-            </v-col>
-            <v-col
               v-if="resignationDate.value.value"
               cols="12"
               sm="6"
@@ -1037,6 +1019,43 @@
                 :cancel-text="'取消'"
                 :ok-text="'確認'"
               />
+            </v-col>
+            <v-col
+              cols="12"
+            >
+              <v-row>
+                <v-col
+                  cols="12"
+                  sm="6"
+                  class="pb-0"
+                >
+                  <v-text-field
+                    v-model="email.value.value"
+                    :error-messages="email.errorMessage.value"
+                    label="*公司Email"
+                    type="email"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    autocomplete="username"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  sm="6"
+                  class="pb-0"
+                >
+                  <v-text-field
+                    v-model="note.value.value"
+                    :error-messages="note.errorMessage.value"
+                    label="備註"
+                    type="text"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                  />
+                </v-col>
+              </v-row>
             </v-col>
           </v-row>
         </v-card-text>
@@ -1153,8 +1172,7 @@ const headerProps = {
 
 const dateTypes = ref([
   { title: '入職日期', value: 'hireDate' },
-  { title: '離職日期', value: 'resignationDate' },
-  { title: '生日', value: 'birthDate' }
+  { title: '離職日期', value: 'resignationDate' }
 ])
 
 const showCowellAccount = ref(false)
@@ -1254,6 +1272,9 @@ const userSchema = yup.object({
     .string()
     .required('請輸入email')
     .email('請輸入正確的 email 格式'),
+  personalEmail: yup
+    .string()
+    .email('請輸入正確的 email 格式'),
   name: yup
     .string()
     .required('請輸入姓名'),
@@ -1341,6 +1362,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: userSchema,
   initialValues: {
     email: '',
+    personalEmail: '',
     name: '',
     englishName: '',
     gender: '',
@@ -1379,6 +1401,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
 
 // ===== 表單欄位定義 =====
 const email = useField('email')
+const personalEmail = useField('personalEmail')
 const name = useField('name')
 const englishName = useField('englishName')
 const gender = useField('gender')
@@ -1428,7 +1451,7 @@ const tableKey = ref(0)
 const tableHeaders = [
   { title: '員編', align: 'left', sortable: true, key: 'userId' },
   { title: '姓名', align: 'left', sortable: true, key: 'name' },
-  { title: 'Email', align: 'left', sortable: true, key: 'email' },
+  { title: '公司Email', align: 'left', sortable: true, key: 'email' },
   { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
   { title: '所屬公司', align: 'left', sortable: true, key: 'company.name' },
   { title: '部門', align: 'left', sortable: true, key: 'department.name' },
@@ -1571,82 +1594,40 @@ const tableLoadItems = async (reset, page) => {
 // 搜尋相關函數
 const performSearch = async () => {
   tableLoading.value = true
+  console.log('Selected date range:', searchCriteria.value.dateRange)
+
   try {
-    // 檢查是否有日期搜尋
-    if (searchCriteria.value.dateType && searchCriteria.value.dateRange?.length > 0) {
-      // 使用日期搜尋 API
-      const params = {
-        dateType: searchCriteria.value.dateType,
-        startDate: searchCriteria.value.dateRange[0].toISOString(),
-        endDate: searchCriteria.value.dateRange[searchCriteria.value.dateRange.length - 1].toISOString(),
-        page: tablePage.value,
-        itemsPerPage: tableItemsPerPage.value,
-        sortBy: tableSortBy.value[0]?.key || 'userId',
-        sortOrder: tableSortBy.value[0]?.order || 'asc',
-        companyId: searchCriteria.value.companyId || undefined,
-        departmentId: searchCriteria.value.department || undefined,
-        employmentStatus: searchCriteria.value.employmentStatus || undefined
-      }
+    const params = {
+      page: tablePage.value,
+      itemsPerPage: tableItemsPerPage.value,
+      sortBy: tableSortBy.value[0]?.key || 'userId',
+      sortOrder: tableSortBy.value[0]?.order || 'asc',
+      quickSearch: quickSearchText.value,
+      ...searchCriteria.value,
+      department: searchCriteria.value.department
+    }
 
-      console.log('Date search params:', params)
+    // 处理日期范围搜索
+    if (searchCriteria.value.dateType && searchCriteria.value.dateRange && searchCriteria.value.dateRange.length > 0) {
+      params.dateType = searchCriteria.value.dateType
+      params.startDate = searchCriteria.value.dateRange[0].toISOString()
+      params.endDate = searchCriteria.value.dateRange[searchCriteria.value.dateRange.length - 1].toISOString()
+    }
 
-      const response = await apiAuth.get('/user/date-search', { params })
+    console.log('Query params:', params)
 
-      if (response.data.success) {
-        const { data: users, totalItems } = response.data.result
-        tableItems.value = users
-        tableItemsLength.value = totalItems
-      } else {
-        throw new Error(response.data.message)
-      }
-    } else {
-      // 使用原有的搜尋 API
-      const params = {
-        page: tablePage.value,
-        itemsPerPage: tableItemsPerPage.value,
-        sortBy: tableSortBy.value[0]?.key || 'userId',
-        sortOrder: tableSortBy.value[0]?.order || 'asc',
-        quickSearch: quickSearchText.value
-      }
+    const { data } = await apiAuth.get('/user/search', { params })
 
-      // 添加其他搜尋條件
-      if (searchCriteria.value.companyId) {
-        params.companyId = searchCriteria.value.companyId
-      }
-      if (searchCriteria.value.department) {
-        params.departmentId = searchCriteria.value.department
-      }
-      if (searchCriteria.value.role !== '') {
-        params.role = searchCriteria.value.role
-      }
-      if (searchCriteria.value.gender !== '') {
-        params.gender = searchCriteria.value.gender
-      }
-      if (searchCriteria.value.guideLicense !== '') {
-        params.guideLicense = searchCriteria.value.guideLicense
-      }
-      if (searchCriteria.value.employmentStatus !== '') {
-        params.employmentStatus = searchCriteria.value.employmentStatus
-      }
-
-      const response = await apiAuth.get('/user/all', { params })
-
-      if (response.data.success) {
-        const { data: users, totalItems } = response.data.result
-        tableItems.value = users
-        tableItemsLength.value = totalItems
-      } else {
-        throw new Error(response.data.message)
-      }
+    if (data.success) {
+      tableItems.value = data.result.data
+      tableItemsLength.value = data.result.totalItems
     }
   } catch (error) {
-    console.error('搜尋失敗:', error)
+    console.error('搜索失败:', error)
     createSnackbar({
-      text: error?.response?.data?.message || '搜尋時發生錯誤',
+      text: error?.response?.data?.message || '搜索失败',
       snackbarProps: { color: 'error' }
     })
-    tableItems.value = []
-    tableItemsLength.value = 0
   } finally {
     tableLoading.value = false
   }
@@ -1794,6 +1775,7 @@ const openDialog = async (item) => {
 
     // 直接設置各個表單欄位值
     email.value.value = item.email
+    personalEmail.value.value = item.personalEmail
     name.value.value = item.name
     englishName.value.value = item.englishName
     gender.value.value = item.gender
@@ -1822,6 +1804,7 @@ const openDialog = async (item) => {
     // 保存原始資料用於比對變更
     originalData.value = {
       email: item.email,
+      personalEmail: item.personalEmail,
       name: item.name,
       englishName: item.englishName,
       gender: item.gender,
@@ -1968,6 +1951,7 @@ const hasChanges = computed(() => {
 
   const currentValues = {
     email: email.value.value,
+    personalEmail: personalEmail.value.value,
     name: name.value.value,
     englishName: englishName.value.value,
     gender: gender.value.value,

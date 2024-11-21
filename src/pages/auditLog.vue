@@ -509,14 +509,16 @@ const actionOptions = [
 const modelOptions = [
   { title: '員工資料', value: 'users' },
   { title: '部門資料', value: 'departments' },
-  { title: '設備資料', value: 'assets' }
+  { title: '設備資料', value: 'assets' },
+  { title: '臨時員工資料', value: 'tempUsers' }
 ]
 
 const getModelDisplay = (model) => {
   const modelMap = {
     users: '員工資料',
     departments: '部門資料',
-    assets: '資產資料'
+    assets: '資產資料',
+    tempUsers: '臨時員工資料'
   }
   return modelMap[model] || model
 }

@@ -461,7 +461,7 @@ const tableHeaders = [
   { title: '部編', key: 'departmentId', align: 'start', minWidth: '68px', sortable: true },
   { title: '公司', key: 'c_id.name', align: 'start', minWidth: '68px', sortable: true },
   { title: '部門', key: 'name', align: 'start', minWidth: '68px', sortable: true },
-  { title: '人數', key: 'memberCount', align: 'start', sortable: true },
+  { title: '人數', key: 'memberCount', align: 'start', sortable: false },
   { title: '操作', key: 'actions', align: 'center', sortable: false }
 ]
 
