@@ -59,7 +59,7 @@
             <v-btn
               block
               elevation="2"
-              color="orange-darken-1"
+              color="blue-grey-darken-2"
               type="submit"
               :loading="isSubmitting"
               :disabled="!form.newPassword || !form.confirmPassword"
@@ -174,8 +174,9 @@ const submit = async () => {
 #background {
   width: 100%;
   min-height: 100vh;
-  background-image: url(/src/assets/image/bg_login.png);
+  background-image: url(/src/assets/image/bg_login_1.webp);
   background-size: cover;
+  background-position: center;
 }
 
 .reset-password-wrapper {

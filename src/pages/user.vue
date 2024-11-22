@@ -773,7 +773,6 @@
                 type="text"
                 variant="outlined"
                 density="compact"
-                maxlength="4"
                 clearable
               />
             </v-col>
@@ -1272,9 +1271,13 @@ const userSchema = yup.object({
     .string()
     .required('請輸入email')
     .email('請輸入正確的 email 格式'),
-  personalEmail: yup
-    .string()
-    .email('請輸入正確的 email 格式'),
+  personalEmail: yup.string()
+    .transform((value) => (value === '' ? null : value))
+    .test('email-format', '請輸入正確的Email格式', (value) => {
+      if (!value) return true // 沒有值就不驗證
+      return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value)
+    })
+    .nullable(),
   name: yup
     .string()
     .required('請輸入姓名'),
@@ -1309,6 +1312,10 @@ const userSchema = yup.object({
     .string()
     .min(10, '手機號碼需為10位數字')
     .max(10, '手機號碼勿超過10位數字')
+    .test('phone-format', '手機號碼格式不正確', (value) => {
+      if (!value) return true // 沒有值就不驗證
+      return /^09\d{8}$/.test(value)
+    })
     .required('請輸入手機號碼'),
   salary: yup
     .string()
@@ -1348,7 +1355,12 @@ const userSchema = yup.object({
   note: yup
     .string(),
   userId: yup
-    .string(),
+    .string()
+    .when('$isEditing', {
+      is: true,
+      then: () => yup.string().required('請輸入員工編號'),
+      otherwise: () => yup.string().nullable()
+    }),
   cowellAccount: yup
     .string()
     .required('請輸入Cowell帳號'),
@@ -1370,7 +1382,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     permanentAddress: '',
     contactAddress: '',
     birthDate: null,
-    company: 1,
+    company: '',
     department: '',
     cellphone: '',
     salary: '',
@@ -1434,8 +1446,7 @@ const note = useField('note', undefined, {
   transform: (value) => value ?? ''
 })
 const userId = useField('userId', undefined, {
-  validateOnValueUpdate: false,
-  transform: (value) => value ?? ''
+  validateOnValueUpdate: true // 改為 true
 })
 const cowellAccount = useField('cowellAccount')
 const cowellPassword = useField('cowellPassword')
@@ -1838,6 +1849,7 @@ const openDialog = async (item) => {
     isEditing.value = false
     dialog.value.id = ''
     originalData.value = null
+    userId.value.value = ''
     selectedCompany.value = null
     filteredDepartments.value = []
     resetForm()

@@ -510,7 +510,7 @@ const modelOptions = [
   { title: '員工資料', value: 'users' },
   { title: '部門資料', value: 'departments' },
   { title: '設備資料', value: 'assets' },
-  { title: '臨時員工資料', value: 'tempUsers' }
+  { title: '招聘資料', value: 'tempUsers' }
 ]
 
 const getModelDisplay = (model) => {
@@ -518,7 +518,7 @@ const getModelDisplay = (model) => {
     users: '員工資料',
     departments: '部門資料',
     assets: '資產資料',
-    tempUsers: '臨時員工資料'
+    tempUsers: '招聘資料'
   }
   return modelMap[model] || model
 }
@@ -531,6 +531,10 @@ const getTargetDisplayText = (item) => {
     }
     if (item.name && item.userId) {
       return `${item.name} (${item.userId})`
+    }
+    // 對於 tempUsers，只顯示名稱
+    if (item.name && targetType.value === 'tempUsers') {
+      return item.name
     }
   }
   return item
@@ -568,7 +572,14 @@ const fieldTranslations = {
   note: '備註',
   description: '描述',
   cowellAccount: '科威帳號',
-  cowellPassword: '科威密碼'
+  cowellPassword: '科威密碼',
+  personalEmail: '個人Email',
+  lastModifiedBy: '最後修改人',
+  status: '狀態',
+  isTransferred: '是否轉正',
+  associatedUserId: '轉正後OBJ',
+  effectiveDate: '生效日期',
+  seatDescription: '座位描述'
 }
 
 // 表格標頭
@@ -628,6 +639,7 @@ const handleOperatorSearch = debounce(async (text) => {
     operatorLoading.value = false
   }
 }, 300)
+
 // 處理被操作對象搜尋
 const handleTargetSearch = debounce(async (text) => {
   targetLoading.value = true
@@ -645,7 +657,6 @@ const handleTargetSearch = debounce(async (text) => {
             userId: user.userId
           }))
         } else if (text) {
-          // 當搜索結果為空,但用戶有輸入時,保留用戶輸入的值
           const newTarget = { name: text, userId: text }
           targetSuggestions.value = [newTarget]
           searchCriteria.value.targetId = newTarget
@@ -667,8 +678,27 @@ const handleTargetSearch = debounce(async (text) => {
             departmentId: dept.departmentId
           }))
         } else if (text) {
-          // 當搜索結果為空,但用戶有輸入時,保留用戶輸入的值
           const newTarget = { name: text, departmentId: text }
+          targetSuggestions.value = [newTarget]
+          searchCriteria.value.targetId = newTarget
+        } else {
+          targetSuggestions.value = []
+        }
+        break
+      case 'tempUsers':
+        response = await apiAuth.get('/tempuser/all', {
+          params: {
+            quickSearch: text,
+            itemsPerPage: 10
+          }
+        })
+        if (response.data.success) {
+          targetSuggestions.value = response.data.result.data.map(tempUser => ({
+            _id: tempUser._id,
+            name: tempUser.name
+          }))
+        } else if (text) {
+          const newTarget = { name: text }
           targetSuggestions.value = [newTarget]
           searchCriteria.value.targetId = newTarget
         } else {
@@ -821,32 +851,89 @@ const getFieldName = (key, targetModel = '') => {
 }
 
 // 格式化變更內容
+// const formatChanges = (item) => {
+//   if (!item?.changes) return []
+
+//   const changes = []
+//   const addedKeys = new Set() // 用於追蹤已處理的欄位，避免重複添加
+
+//   Object.entries(item.changes).forEach(([key, value]) => {
+//     if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
+//     if (addedKeys.has(key)) return // 跳過已處理的欄位
+
+//     // 檢查 from 和 to 的值，如果是日期則格式化
+//     const formatDateIfNecessary = (val) => {
+//       if (!val || val === '(無)') return '(無)'
+//       if (typeof val === 'string' && val.includes('T')) {
+//         return formatDate(val) // 使用修改後的 formatDate 方法
+//       }
+//       return val
+//     }
+
+//     const from = formatDateIfNecessary(value.from)
+//     const to = formatDateIfNecessary(value.to)
+
+//     const fieldName = getFieldName(key, item.targetModel)
+
+//     if (item.action === '創建') {
+//       if (to !== '(無)') {
+//         changes.push(`${fieldName}: ${to}`)
+//         addedKeys.add(key)
+//       }
+//       return
+//     }
+
+//     if (from === to) return // 忽略沒有變更的欄位
+
+//     if (fieldName) {
+//       changes.push(`${fieldName}: ${from} → ${to}`)
+//       addedKeys.add(key)
+//     }
+//   })
+
+//   if (item.action === '創建' && changes.length === 0) {
+//     changes.push(`新增${getModelDisplay(item.targetModel)}`)
+//   }
+
+//   return changes
+// }
+
 const formatChanges = (item) => {
   if (!item?.changes) return []
 
   const changes = []
-  const addedKeys = new Set() // 用於追蹤已處理的欄位，避免重複添加
+  const addedKeys = new Set()
 
   Object.entries(item.changes).forEach(([key, value]) => {
     if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
-    if (addedKeys.has(key)) return // 跳過已處理的欄位
+    if (addedKeys.has(key)) return
 
-    // 檢查 from 和 to 的值，如果是日期則格式化
-    const formatDateIfNecessary = (val) => {
-      if (!val || val === '(無)') return '(無)'
-      if (typeof val === 'string' && val.includes('T')) {
-        return formatDate(val) // 使用修改後的 formatDate 方法
+    // 特殊欄位處理
+    const formatSpecialField = (val, fieldKey) => {
+      if (val === null || val === undefined) return '(無)'
+
+      switch (fieldKey) {
+        case 'IDNumber':
+        case 'englishName':
+          return val.toString()
+        case 'department':
+          return val.toString()
+        default:
+          if (typeof val === 'string' && val.includes('T')) {
+            return formatDate(val)
+          }
+          return val
       }
-      return val
     }
 
-    const from = formatDateIfNecessary(value.from)
-    const to = formatDateIfNecessary(value.to)
+    const from = formatSpecialField(value.from, key)
+    const to = formatSpecialField(value.to, key)
 
     const fieldName = getFieldName(key, item.targetModel)
 
     if (item.action === '創建') {
       if (to !== '(無)') {
+        // 對於創建動作，直接顯示新值
         changes.push(`${fieldName}: ${to}`)
         addedKeys.add(key)
       }
@@ -856,7 +943,10 @@ const formatChanges = (item) => {
     if (from === to) return // 忽略沒有變更的欄位
 
     if (fieldName) {
-      changes.push(`${fieldName}: ${from} → ${to}`)
+      // 確保值不會被錯誤地格式化為 NaN
+      const formattedFrom = from === '(無)' ? from : from.toString()
+      const formattedTo = to === '(無)' ? to : to.toString()
+      changes.push(`${fieldName}: ${formattedFrom} → ${formattedTo}`)
       addedKeys.add(key)
     }
   })

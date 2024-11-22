@@ -341,20 +341,11 @@
         </div>
         <v-card-text>
           <v-form @submit.prevent="submitDepartment">
-            <template v-if="departmentDialog.id">
-              <v-text-field
-                v-model="departmentForm.departmentId"
-                label="部門編號"
-                variant="outlined"
-                density="compact"
-                class="mb-4"
-              />
-            </template>
             <v-select
               v-model="departmentForm.c_id"
-              :items="sortedCompanies"
+              :items="companiesWithId"
               label="選擇公司"
-              item-title="name"
+              item-title="displayName"
               item-value="_id"
               required
               variant="outlined"
@@ -362,6 +353,50 @@
               class="mb-4"
               :error-messages="departmentCompanyError"
             />
+            <v-combobox
+              v-model="departmentForm.departmentId"
+              :items="departmentIdOptions"
+              item-title="title"
+              item-value="value"
+              label="部門代碼"
+              required
+              variant="outlined"
+              density="compact"
+              class="mb-1"
+              :error-messages="departmentIdError"
+              clearable
+              @update:model-value="handleDepartmentCodeChange"
+            >
+              <template
+                v-if="smAndUp"
+                #append-inner
+              >
+                <v-tooltip
+                  location="top"
+                  close-delay="200"
+                >
+                  <template #activator="{ props }">
+                    <v-icon
+                      v-bind="props"
+                      icon="mdi-information"
+                      size="18"
+                    />
+                  </template>
+                  可選擇預設部門代碼或自行輸入
+                </v-tooltip>
+              </template>
+            </v-combobox>
+            <!-- 新增部門編號預覽 -->
+            <v-text-field
+              class="mb-2 text-grey-darken-1"
+              variant="outlined"
+              density="compact"
+              readonly
+              persistent-placeholder
+              label="部門編號預覽"
+            >
+              {{ previewDepartmentId }}
+            </v-text-field>
             <v-text-field
               v-model="departmentForm.name"
               label="部門名稱"
@@ -444,6 +479,71 @@ const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
 })
 
+const departmentIdError = ref([]) // 加入這行
+const companiesWithId = computed(() => {
+  return sortedCompanies.value.map(company => ({
+    ...company,
+    displayName: `${company.name} (${company.companyId})`
+  }))
+})
+// 部門編號預覽
+const previewDepartmentId = computed(() => {
+  if (!selectedCompany.value || !departmentForm.value.departmentId) return '(選擇公司、部門代碼後顯示)'
+
+  let code = departmentForm.value.departmentId
+  if (typeof code === 'object') {
+    code = code.value
+  }
+  // 移除任何可能存在的公司編號前綴
+  code = code.replace(/^[A-Z]\d+/, '')
+  return `${selectedCompany.value.companyId}${code}`
+})
+
+const departmentIdOptions = [
+  { title: 'IT', value: 'IT', name: 'IT部' },
+  { title: 'OP', value: 'OP', name: 'OP部' },
+  { title: 'TO (線控)', value: 'TO', name: '線控部' },
+  { title: 'AT (機控)', value: 'AT', name: '機控部' },
+  { title: 'BC (直售)', value: 'BC', name: '直售部' },
+  { title: 'BB (同業)', value: 'BB', name: '同業部' },
+  { title: 'BD (商務)', value: 'BD', name: '商務部' },
+  { title: 'CI (企業獎勵)', value: 'CI', name: '企獎部' },
+  { title: 'MD (行銷美編)', value: 'MD', name: '行銷美編部' },
+  { title: 'FM (財務管理)', value: 'FM', name: '財務管理部' },
+  { title: 'GB (高爾夫球)', value: 'GB', name: '高爾夫球事業部' }
+]
+
+const handleDepartmentCodeChange = () => {
+  // 如果是選擇預設選項
+  if (typeof departmentForm.value.departmentId === 'object') {
+    // 找到對應的預設選項
+    const selectedOption = departmentIdOptions.find(
+      option => option.value === departmentForm.value.departmentId.value
+    )
+    if (selectedOption) {
+      // 自動填入部門名稱
+      departmentForm.value.name = selectedOption.name
+    }
+  }
+  // 呼叫原本的格式化函數
+  formatDepartmentId()
+}
+const selectedCompany = computed(() => {
+  return companies.value.find(c => c._id === departmentForm.value.c_id)
+})
+
+// 格式化部門代碼（自動加上公司編號）
+const formatDepartmentId = () => {
+  if (selectedCompany.value && departmentForm.value.departmentId) {
+    let code = departmentForm.value.departmentId
+    if (typeof code === 'object') {
+      code = code.value
+    }
+    // 只清除可能存在的公司編號前綴
+    departmentForm.value.departmentId = code.replace(/^[A-Z]\d+/, '')
+  }
+}
+
 // 表格相關
 const tableKey = ref(0)
 const tableLoading = ref(false)
@@ -486,11 +586,12 @@ const editCompanyErrors = ref([])
 const departments = ref([])
 const departmentDialog = ref({ open: false, id: null })
 const deleteDepartmentDialog = ref({ open: false, id: '', name: '', companyName: '' })
+// 在部門表單中新增
 const departmentForm = ref({
   c_id: '',
   name: '',
   departmentId: '',
-  hasChanges: true // 新增時預設為 true
+  hasChanges: true
 })
 const departmentNameError = ref([])
 const departmentCompanyError = ref([])
@@ -679,20 +780,21 @@ const deleteCompany = async () => {
 }
 
 // 部門相關操作
+
 const openDepartmentDialog = () => {
   departmentDialog.value.open = true
   departmentForm.value = {
     c_id: '',
     name: '',
     departmentId: '',
-    hasChanges: true // 新增時預設為 true
+    hasChanges: true,
+    originalData: null // 加入這行
   }
 }
-
 const closeDepartmentDialog = () => {
   departmentDialog.value = { open: false, id: null }
   departmentForm.value = {
-    c_id: '', // 改為 c_id
+    c_id: '',
     name: '',
     departmentId: '',
     originalData: null,
@@ -700,18 +802,22 @@ const closeDepartmentDialog = () => {
   }
   departmentNameError.value = []
   departmentCompanyError.value = []
+  departmentIdError.value = [] // 加入這行
 }
 
 const openEditDepartment = (department) => {
-  console.log('編輯部門資料:', department) // 調試用
   departmentDialog.value = { open: true, id: department._id }
 
   const companyId = department.c_id?._id || department.c_id
+  const code = department.departmentId.replace(/^[A-Z]\d+/, '')
+
+  // 檢查是否為預設選項
+  const presetOption = departmentIdOptions.find(option => option.value === code)
 
   departmentForm.value = {
     c_id: companyId,
     name: department.name,
-    departmentId: department.departmentId,
+    departmentId: presetOption || code, // 如果是預設選項，使用完整的選項物件
     originalData: {
       c_id: companyId,
       name: department.name,
@@ -719,13 +825,13 @@ const openEditDepartment = (department) => {
     },
     hasChanges: false
   }
-
-  console.log('設置後的表單值:', departmentForm.value) // 調試用
 }
 
 const submitDepartment = async () => {
+  // 清空所有錯誤訊息
   departmentNameError.value = []
   departmentCompanyError.value = []
+  departmentIdError.value = []
 
   // 前端驗證
   if (!departmentForm.value.c_id) {
@@ -736,16 +842,38 @@ const submitDepartment = async () => {
     departmentNameError.value = ['請輸入部門名稱']
     return
   }
+  if (!departmentForm.value.departmentId) {
+    departmentIdError.value = ['請輸入部門代碼']
+    return
+  }
+
+  // 檢查部門代碼格式
+  let code = departmentForm.value.departmentId
+  if (typeof code === 'object') {
+    code = code.value
+  }
+
+  // 確保部門代碼是由公司編號+部門代碼組成
+  if (!selectedCompany.value) {
+    departmentCompanyError.value = ['請先選擇公司']
+    return
+  }
+
+  // 格式化部門代碼（確保包含公司編號）
+  const formattedDepartmentId = previewDepartmentId.value
 
   isSubmitting.value = true
   const currentPageNumber = tablePage.value // 保存當前頁碼
+
   try {
     if (departmentDialog.value.id) {
+      // 編輯部門
       const { data } = await apiAuth.patch(`/department/${departmentDialog.value.id}`, {
         c_id: departmentForm.value.c_id,
         name: departmentForm.value.name,
-        departmentId: departmentForm.value.departmentId
+        departmentId: formattedDepartmentId
       })
+
       if (data.success) {
         closeDepartmentDialog()
         createSnackbar({
@@ -757,10 +885,13 @@ const submitDepartment = async () => {
         await loadDepartments(false) // 只需要加載一次
       }
     } else {
+      // 新增部門
       const { data } = await apiAuth.post('/department', {
         c_id: departmentForm.value.c_id,
-        name: departmentForm.value.name
+        name: departmentForm.value.name,
+        departmentId: formattedDepartmentId
       })
+
       if (data.success) {
         await loadDepartments(true) // 新增時重置到第一頁
         closeDepartmentDialog()
@@ -771,15 +902,24 @@ const submitDepartment = async () => {
       }
     }
   } catch (error) {
-    createSnackbar({
-      text: error?.response?.data?.message || '操作失敗',
-      snackbarProps: { color: 'red-lighten-1' }
-    })
+    // 處理錯誤
+    const errorMessage = error?.response?.data?.message || '操作失敗'
+
+    // 根據錯誤類型設置相應的錯誤訊息
+    if (errorMessage.includes('部門代碼已存在')) {
+      departmentIdError.value = ['此部門代碼已存在']
+    } else if (errorMessage.includes('部門名稱已存在')) {
+      departmentNameError.value = ['此部門名稱已存在']
+    } else {
+      createSnackbar({
+        text: errorMessage,
+        snackbarProps: { color: 'red-lighten-1' }
+      })
+    }
   } finally {
     isSubmitting.value = false
   }
 }
-
 const confirmDeleteDepartment = (department) => {
   deleteDepartmentDialog.value = {
     open: true,
@@ -866,6 +1006,13 @@ watch([tableItemsPerPage, tableSortBy], () => {
 watch(companyFilter, () => {
   tablePage.value = 1 // 重置到第一頁
   loadDepartments(true)
+})
+
+// 監聽公司選擇變更
+watch(() => departmentForm.value.c_id, () => {
+  if (departmentForm.value.departmentId) {
+    formatDepartmentId()
+  }
 })
 
 onMounted(async () => {

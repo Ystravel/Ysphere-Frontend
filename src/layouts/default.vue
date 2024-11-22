@@ -369,7 +369,7 @@ const adminItems = [
       },
       {
         to: '/tempUser',
-        text: '臨時員工管理',
+        text: '招聘資料管理',
         icon: 'mdi-account-clock',
         roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT']
       }

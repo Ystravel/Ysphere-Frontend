@@ -113,7 +113,7 @@
                         class="ps-0"
                       >
                         <v-btn
-                          color="blue-grey-darken-1"
+                          color="cyan-darken-2"
                           prepend-icon="mdi-magnify"
                           :loading="tableLoading"
                           block
@@ -143,7 +143,7 @@
             cols="12"
             class="ps-4 pb-sm-6"
           >
-            <h3>臨時員工管理</h3>
+            <h3>招聘資料管理</h3>
           </v-col>
           <v-col cols="12">
             <v-row>
@@ -154,13 +154,12 @@
                   color="blue-grey-darken-2"
                   @click="openTempDialog(null)"
                 >
-                  新增臨時員工
+                  新增招聘資料
                 </v-btn>
               </v-col>
               <v-col
                 sm="4"
                 lg="3"
-                xl="2"
               >
                 <v-row class="d-flex align-center">
                   <v-col
@@ -173,6 +172,7 @@
                       icon="mdi-information"
                       size="small"
                       color="blue-grey-darken-2"
+                      class="pe-3 pe-xl-0"
                     />
                   </v-col>
                   <v-col>
@@ -216,10 +216,10 @@
                 <tr :class="{ 'odd-row': index % 2 === 0, 'even-row': index % 2 !== 0 }">
                   <td>{{ formatDate(item.effectiveDate) }}</td>
                   <td>{{ item.name }}</td>
-                  <td v-if="mdAndUp">
+                  <td v-if="smAndUp">
                     {{ item.company?.name || '' }}
                   </td>
-                  <td v-if="mdAndUp">
+                  <td v-if="smAndUp">
                     {{ item.department?.name || '' }}
                   </td>
                   <td v-if="mdAndUp">
@@ -236,7 +236,7 @@
                       {{ item.status }}
                     </v-chip>
                   </td>
-                  <td class="d-flex align-center overflow-hidden h-25">
+                  <td class="d-flex align-center overflow-hidden h-25 pe-0">
                     <v-btn
                       icon
                       color="light-blue-darken-4"
@@ -248,6 +248,20 @@
                     >
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
+                    <v-btn
+                      v-if="item.status === '待入職'"
+                      v-tooltip:top="'轉為正式員工'"
+                      icon
+                      color="teal-darken-1"
+                      variant="plain"
+                      width="28"
+                      class="ms-2"
+                      :size="buttonSize"
+                      :ripple="false"
+                      @click="openTransferDialog(item)"
+                    >
+                      <v-icon>mdi-account-convert</v-icon>
+                    </v-btn>
                   </td>
                 </tr>
               </template>
@@ -257,7 +271,7 @@
       </v-col>
     </v-row>
 
-    <!-- 臨時員工 Dialog -->
+    <!-- 招聘資料 Dialog -->
     <v-dialog
       v-model="tempDialog.open"
       persistent
@@ -270,7 +284,7 @@
       >
         <v-card class="rounded-lg px-4 py-6">
           <div class="card-title ps-4 py-3">
-            {{ tempDialog.id ? '臨時員工資料編輯' : '新增臨時員工' }}
+            {{ tempDialog.id ? '招聘資料編輯' : '新增招聘資料' }}
           </div>
 
           <!-- 基本資料區塊 -->
@@ -298,7 +312,22 @@
             </v-col>
           </v-row>
 
-          <v-card-text class="mt-3 pa-3">
+          <v-card-text
+            v-if="isInitializingStatus && isEditing"
+            class="d-flex justify-center align-center"
+            style="height: 600px;"
+          >
+            <v-progress-circular
+              indeterminate
+              color="blue-grey-darken-2"
+              :size="circularSize"
+            />
+          </v-card-text>
+
+          <v-card-text
+            v-if="!isInitializingStatus || !isEditing"
+            class="mt-3 pa-3"
+          >
             <v-row>
               <v-col
                 cols="12"
@@ -529,7 +558,10 @@
           </v-card-text>
 
           <!-- 工作相關資訊區塊 -->
-          <v-row class="py-4">
+          <v-row
+            v-if="!isInitializingStatus || !isEditing"
+            class="py-4"
+          >
             <v-col
               cols="3"
               md="4"
@@ -553,8 +585,50 @@
             </v-col>
           </v-row>
 
-          <v-card-text class="mt-3 pa-3">
+          <v-card-text
+            v-if="!isInitializingStatus || !isEditing"
+            class="mt-3 pa-3"
+          >
             <v-row>
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-date-input
+                  v-model="effectiveDate.value.value"
+                  :error-messages="effectiveDate.errorMessage.value"
+                  label="*生效日期"
+                  prepend-icon
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  :cancel-text="'取消'"
+                  :ok-text="'確認'"
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+                class="pb-0"
+              >
+                <v-select
+                  v-model="status.value.value"
+                  :error-messages="status.errorMessage.value"
+                  :items="statusOptions"
+                  item-title="title"
+                  item-value="value"
+                  label="*狀態"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                />
+              </v-col>
               <v-col
                 cols="12"
                 sm="6"
@@ -657,46 +731,6 @@
                 lg="3"
                 class="pb-0"
               >
-                <v-date-input
-                  v-model="effectiveDate.value.value"
-                  :error-messages="effectiveDate.errorMessage.value"
-                  label="*生效日期"
-                  prepend-icon
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                  :cancel-text="'取消'"
-                  :ok-text="'確認'"
-                />
-              </v-col>
-
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-                lg="3"
-                class="pb-0"
-              >
-                <v-select
-                  v-model="status.value.value"
-                  :error-messages="status.errorMessage.value"
-                  :items="statusOptions"
-                  item-title="title"
-                  item-value="value"
-                  label="*狀態"
-                  variant="outlined"
-                  density="compact"
-                  clearable
-                />
-              </v-col>
-
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-                lg="3"
-                class="pb-0"
-              >
                 <v-text-field
                   v-model="seatDescription.value.value"
                   :error-messages="seatDescription.errorMessage.value"
@@ -773,17 +807,24 @@
     <!-- 確認刪除 Dialog -->
     <ConfirmDeleteDialogWithTextField
       v-model="confirmDeleteDialog"
-      title="確認刪除臨時員工"
-      :message="`確定要刪除臨時員工「<span class='text-pink-lighten-1' style='font-weight: 800;'>${name.value.value}</span>」嗎？ 此操作無法復原。`"
+      title="確認刪除招聘資料"
+      :message="`確定要刪除「<span class='text-pink-lighten-1' style='font-weight: 800;'>${name.value.value}</span>」的招聘資料嗎？ 此操作無法復原。`"
       :expected-name="name.value.value"
-      input-label="員工姓名"
+      input-label="輸入欲刪除姓名"
       @confirm="deleteUser"
+    />
+
+    <TransferDialog
+      v-if="selectedTempUser"
+      ref="transferDialog"
+      :temp-user="selectedTempUser"
+      @transferred="handleTransferred"
     />
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
@@ -793,11 +834,12 @@ import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import UserRole from '@/enums/UserRole'
 import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
+import TransferDialog from '@/components/TransferDialog.vue'
 
 // ===== 頁面設定 =====
 definePage({
   meta: {
-    title: '臨時員工管理 | ysphere',
+    title: '招聘資料管理 | ysphere',
     login: true,
     roles: [UserRole.HR, UserRole.SUPER_ADMIN]
   }
@@ -807,9 +849,35 @@ definePage({
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
 
+const transferDialog = ref(null)
+const openTransferDialog = (item) => {
+  // 先設置 selectedTempUser
+  selectedTempUser.value = item
+
+  // 確保 nextTick 後再開啟 dialog
+  nextTick(() => {
+    if (transferDialog.value) {
+      transferDialog.value.openTransferDialog(item)
+    }
+  })
+}
+const handleTransferred = async (newUser) => {
+  // 重新載入招聘資料列表
+  await performSearch()
+
+  // 重新載入員工管理表格
+  if (tableLoadItems) {
+    await tableLoadItems(true)
+  }
+}
+const selectedTempUser = ref(null)
+
 // ===== 響應式設定 =====
 const { smAndUp, mdAndUp, lgAndUp, xlAndUp } = useDisplay()
 const buttonSize = computed(() => smAndUp.value ? 'default' : 'small')
+const circularSize = computed(() => {
+  return smAndUp.value ? 64 : 48
+})
 
 // ===== 表格相關 =====
 const tableLoading = ref(false)
@@ -836,6 +904,8 @@ const onUpdatePage = (page) => {
   performSearch()
 }
 
+const isInitializingStatus = ref(false)
+
 const tableHeaders = [
   { title: '生效日期', align: 'start', sortable: true, key: 'effectiveDate' },
   { title: '姓名', align: 'start', sortable: true, key: 'name' },
@@ -844,14 +914,19 @@ const tableHeaders = [
   { title: '預計分機', align: 'start', sortable: true, key: 'extNumber' },
   { title: '座位', align: 'start', sortable: true, key: 'seatDescription' },
   { title: '狀態', align: 'start', sortable: true, key: 'status' },
-  { title: '操作', align: 'start', sortable: false, key: 'actions' }
+  { title: '操作', align: 'start', sortable: false, key: 'actions', minWidth: '100px' }
 ]
 
 // 響應式表頭
 const filteredHeaders = computed(() => {
+  if (!smAndUp.value) {
+    return tableHeaders.filter(header =>
+      ['effectiveDate', 'name', 'actions'].includes(header.key)
+    )
+  }
   if (!mdAndUp.value) {
     return tableHeaders.filter(header =>
-      !['company.name', 'department.name', 'extNumber', 'seatDescription', 'status'].includes(header.key)
+      !['extNumber', 'seatDescription', 'status'].includes(header.key)
     )
   }
   return tableHeaders
@@ -896,20 +971,36 @@ const companies = ref([])
 const filteredDepartments = ref([])
 const selectedCompany = ref(null)
 
-const companyList = computed(() => [
-  { title: '全部', value: '' },
-  ...companies.value.map(company => ({
-    title: company.name,
-    value: company._id
-  }))
-])
+const companyList = computed(() => {
+  return [
+    { title: '全部', value: '' },
+    ...[...companies.value]
+      .sort((a, b) => {
+        // 確保 companyId 存在
+        const idA = a.companyId || ''
+        const idB = b.companyId || ''
+        return idA.localeCompare(idB)
+      })
+      .map(company => ({
+        title: company.name,
+        value: company._id
+      }))
+  ]
+})
 
-const companyOptions = computed(() =>
-  companies.value.map(company => ({
-    title: company.name,
-    value: company._id
-  }))
-)
+const companyOptions = computed(() => {
+  return [...companies.value]
+    .sort((a, b) => {
+      // 確保 companyId 存在
+      const idA = a.companyId || ''
+      const idB = b.companyId || ''
+      return idA.localeCompare(idB)
+    })
+    .map(company => ({
+      title: company.name,
+      value: company._id
+    }))
+})
 
 // ===== Dialog 設定 =====
 const dialogWidth = computed(() => {
@@ -1181,7 +1272,7 @@ const performSearch = async () => {
     console.error('搜索失败:', error)
     createSnackbar({
       text: error?.response?.data?.message || '搜索失败',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   } finally {
     tableLoading.value = false
@@ -1216,12 +1307,12 @@ const submitTemp = handleTempUserSubmit(async (values) => {
     closeTempDialog()
     createSnackbar({
       text: tempDialog.value.id ? '更新成功' : '新增成功',
-      snackbarProps: { color: 'success' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
   } catch (error) {
     createSnackbar({
       text: error?.response?.data?.message || '操作失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
 })
@@ -1233,6 +1324,8 @@ const openTempDialog = async (item) => {
     id: item?._id || '',
     originalData: item ? { ...item } : null
   }
+
+  isInitializingStatus.value = true
 
   if (item) {
     isEditing.value = true
@@ -1276,6 +1369,9 @@ const openTempDialog = async (item) => {
     filteredDepartments.value = []
     resetForm()
   }
+  setTimeout(() => {
+    isInitializingStatus.value = false
+  }, 300)
 }
 
 const closeTempDialog = () => {
@@ -1295,12 +1391,12 @@ const deleteUser = async () => {
     confirmDeleteDialog.value = false
     createSnackbar({
       text: '刪除成功',
-      snackbarProps: { color: 'success' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
   } catch (error) {
     createSnackbar({
       text: error?.response?.data?.message || '刪除失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
 }
