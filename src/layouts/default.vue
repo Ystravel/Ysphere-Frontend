@@ -64,9 +64,25 @@
             rounded="0"
             height="172"
             width="260"
-            class="pa-0 card-bg"
+            class="pa-0 card-bg position-relative"
+            :class="{ 'loaded': isBackgroundLoaded }"
             to="/profile"
           >
+            <!-- 添加 skeleton -->
+            <v-skeleton-loader
+              v-if="!isBackgroundLoaded"
+              class="position-absolute w-100 h-100"
+              type="image"
+              height="172"
+            />
+
+            <!-- 添加隱藏的圖片用於預加載 -->
+            <img
+              src="/src/assets/image/bg_profile_robot.png"
+              alt="background"
+              style="display: none;"
+              @load="handleImageLoad"
+            >
             <div class="card-blur pt-2 pb-4 px-2">
               <v-card-title class="ps-5 pb-3">
                 <v-avatar
@@ -341,6 +357,10 @@ const router = useRouter()
 const route = useRoute()
 
 const openedGroups = ref([])
+const isBackgroundLoaded = ref(false)
+const handleImageLoad = () => {
+  isBackgroundLoaded.value = true
+}
 
 const toggleGroup = (group) => {
   if (openedGroups.value.includes(group)) {
@@ -499,9 +519,14 @@ const logout = async () => {
 
 <style lang="scss" scoped>
 .card-bg {
-  // background: linear-gradient(135deg, #37474F 15%, #90aabe);
   background: url(/src/assets/image/bg_profile_robot.png);
   background-size: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  &.loaded {
+    opacity: 1;
+  }
 }
 .card-blur {
   background: linear-gradient(135deg, #37474F 20%, rgba(255,255,255,0));
