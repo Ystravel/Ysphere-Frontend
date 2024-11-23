@@ -213,8 +213,15 @@
             rounded="0"
             height="172"
             class="pa-0 card-bg"
+            :class="{ 'loaded': isBackgroundLoaded }"
             to="/profile"
           >
+            <!-- 添加 skeleton -->
+            <v-skeleton-loader
+              v-if="!isBackgroundLoaded"
+              class="position-absolute w-100 h-100 pa-0 ma-0"
+            />
+
             <div class="card-blur pt-2 pb-4 px-2">
               <v-card-title class="ps-5 pb-3">
                 <v-avatar
