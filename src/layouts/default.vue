@@ -526,12 +526,8 @@ const logout = async () => {
 .card-bg {
   background: url(/src/assets/image/bg_profile_robot.png);
   background-size: cover;
-  opacity: 0;
   transition: opacity 0.3s ease;
 
-  &.loaded {
-    opacity: 1;
-  }
 }
 .card-blur {
   background: linear-gradient(135deg, #37474F 20%, rgba(255,255,255,0));
