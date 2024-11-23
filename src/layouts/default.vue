@@ -71,9 +71,7 @@
             <!-- 添加 skeleton -->
             <v-skeleton-loader
               v-if="!isBackgroundLoaded"
-              class="position-absolute w-100 h-100"
-              type="image"
-              height="172"
+              class="position-absolute w-100 h-100 pa-0 ma-0"
             />
 
             <!-- 添加隱藏的圖片用於預加載 -->
