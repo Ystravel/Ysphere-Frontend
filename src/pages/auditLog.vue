@@ -556,7 +556,6 @@ const fieldTranslations = {
   role: '權限',
   employmentStatus: '任職狀態',
   gender: '性別',
-  guideLicense: '領隊證',
   salary: '薪資',
   birthDate: '生日',
   hireDate: '入職日期',

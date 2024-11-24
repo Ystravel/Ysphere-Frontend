@@ -268,7 +268,7 @@
                 <v-menu>
                   <template #activator="{ props }">
                     <v-chip
-                      v-tooltip:start="'點擊選擇處理者'"
+                      v-tooltip:start="'點擊指派處理者'"
                       v-bind="props"
                       :color="item.assigneeId ? 'blue' : 'grey'"
                       variant="outlined"
@@ -560,8 +560,8 @@
                     處理方案
                   </div>
                   <div
-                    style="white-space: pre-wrap;"
-                    class="list-content"
+                    style="white-space: pre-wrap; min-height: 64px; border-radius: 8px; padding: 12px;"
+                    class="list-content border"
                   >
                     {{ detailDialog.ticket?.solution || '尚未填寫' }}
                   </div>

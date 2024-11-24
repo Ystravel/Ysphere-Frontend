@@ -519,23 +519,6 @@
             <v-col
               cols="12"
               sm="6"
-              md="4"
-              lg="3"
-              class="pb-0"
-            >
-              <v-select
-                v-model="guideLicense.value.value"
-                :items="guideLicenseOptions"
-                :error-messages="guideLicense.errorMessage.value"
-                label="領隊證"
-                variant="outlined"
-                density="compact"
-              />
-            </v-col>
-
-            <v-col
-              cols="12"
-              sm="6"
               class="pb-0"
             >
               <v-text-field
@@ -664,7 +647,6 @@ const userSchema = yup.object({
   role: yup.string().required('請選擇權限'),
   extNumber: yup.string().required('請輸入分機號碼'),
   printNumber: yup.string().required('請輸入列印編號'),
-  guideLicense: yup.boolean(),
   jobTitle: yup.string().required('請輸入職稱'),
   hireDate: yup.date().nullable().required('請選擇入職日期'),
   emergencyName: yup.string().required('請輸入緊急聯絡人姓名'),
@@ -693,7 +675,6 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     salary: '',
     extNumber: '',
     printNumber: '',
-    guideLicense: false,
     jobTitle: '',
     role: 0,
     employmentStatus: '在職',
@@ -736,7 +717,6 @@ const role = useField('role')
 const extNumber = useField('extNumber')
 const hireDate = useField('hireDate')
 const printNumber = useField('printNumber')
-const guideLicense = useField('guideLicense')
 const cowellAccount = useField('cowellAccount')
 const cowellPassword = useField('cowellPassword')
 const note = useField('note')
@@ -762,11 +742,6 @@ const showCowellPassword = ref(false)
 const genderOptions = [
   { title: '男性', value: '男性' },
   { title: '女性', value: '女性' }
-]
-
-const guideLicenseOptions = [
-  { title: '有', value: true },
-  { title: '無', value: false }
 ]
 
 const openTransferDialog = async (tempUser) => {

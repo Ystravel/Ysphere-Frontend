@@ -660,34 +660,6 @@
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col
-                class="py-0 mb-6"
-                cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-row>
-                  <v-col
-                    cols="3"
-                    sm="12"
-                    class="align-self-center py-0"
-                  >
-                    領隊證 :
-                  </v-col>
-                  <v-col
-                    cols="9"
-                    sm="12"
-                  >
-                    <v-text-field
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      readonly
-                      :value="guideLicenseDisplay"
-                    />
-                  </v-col>
-                </v-row>
-              </v-col>
             </v-row>
           </v-col>
         </v-row>
@@ -819,9 +791,6 @@ import FileUploadButton from '@/components/FileUploadButton.vue'
 
 const { mdAndUp, width, smAndUp } = useDisplay()
 const isLgmUp = computed(() => width.value >= 1500)
-const guideLicenseDisplay = computed(() => {
-  return user.guideLicense ? '有' : '無'
-})
 
 const buttonSize = computed(() => {
   return smAndUp.value ? 'default' : 'small'
