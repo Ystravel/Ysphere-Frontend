@@ -706,7 +706,7 @@ const handleAssigneeChange = async (ticket, assigneeId) => {
     // 觸發成功訊息
     createSnackbar({
       text: assigneeId ? '處理者更新成功' : '已移除指派',
-      snackbarProps: { color: 'success' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
 
     refreshTable() // 強制刷新表格
@@ -982,7 +982,7 @@ const updateStatus = async (ticket, newStatus) => {
 
     createSnackbar({
       text: '狀態更新成功',
-      snackbarProps: { color: 'success' }
+      snackbarProps: { color: 'teal-lighten-1' }
     })
   } catch (error) {
     console.error('更新狀態失敗:', error)

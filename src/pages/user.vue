@@ -362,7 +362,7 @@
                   <td v-if="lgAndUp">
                     {{ item.email }}
                   </td>
-                  <td v-if="lgAndUp">
+                  <td v-if="xlAndUp">
                     {{ item.cellphone }}
                   </td>
                   <td v-if="mdAndUp">
@@ -378,15 +378,33 @@
                   <td v-if="xlAndUp">
                     {{ item.employmentStatus }}
                   </td>
-                  <td v-if="xlAndUp">
-                    <v-chip
-                      :color="getFormStatusColor(item.formStatus)"
-                      variant="outlined"
-                      size="small"
-                      label
-                    >
-                      {{ item.formStatus }}
-                    </v-chip>
+                  <td v-if="lgAndUp">
+                    <v-menu>
+                      <template #activator="{ props }">
+                        <v-chip
+                          v-tooltip:start="'點擊更改表單狀態'"
+                          v-bind="props"
+                          :color="getFormStatusColor(item.formStatus)"
+                          variant="outlined"
+                          size="small"
+                          label
+                          :loading="item._id === updatingStatusId"
+                          :disabled="item._id === updatingStatusId"
+                        >
+                          {{ item.formStatus }}
+                        </v-chip>
+                      </template>
+                      <v-list>
+                        <v-list-item
+                          v-for="status in formStatusOptions"
+                          :key="status"
+                          :active="item.formStatus === status"
+                          @click="updateTableFormStatus(item._id, status)"
+                        >
+                          <v-list-item-title>{{ status }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
                   </td>
                   <td class="d-flex align-center overflow-hidden h-25">
                     <v-btn
@@ -487,8 +505,8 @@
                 v-bind="props"
                 :color="getFormStatusColor(formStatus.value.value)"
                 variant="outlined"
+                :size="buttonSize"
                 label
-                size="small"
                 class="ml-2"
                 :loading="formStatusLoading"
                 :disabled="formStatusLoading"
@@ -1729,6 +1747,7 @@ const headerProps = {
   class: 'header-bg'
 }
 const dependents = ref([])
+const updatingStatusId = ref('')
 
 const formStatusLoading = ref(false)
 // 在其他 computed 屬性附近添加
@@ -1750,6 +1769,41 @@ const dependentErrors = computed(() => {
 
   return errors
 })
+
+const updateTableFormStatus = async (userId, newStatus) => {
+  try {
+    updatingStatusId.value = userId
+    const { data } = await apiAuth.patch(`/user/${userId}`, {
+      formStatus: newStatus
+    })
+
+    if (data.success) {
+      // 更新表格中的對應行
+      const index = tableItems.value.findIndex(item => item._id === userId)
+      if (index !== -1) {
+        tableItems.value[index].formStatus = newStatus
+      }
+
+      // 強制重新渲染表格
+      tableKey.value++
+
+      createSnackbar({
+        text: '表單狀態更新成功',
+        snackbarProps: { color: 'teal-lighten-1' }
+      })
+    } else {
+      throw new Error(data.message || '更新失敗')
+    }
+  } catch (error) {
+    console.error('更新表單狀態失敗:', error)
+    createSnackbar({
+      text: error.response?.data?.message || '更新表單狀態失敗',
+      snackbarProps: { color: 'error' }
+    })
+  } finally {
+    updatingStatusId.value = ''
+  }
+}
 
 const dateTypes = ref([
   { title: '入職日期', value: 'hireDate' },
@@ -1784,11 +1838,11 @@ const voluntaryPensionRateOptions = [
 const getFormStatusColor = (status) => {
   switch (status) {
     case '已完成':
-      return 'teal-lighten-1'
+      return 'green-darken-1'
     case '尚未完成':
-      return 'red-lighten-1'
+      return 'pink-lighten-1'
     case '尚缺資料':
-      return 'warning'
+      return 'amber-darken-3'
     default:
       return 'grey'
   }
@@ -1873,7 +1927,7 @@ const updateFormStatus = async (newStatus) => {
 
       createSnackbar({
         text: '表單狀態更新成功',
-        snackbarProps: { color: getFormStatusColor(newStatus) }
+        snackbarProps: { color: 'teal-lighten-1' }
       })
     } else {
       throw new Error(data.message || '更新失敗')
@@ -2384,15 +2438,15 @@ const filteredHeaders = computed(() => {
     return tableHeaders
   }
   if (['lg'].includes(currentBreakpoint.value)) {
-    return tableHeaders.filter(header => header.key !== 'employmentStatus')
+    return tableHeaders.filter(header => header.key !== 'employmentStatus' && header.key !== 'cellphone')
   }
   if (['md'].includes(currentBreakpoint.value)) {
-    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
+    return tableHeaders.filter(header => header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus' && header.key !== 'formStatus')
   }
   if (['sm'].includes(currentBreakpoint.value)) {
-    return tableHeaders.filter(header => header.key !== 'company.name' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus')
+    return tableHeaders.filter(header => header.key !== 'company.name' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'employmentStatus' && header.key !== 'formStatus')
   }
-  return tableHeaders.filter(header => header.key !== 'company.name' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus')
+  return tableHeaders.filter(header => header.key !== 'company.name' && header.key !== 'department.name' && header.key !== 'cellphone' && header.key !== 'email' && header.key !== 'role' && header.key !== 'employmentStatus' && header.key !== 'formStatus')
 })
 
 // ===== API 相關函數 =====
@@ -3332,7 +3386,7 @@ onUnmounted(() => {
 
 .tab-title {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   color: #999;
 }
 .search-label {
@@ -3347,5 +3401,13 @@ onUnmounted(() => {
   &::-webkit-scrollbar {     /* Chrome, Safari and Opera */
     display: none;
   }
+}
+
+@include sm {
+  .tab-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #999;
+}
 }
 </style>
