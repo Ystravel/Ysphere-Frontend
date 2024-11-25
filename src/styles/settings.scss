@@ -91,6 +91,13 @@ h3 {
   font-size: 14px;
 }
 
+.info-title {
+  text-align: center;
+  letter-spacing: 2px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 @include sm {
   h3{
     font-size: 18px;
@@ -146,6 +153,12 @@ h3 {
     td {
       font-size: 14px;
     }
+  }
+
+  .info-title {
+    text-align: center;
+    letter-spacing: 4px;
+    font-size: 15px;
   }
 }
 

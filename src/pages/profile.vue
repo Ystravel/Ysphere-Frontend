@@ -95,7 +95,7 @@
                 >
                   <FileUploadButton />
                   <v-btn
-                    v-tooltip:top="'查看科威帳號密碼'"
+                    v-tooltip:top="'查看所有系統帳號密碼'"
                     icon=""
                     color="blue-grey-darken-2"
                     size="24"
@@ -115,7 +115,7 @@
                   class="d-flex align-center"
                 >
                   <v-btn
-                    v-tooltip:top="'查看科威帳號密碼'"
+                    v-tooltip:top="'查看所有系統帳號密碼'"
                     icon=""
                     color="blue-grey-darken-2"
                     size="24"
@@ -546,6 +546,75 @@
                   </v-col>
                 </v-row>
               </v-col>
+
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    分機號碼 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.extNumber }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    列印編號 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                    >
+                      {{ user.printNumber }}
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+
+              <v-col
+                cols="12"
+                class="mt-3 mb-8 mb-sm-10 text-center text-blue-grey-darken-3"
+              >
+                <div class="profile-subtitle">
+                  《 系統資料 》
+                </div>
+              </v-col>
+
               <v-col
                 class="py-0 mb-6"
                 cols="12"
@@ -614,7 +683,7 @@
                     sm="12"
                     class="align-self-center py-0"
                   >
-                    分機號碼 :
+                    YSRC帳號 :
                   </v-col>
                   <v-col
                     cols="9"
@@ -625,9 +694,8 @@
                       density="compact"
                       hide-details
                       readonly
-                    >
-                      {{ user.extNumber }}
-                    </v-text-field>
+                      :value="isCowellRevealed ? user.YSRCAccount : '******'"
+                    />
                   </v-col>
                 </v-row>
               </v-col>
@@ -643,7 +711,7 @@
                     sm="12"
                     class="align-self-center py-0"
                   >
-                    列印編號 :
+                    YSRC密碼 :
                   </v-col>
                   <v-col
                     cols="9"
@@ -654,9 +722,66 @@
                       density="compact"
                       hide-details
                       readonly
-                    >
-                      {{ user.printNumber }}
-                    </v-text-field>
+                      :value="isCowellRevealed ? user.YSRCPassword : '******'"
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                v-if="user.YS168Account"
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    YS168帳號 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                      :value="isCowellRevealed ? user.YS168Account : '******'"
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col
+                v-if="user.YS168Password"
+                class="py-0 mb-6"
+                cols="12"
+                sm="6"
+                md="4"
+              >
+                <v-row>
+                  <v-col
+                    cols="3"
+                    sm="12"
+                    class="align-self-center py-0"
+                  >
+                    YS168密碼 :
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    sm="12"
+                  >
+                    <v-text-field
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      readonly
+                      :value="isCowellRevealed ? user.YS168Password : '******'"
+                    />
                   </v-col>
                 </v-row>
               </v-col>
@@ -732,7 +857,7 @@
     </v-card>
   </v-dialog>
 
-  <!-- 查看科威帳號與密碼對話框 -->
+  <!-- 查看所有系統帳號與密碼對話框 -->
   <v-dialog
     v-model="showCowellDialog"
     max-width="360"
@@ -745,7 +870,7 @@
         class="ps-6 pb-2"
         style="font-size: 15px;"
       >
-        查看科威帳號與密碼
+        查看所有系統帳號與密碼
       </div>
       <v-card-text class="pb-0">
         <v-text-field
@@ -936,13 +1061,13 @@ const verifyCowellPassword = async () => {
     user.cowellPassword = data.result.cowellPassword
 
     createSnackbar({
-      text: '密碼驗證成功，科威帳號與密碼已解鎖',
+      text: '密碼驗證成功，所有系統帳號與密碼已解鎖',
       snackbarProps: { color: 'teal-lighten-1' }
     })
 
     closeCowellDialog()
   } catch (error) {
-    console.error('驗證科威密碼錯誤:', error)
+    console.error('驗證密碼錯誤:', error)
     createSnackbar({
       text: '驗證失敗，請稍後重試',
       snackbarProps: { color: 'red-lighten-1' }

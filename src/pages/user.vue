@@ -378,6 +378,16 @@
                   <td v-if="xlAndUp">
                     {{ item.employmentStatus }}
                   </td>
+                  <td v-if="xlAndUp">
+                    <v-chip
+                      :color="getFormStatusColor(item.formStatus)"
+                      variant="outlined"
+                      size="small"
+                      label
+                    >
+                      {{ item.formStatus }}
+                    </v-chip>
+                  </td>
                   <td class="d-flex align-center overflow-hidden h-25">
                     <v-btn
                       icon
@@ -468,8 +478,35 @@
       <v-card
         class="rounded-lg px-4 py-6"
       >
-        <div class="card-title ps-4 py-3">
+        <div class="card-title px-4 py-3 d-flex justify-space-between">
           {{ dialog.id ? '員工資料編輯' : '新增員工' }}
+          <v-menu>
+            <template #activator="{ props }">
+              <v-chip
+                v-tooltip:start="'點擊更改表單狀態'"
+                v-bind="props"
+                :color="getFormStatusColor(formStatus.value.value)"
+                variant="outlined"
+                label
+                size="small"
+                class="ml-2"
+                :loading="formStatusLoading"
+                :disabled="formStatusLoading"
+              >
+                {{ formStatus.value.value }}
+              </v-chip>
+            </template>
+            <v-list>
+              <v-list-item
+                v-for="status in formStatusOptions"
+                :key="status"
+                :active="formStatus.value.value === status"
+                @click="isEditing ? updateFormStatus(status) : (formStatus.value.value = status)"
+              >
+                <v-list-item-title>{{ status }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </div>
 
         <!-- Tab Menu -->
@@ -528,7 +565,7 @@
         <v-tabs-window
           v-else
           v-model="activeTab"
-          class="overflow-y-auto mx-1"
+          class="mx-1 overflow-y-auto "
         >
           <!-- 個人資訊 Tab -->
           <v-tabs-window-item
@@ -777,7 +814,10 @@
                 <v-col cols="12">
                   <v-row class="d-flex align-center my-2">
                     <v-col cols="4">
-                      <v-divider />
+                      <v-divider
+                        color="blue-grey-darken-2"
+                        opacity="0.3"
+                      />
                     </v-col>
                     <v-col
                       cols="4"
@@ -839,6 +879,7 @@
                     :error-messages="emergencyCellphone.errorMessage.value"
                     label="緊急聯絡人手機"
                     type="text"
+                    maxlength="10"
                     variant="outlined"
                     density="compact"
                     clearable
@@ -887,7 +928,6 @@
                     type="text"
                     variant="outlined"
                     density="compact"
-                    maxlength="4"
                     clearable
                   />
                 </v-col>
@@ -909,6 +949,7 @@
                     variant="outlined"
                     density="compact"
                     clearable
+                    :error="!!company.errorMessage.value"
                     @update:model-value="handleCompanyChange"
                   />
                 </v-col>
@@ -1113,6 +1154,29 @@
 
                 <v-col
                   cols="12"
+                  sm="6"
+                  md="4"
+                  lg="3"
+                  class="pb-0"
+                >
+                  <v-date-input
+                    v-model="tourismReportDate.value.value"
+                    :error-messages="tourismReportDate.errorMessage.value"
+                    label="觀光局申報到職日期"
+                    prepend-icon
+                    variant="outlined"
+                    density="compact"
+                    persistent-hint
+                    clearable
+                    :hint="tourismReportDateROC"
+                    :cancel-text="'取消'"
+                    :ok-text="'確認'"
+                    @click:clear="tourismReportDate.value.value = null"
+                  />
+                </v-col>
+
+                <v-col
+                  cols="12"
                   md="8"
                   lg="6"
                   class="pb-0"
@@ -1126,7 +1190,10 @@
                 <v-col cols="12">
                   <v-row class="d-flex align-center my-2">
                     <v-col cols="4">
-                      <v-divider />
+                      <v-divider
+                        color="blue-grey-darken-2"
+                        opacity="0.3"
+                      />
                     </v-col>
                     <v-col
                       cols="4"
@@ -1135,7 +1202,10 @@
                       系統帳號資訊
                     </v-col>
                     <v-col cols="4">
-                      <v-divider />
+                      <v-divider
+                        color="blue-grey-darken-2"
+                        opacity="0.3"
+                      />
                     </v-col>
                   </v-row>
                 </v-col>
@@ -1150,7 +1220,7 @@
                   <v-text-field
                     v-model="email.value.value"
                     :error-messages="email.errorMessage.value"
-                    label="公司Email"
+                    label="*公司Email"
                     type="email"
                     variant="outlined"
                     density="compact"
@@ -1483,7 +1553,7 @@
                     item-value="value"
                     clearable
                     :menu-props="{ maxHeight: 400 }"
-                    :hint="'可輸入銀行代碼或銀行名稱進行搜尋'"
+                    :hint="'可輸入銀行代碼或銀行名稱搜尋'"
                     persistent-hint
                   >
                     <template #selection="{ item }">
@@ -1524,6 +1594,15 @@
                   />
                 </v-col>
 
+                <v-col
+                  cols="12"
+                  class="mt-10"
+                >
+                  <v-divider
+                    color="blue-grey-darken-2"
+                    opacity="0.3"
+                  />
+                </v-col>
                 <v-col cols="12">
                   <DependentInsurance
                     v-model="dependents"
@@ -1537,7 +1616,7 @@
 
         <!-- Actions -->
         <v-card-actions
-          class="px-3 mt-4"
+          class="px-4 mt-4"
         >
           <v-hover>
             <template #default="{ isHovering, props}">
@@ -1650,6 +1729,8 @@ const headerProps = {
   class: 'header-bg'
 }
 const dependents = ref([])
+
+const formStatusLoading = ref(false)
 // 在其他 computed 屬性附近添加
 const dependentErrors = computed(() => {
   const errors = {}
@@ -1699,6 +1780,21 @@ const voluntaryPensionRateOptions = [
   { title: '5%', value: 5 },
   { title: '6%', value: 6 }
 ]
+
+const getFormStatusColor = (status) => {
+  switch (status) {
+    case '已完成':
+      return 'teal-lighten-1'
+    case '尚未完成':
+      return 'red-lighten-1'
+    case '尚缺資料':
+      return 'warning'
+    default:
+      return 'grey'
+  }
+}
+
+const formStatusOptions = ['尚未完成', '尚缺資料', '已完成']
 
 const bankOptions = [
   { code: '008', name: '華南商業銀行' }, // 預設銀行
@@ -1752,6 +1848,46 @@ const formattedBankOptions = computed(() => {
     value: bank.code
   }))
 })
+
+const updateFormStatus = async (newStatus) => {
+  if (formStatus.value === newStatus) return
+
+  formStatusLoading.value = true
+  try {
+    const { data } = await apiAuth.patch(`/user/${dialog.value.id}`, {
+      formStatus: newStatus
+    })
+
+    if (data.success) {
+      // 更新本地狀態
+      formStatus.value.value = newStatus
+
+      // 更新表格中的對應行
+      const index = tableItems.value.findIndex(item => item._id === dialog.value.id)
+      if (index !== -1) {
+        tableItems.value[index].formStatus = newStatus
+      }
+
+      // 強制重新渲染表格
+      tableKey.value++
+
+      createSnackbar({
+        text: '表單狀態更新成功',
+        snackbarProps: { color: getFormStatusColor(newStatus) }
+      })
+    } else {
+      throw new Error(data.message || '更新失敗')
+    }
+  } catch (error) {
+    console.error('更新表單狀態失敗:', error)
+    createSnackbar({
+      text: error.response?.data?.message || '更新表單狀態失敗',
+      snackbarProps: { color: 'error' }
+    })
+  } finally {
+    formStatusLoading.value = false
+  }
+}
 
 const activeTab = ref('basic')
 const showCowellAccount = ref(false)
@@ -1870,6 +2006,7 @@ const dependentInsuranceSchema = yup.object({
 const userSchema = yup.object({
   email: yup
     .string()
+    .required('請輸入公司 email')
     .email('請輸入正確的 email 格式'),
   personalEmail: yup
     .string()
@@ -1877,7 +2014,7 @@ const userSchema = yup.object({
     .nullable(),
   IDNumber: yup
     .string()
-    .matches(/^[A-Za-z][12]\d{8}$/, '身分證號碼格式錯誤')
+    .matches(/^[A-Za-z][12]\d{8}$/, '身分證格式錯誤')
     .required('請輸入身分證號碼'),
   gender: yup
     .string()
@@ -1893,9 +2030,12 @@ const userSchema = yup.object({
     .nullable(),
   cellphone: yup
     .string()
-    .min(10, '手機號碼需為10位數字')
-    .max(10, '手機號碼勿超過10位數字')
-    .nullable(),
+    .nullable()
+    .test('is-valid-cellphone', '手機號碼格式錯誤', (value) => {
+      if (!value) return true // 允許空值
+      // 台灣手機號碼格式：09xxxxxxxx
+      return /^09\d{8}$/.test(value)
+    }),
   salary: yup
     .string()
     .nullable(),
@@ -1917,8 +2057,7 @@ const userSchema = yup.object({
     .required('請輸入聯絡地址'),
   company: yup
     .string()
-    .nullable()
-    .required('請選擇公司'),
+    .required('請選擇所屬公司'),
   department: yup
     .string()
     .required('請選擇部門'),
@@ -1941,6 +2080,7 @@ const userSchema = yup.object({
     .required('請選擇任職狀態'),
   hireDate: yup
     .date()
+    .nullable()
     .required('請選擇入職日期'),
   resignationDate: yup
     .date()
@@ -1953,7 +2093,12 @@ const userSchema = yup.object({
     .nullable(),
   emergencyCellphone: yup
     .string()
-    .nullable(),
+    .nullable()
+    .test('is-valid-cellphone', '手機號碼格式錯誤', (value) => {
+      if (!value) return true // 允許空值
+      // 台灣手機號碼格式：09xxxxxxxx
+      return /^09\d{8}$/.test(value)
+    }),
   emergencyRelationship: yup
     .string()
     .nullable(),
@@ -2023,7 +2168,13 @@ const userSchema = yup.object({
   dependentInsurance: yup
     .array()
     .of(dependentInsuranceSchema)
-    .default([])
+    .default([]),
+  tourismReportDate: yup
+    .date()
+    .nullable(),
+  formStatus: yup
+    .string()
+    .nullable()
 })
 
 // ===== 表單初始化與欄位設定 =====
@@ -2033,7 +2184,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     email: '',
     personalEmail: '',
     IDNumber: '',
-    gender: '',
+    gender: '男性',
     name: '',
     englishName: '',
     phoneNumber: '',
@@ -2044,7 +2195,7 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     birthDate: null,
     permanentAddress: '',
     contactAddress: '',
-    company: 1,
+    company: '',
     department: '',
     jobTitle: '',
     role: 0,
@@ -2077,7 +2228,9 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
     voluntaryPensionRate: null,
     voluntaryPensionStartDate: null,
     voluntaryPensionEndDate: null,
-    dependentInsurance: []
+    dependentInsurance: [],
+    tourismReportDate: null,
+    formStatus: '尚未完成'
   },
   validateOnMount: false,
   validateOnChange: true,
@@ -2103,9 +2256,13 @@ const printNumber = useField('printNumber')
 const birthDate = useField('birthDate')
 const permanentAddress = useField('permanentAddress')
 const contactAddress = useField('contactAddress')
-const company = useField('company')
+const company = useField('company', undefined, {
+  validateOnValueUpdate: true,
+  validateOnChange: true
+})
 const department = useField('department', undefined, {
-  validateOnValueUpdate: false
+  validateOnValueUpdate: true,
+  validateOnChange: true
 })
 const jobTitle = useField('jobTitle')
 const role = useField('role')
@@ -2121,14 +2278,8 @@ const resignationDate = useField('resignationDate')
 const emergencyName = useField('emergencyName')
 const emergencyPhoneNumber = useField('emergencyPhoneNumber')
 const emergencyCellphone = useField('emergencyCellphone')
-const emergencyRelationship = useField('emergencyRelationship', undefined, {
-  validateOnValueUpdate: false,
-  transform: (value) => value ?? ''
-})
-const note = useField('note', undefined, {
-  validateOnValueUpdate: false,
-  transform: (value) => value ?? ''
-})
+const emergencyRelationship = useField('emergencyRelationship')
+const note = useField('note')
 const healthInsuranceStartDate = useField('healthInsuranceStartDate')
 const healthInsuranceEndDate = useField('healthInsuranceEndDate')
 const laborInsuranceStartDate = useField('laborInsuranceStartDate')
@@ -2148,6 +2299,8 @@ const voluntaryPensionRate = useField('voluntaryPensionRate')
 const voluntaryPensionStartDate = useField('voluntaryPensionStartDate')
 const voluntaryPensionEndDate = useField('voluntaryPensionEndDate')
 const dependentInsurance = useField('dependentInsurance')
+const tourismReportDate = useField('tourismReportDate')
+const formStatus = useField('formStatus')
 
 const { rocDate: birthDateROC } = useROCDate(birthDate)
 const { rocDate: hireDateROC } = useROCDate(hireDate)
@@ -2158,6 +2311,7 @@ const { rocDate: laborInsuranceStartDateROC } = useROCDate(laborInsuranceStartDa
 const { rocDate: laborInsuranceEndDateROC } = useROCDate(laborInsuranceEndDate)
 const { rocDate: voluntaryPensionStartDateROC } = useROCDate(voluntaryPensionStartDate)
 const { rocDate: voluntaryPensionEndDateROC } = useROCDate(voluntaryPensionEndDate)
+const { rocDate: tourismReportDateROC } = useROCDate(tourismReportDate)
 // ===== 表格相關設定 =====
 const tableItemsPerPage = ref(10)
 const tableSortBy = ref([
@@ -2176,6 +2330,7 @@ const tableHeaders = [
   { title: '分機', align: 'left', sortable: true, key: 'extNumber' },
   { title: '身分別', align: 'left', sortable: true, key: 'role' },
   { title: '狀態', align: 'left', sortable: true, key: 'employmentStatus' },
+  { title: '表單狀態', align: 'left', sortable: true, key: 'formStatus' },
   { title: '操作', align: 'left', sortable: false, key: 'action' }
 ]
 
@@ -2382,6 +2537,15 @@ const sendInitialPassword = async () => {
 // ===== 表單操作函數 =====
 const submit = handleSubmit(async (values) => {
   try {
+    if (!selectedCompany.value) {
+      company.errorMessage.value = '請選擇公司'
+      createSnackbar({
+        text: '請選擇公司',
+        snackbarProps: { color: 'red-lighten-1' }
+      })
+      return
+    }
+
     if (isEditing.value) {
       const currentPageNumber = tablePage.value
 
@@ -2389,15 +2553,17 @@ const submit = handleSubmit(async (values) => {
       const updateData = {
         ...values,
         company: selectedCompany.value,
-        healthInsuranceStartDate: values.healthInsuranceStartDate || null,
-        healthInsuranceEndDate: values.healthInsuranceEndDate || null,
-        laborInsuranceStartDate: values.laborInsuranceStartDate || null,
-        laborInsuranceEndDate: values.laborInsuranceEndDate || null,
-        voluntaryPensionStartDate: values.voluntaryPensionStartDate || null,
-        voluntaryPensionEndDate: values.voluntaryPensionEndDate || null,
-        birthDate: values.birthDate || null,
-        hireDate: values.hireDate || null,
-        resignationDate: values.resignationDate || null
+        dependentInsurance: dependents.value,
+        healthInsuranceStartDate: values.healthInsuranceStartDate,
+        healthInsuranceEndDate: values.healthInsuranceEndDate,
+        laborInsuranceStartDate: values.laborInsuranceStartDate,
+        laborInsuranceEndDate: values.laborInsuranceEndDate,
+        voluntaryPensionStartDate: values.voluntaryPensionStartDate,
+        voluntaryPensionEndDate: values.voluntaryPensionEndDate,
+        birthDate: values.birthDate,
+        hireDate: values.hireDate,
+        tourismReportDate: values.tourismReportDate,
+        resignationDate: values.resignationDate
       }
 
       // 直接使用選擇的公司 ID
@@ -2417,11 +2583,80 @@ const submit = handleSubmit(async (values) => {
 
       await tableLoadItems(false, currentPageNumber)
     } else {
-      await apiAuth.post('/user', {
+      // 在發送請求前先打印資料
+      const submitData = {
         ...values,
-        company: selectedCompany.value
+        company: selectedCompany.value,
+        dependentInsurance: dependents.value
+      }
+
+      console.log('送出的資料:', {
+        // 基本資料
+        email: submitData.email,
+        personalEmail: submitData.personalEmail,
+        name: submitData.name,
+        englishName: submitData.englishName,
+        gender: submitData.gender,
+        IDNumber: submitData.IDNumber,
+        phoneNumber: submitData.phoneNumber,
+        cellphone: submitData.cellphone,
+        birthDate: submitData.birthDate,
+
+        // 地址與緊急聯絡人
+        permanentAddress: submitData.permanentAddress,
+        contactAddress: submitData.contactAddress,
+        emergencyName: submitData.emergencyName,
+        emergencyPhoneNumber: submitData.emergencyPhoneNumber,
+        emergencyCellphone: submitData.emergencyCellphone,
+        emergencyRelationship: submitData.emergencyRelationship,
+
+        // 任職資訊
+        company: submitData.company,
+        department: submitData.department,
+        jobTitle: submitData.jobTitle,
+        role: submitData.role,
+        employmentStatus: submitData.employmentStatus,
+        hireDate: submitData.hireDate,
+        salary: submitData.salary,
+        formStatus: submitData.formStatus,
+
+        // 系統相關
+        extNumber: submitData.extNumber,
+        printNumber: submitData.printNumber,
+        cowellAccount: submitData.cowellAccount,
+        cowellPassword: submitData.cowellPassword,
+        YSRCAccount: submitData.YSRCAccount,
+        YSRCPassword: submitData.YSRCPassword,
+        YS168Account: submitData.YS168Account,
+        YS168Password: submitData.YS168Password,
+
+        // 其他資訊
+        guideLicense: submitData.guideLicense,
+        tourManager: submitData.tourManager,
+        disabilityStatus: submitData.disabilityStatus,
+        indigenousStatus: submitData.indigenousStatus,
+
+        // 保險資訊
+        healthInsuranceStartDate: submitData.healthInsuranceStartDate,
+        healthInsuranceEndDate: submitData.healthInsuranceEndDate,
+        laborInsuranceStartDate: submitData.laborInsuranceStartDate,
+        laborInsuranceEndDate: submitData.laborInsuranceEndDate,
+        voluntaryPensionRate: submitData.voluntaryPensionRate,
+        voluntaryPensionStartDate: submitData.voluntaryPensionStartDate,
+        voluntaryPensionEndDate: submitData.voluntaryPensionEndDate,
+        tourismReportDate: submitData.tourismReportDate,
+
+        // 薪轉資訊
+        salaryBank: submitData.salaryBank,
+        salaryBankBranch: submitData.salaryBankBranch,
+        salaryAccountNumber: submitData.salaryAccountNumber,
+
+        // 眷屬資訊
+        dependentInsurance: submitData.dependentInsurance
       })
 
+      // 發送請求
+      await apiAuth.post('/user', submitData)
       await tableLoadItems(true)
     }
 
@@ -2519,7 +2754,7 @@ const openDialog = async (item) => {
     emergencyName.value.value = item.emergencyName
     emergencyPhoneNumber.value.value = item.emergencyPhoneNumber
     emergencyCellphone.value.value = item.emergencyCellphone
-    emergencyRelationship.value.value = item.emergencyRelationship ?? ''
+    emergencyRelationship.value.value = item.emergencyRelationship
 
     // 任職資訊
     userId.value.value = item.userId ?? ''
@@ -2532,6 +2767,7 @@ const openDialog = async (item) => {
     hireDate.value.value = formatToDate(item.hireDate)
     resignationDate.value.value = formatToDate(item.resignationDate)
     note.value.value = item.note ?? ''
+    formStatus.value.value = item.formStatus
 
     // 系統帳號相關
     cowellAccount.value.value = item.cowellAccount
@@ -2555,6 +2791,7 @@ const openDialog = async (item) => {
     voluntaryPensionRate.value.value = item.voluntaryPensionRate
     voluntaryPensionStartDate.value.value = formatToDate(item.voluntaryPensionStartDate)
     voluntaryPensionEndDate.value.value = formatToDate(item.voluntaryPensionEndDate)
+    tourismReportDate.value.value = formatToDate(item.tourismReportDate)
 
     // 薪資帳戶資訊
     salaryBank.value.value = item.salaryBank
@@ -2562,6 +2799,7 @@ const openDialog = async (item) => {
     salaryAccountNumber.value.value = item.salaryAccountNumber
 
     // 眷屬加保資料
+    dependents.value = item.dependentInsurance || []
     dependentInsurance.value.value = item.dependentInsurance || []
 
     // 保存原始資料用於比對變更
@@ -2581,7 +2819,7 @@ const openDialog = async (item) => {
       emergencyName: item.emergencyName,
       emergencyPhoneNumber: item.emergencyPhoneNumber,
       emergencyCellphone: item.emergencyCellphone,
-      emergencyRelationship: item.emergencyRelationship ?? '',
+      emergencyRelationship: item.emergencyRelationship,
 
       // 任職資訊
       company: item.company?._id,
@@ -2596,6 +2834,7 @@ const openDialog = async (item) => {
       hireDate: formatToDate(item.hireDate),
       resignationDate: formatToDate(item.resignationDate),
       note: item.note ?? '',
+      formStatus: item.formStatus,
 
       // 系統帳號相關
       cowellAccount: item.cowellAccount,
@@ -2606,7 +2845,7 @@ const openDialog = async (item) => {
       YS168Password: item.YS168Password,
 
       // 特殊身份與證照
-      guideLicense: item.guideLicense,
+      guideLicense: item.guideLicense ?? [],
       tourManager: item.tourManager,
       disabilityStatus: item.disabilityStatus,
       indigenousStatus: item.indigenousStatus,
@@ -2619,6 +2858,7 @@ const openDialog = async (item) => {
       voluntaryPensionRate: item.voluntaryPensionRate,
       voluntaryPensionStartDate: formatToDate(item.voluntaryPensionStartDate),
       voluntaryPensionEndDate: formatToDate(item.voluntaryPensionEndDate),
+      tourismReportDate: formatToDate(item.tourismReportDate),
 
       // 薪資帳戶資訊
       salaryBank: item.salaryBank,
@@ -2628,7 +2868,7 @@ const openDialog = async (item) => {
       // 眷屬加保資料
       dependentInsurance: item.dependentInsurance || []
     }
-
+    console.log('originalData:', originalData.value)
     // 保存當前頁碼
     localStorage.setItem('userTablePage', tablePage.value.toString())
   } else {
@@ -2638,6 +2878,8 @@ const openDialog = async (item) => {
     originalData.value = null
     selectedCompany.value = null
     filteredDepartments.value = []
+    dependents.value = []
+    dependentInsurance.value.value = []
     resetForm()
     hireDate.value.value = new Date()
   }
@@ -2654,6 +2896,7 @@ const closeDialog = () => {
   selectedCompany.value = null
   filteredDepartments.value = []
   originalData.value = null
+  dependents.value = []
   resetForm()
 }
 
@@ -2756,7 +2999,9 @@ const hasChanges = computed(() => {
   if (!isEditing.value) return true
   if (!originalData.value) return false
 
+  // 定義當前值
   const currentValues = {
+    // 基本資料
     email: email.value.value,
     personalEmail: personalEmail.value.value,
     name: name.value.value,
@@ -2765,43 +3010,136 @@ const hasChanges = computed(() => {
     IDNumber: IDNumber.value.value,
     permanentAddress: permanentAddress.value.value,
     contactAddress: contactAddress.value.value,
-    birthDate: birthDate.value.value,
-    company: selectedCompany.value,
-    department: department.value.value,
+    phoneNumber: phoneNumber.value.value,
     cellphone: cellphone.value.value,
-    salary: salary.value.value,
-    extNumber: extNumber.value.value,
-    printNumber: printNumber.value.value,
-    guideLicense: guideLicense.value.value,
-    jobTitle: jobTitle.value.value,
-    role: role.value.value,
-    employmentStatus: employmentStatus.value.value,
+
+    // 緊急聯絡人
+    emergencyName: emergencyName.value.value,
+    emergencyPhoneNumber: emergencyPhoneNumber.value.value,
+    emergencyCellphone: emergencyCellphone.value.value,
+    emergencyRelationship: emergencyRelationship.value.value,
+
+    // 日期相關
+    birthDate: birthDate.value.value,
     hireDate: hireDate.value.value,
     resignationDate: resignationDate.value.value,
-    emergencyName: emergencyName.value.value,
-    emergencyCellphone: emergencyCellphone.value.value,
-    emergencyRelationship: emergencyRelationship.value.value ?? '',
+    healthInsuranceStartDate: healthInsuranceStartDate.value.value,
+    healthInsuranceEndDate: healthInsuranceEndDate.value.value,
+    laborInsuranceStartDate: laborInsuranceStartDate.value.value,
+    laborInsuranceEndDate: laborInsuranceEndDate.value.value,
+    voluntaryPensionStartDate: voluntaryPensionStartDate.value.value,
+    voluntaryPensionEndDate: voluntaryPensionEndDate.value.value,
+    tourismReportDate: tourismReportDate.value.value,
+
+    // 其他資料
+    company: selectedCompany.value,
+    department: department.value.value,
+    jobTitle: jobTitle.value.value,
+    role: role.value.value,
+    extNumber: extNumber.value.value,
+    printNumber: printNumber.value.value,
+    employmentStatus: employmentStatus.value.value,
+    salary: salary.value.value,
     note: note.value.value ?? '',
-    userId: userId.value.value ?? '',
-    cowellAccount: cowellAccount.value,
-    cowellPassword: cowellPassword.value
+    tourManager: tourManager.value.value,
+    guideLicense: guideLicense.value.value,
+    disabilityStatus: disabilityStatus.value.value,
+    indigenousStatus: indigenousStatus.value.value,
+    voluntaryPensionRate: voluntaryPensionRate.value.value,
+    salaryBank: salaryBank.value.value,
+    salaryBankBranch: salaryBankBranch.value.value,
+    salaryAccountNumber: salaryAccountNumber.value.value,
+    cowellAccount: cowellAccount.value.value,
+    cowellPassword: cowellPassword.value.value,
+    YSRCAccount: YSRCAccount.value.value,
+    YSRCPassword: YSRCPassword.value.value,
+    YS168Account: YS168Account.value.value,
+    YS168Password: YS168Password.value.value,
+    userId: userId.value.value,
+    formStatus: formStatus.value.value
   }
 
-  return Object.keys(originalData.value).some(key => {
-    if (['note', 'emergencyRelationship'].includes(key)) {
-      const originalValue = originalData.value[key] ?? ''
-      const currentValue = currentValues[key] ?? ''
-      return originalValue !== currentValue
+  // 比較基本資料
+  const basicInfoChanged = [
+    'email', 'personalEmail', 'name', 'englishName', 'gender', 'IDNumber',
+    'permanentAddress', 'contactAddress', 'phoneNumber', 'cellphone'
+  ].some(key => originalData.value[key] !== currentValues[key])
+
+  // 比較日期
+  const datesChanged = [
+    'birthDate', 'hireDate', 'resignationDate',
+    'healthInsuranceStartDate', 'healthInsuranceEndDate',
+    'laborInsuranceStartDate', 'laborInsuranceEndDate',
+    'voluntaryPensionStartDate', 'voluntaryPensionEndDate', 'tourismReportDate'
+  ].some(key => {
+    const originalDate = originalData.value[key] ? new Date(originalData.value[key]).getTime() : null
+    const currentDate = currentValues[key] ? new Date(currentValues[key]).getTime() : null
+    return originalDate !== currentDate
+  })
+
+  // 更新眷屬資料比較邏輯
+  const dependentsChanged = (() => {
+    const original = originalData.value.dependentInsurance || []
+    const current = dependents.value || []
+
+    if (original.length !== current.length) {
+      console.log('Dependents length changed')
+      return true
     }
 
-    if (key === 'birthDate' || key === 'hireDate' || key === 'resignationDate') {
-      const originalDate = originalData.value[key] ? new Date(originalData.value[key]).toISOString() : null
-      const currentDate = currentValues[key] ? new Date(currentValues[key]).toISOString() : null
-      return originalDate !== currentDate
-    }
+    return current.some((dep, index) => {
+      const orig = original[index]
+      if (!orig) return true
 
+      const fieldsToCompare = [
+        'dependentName',
+        'dependentIDNumber',
+        'dependentRelationship',
+        'dependentBirthDate',
+        'dependentInsuranceStartDate',
+        'dependentInsuranceEndDate'
+      ]
+
+      return fieldsToCompare.some(field => {
+        if (field.includes('Date')) {
+          const origDate = orig[field] ? new Date(orig[field]).getTime() : null
+          const currDate = dep[field] ? new Date(dep[field]).getTime() : null
+          console.log(`Comparing ${field}:`, origDate, currDate)
+          return origDate !== currDate
+        } else {
+          console.log(`Comparing ${field}:`, orig[field], dep[field])
+          return orig[field] !== dep[field]
+        }
+      })
+    })
+  })()
+
+  console.log('Dependents changed:', dependentsChanged)
+
+  // 比較其他資料
+  const otherFieldsChanged = [
+    'company', 'department', 'jobTitle', 'role', 'extNumber', 'printNumber',
+    'employmentStatus', 'salary', 'note', 'tourManager', 'guideLicense',
+    'disabilityStatus', 'indigenousStatus', 'voluntaryPensionRate',
+    'salaryBank', 'salaryBankBranch', 'salaryAccountNumber', 'emergencyName', 'emergencyPhoneNumber', 'emergencyCellphone', 'emergencyRelationship',
+    'cowellAccount', 'cowellPassword', 'YSRCAccount', 'YSRCPassword', 'YS168Account', 'YS168Password', 'userId', 'formStatus'
+  ].some(key => {
+    if (Array.isArray(originalData.value[key])) {
+      return JSON.stringify(originalData.value[key]) !== JSON.stringify(currentValues[key])
+    }
     return originalData.value[key] !== currentValues[key]
   })
+
+  // 添加偵錯日誌
+  console.log('Changes detected:', {
+    basicInfoChanged,
+    datesChanged,
+    dependentsChanged,
+    otherFieldsChanged
+  })
+
+  // 只要任何部分有變更就返回 true
+  return basicInfoChanged || datesChanged || dependentsChanged || otherFieldsChanged
 })
 
 // ===== 監聽器 =====
@@ -2997,24 +3335,17 @@ onUnmounted(() => {
   font-size: 15px;
   color: #999;
 }
-
-.info-title {
-  text-align: center;
-  letter-spacing: 2px;
-  font-size: 14px;
-  font-weight: 900;
-}
-
 .search-label {
   font-size: 13px;
   font-weight: 500;
 }
 
-@include md {
-  .info-title {
-  text-align: center;
-  letter-spacing: 4px;
-  font-size: 15px;
-}
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+
+  &::-webkit-scrollbar {     /* Chrome, Safari and Opera */
+    display: none;
+  }
 }
 </style>

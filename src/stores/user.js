@@ -7,32 +7,40 @@ export const useUserStore = defineStore('user', () => {
   const { api, apiAuth } = useApi()
 
   const token = ref('')
-  const email = ref('')
-  const personalEmail = ref('')
-  const IDNumber = ref('')
-  const gender = ref('')
   const name = ref('')
   const englishName = ref('')
+  const IDNumber = ref('')
+  const birthDate = ref('')
+  const gender = ref('')
+  const personalEmail = ref('')
+  const permanentAddress = ref('')
+  const contactAddress = ref('')
+  const email = ref('')
+  const phoneNumber = ref('')
   const cellphone = ref('')
   const salary = ref('')
   const extNumber = ref('')
-  const birthDate = ref('')
-  const permanentAddress = ref('')
-  const contactAddress = ref('')
-  const department = ref('')
+  const printNumber = ref('')
+  const emergencyName = ref('')
+  const emergencyPhoneNumber = ref('')
+  const emergencyCellphone = ref('')
+  const emergencyRelationship = ref('')
   const company = ref('')
+  const department = ref('')
   const jobTitle = ref('')
   const role = ref(UserRole.USER)
+  const cowellAccount = ref('')
+  const cowellPassword = ref('')
   const userId = ref('')
   const hireDate = ref('')
-  const emergencyName = ref('')
-  const emergencyCellphone = ref('')
-  const printNumber = ref('')
   const guideLicense = ref('')
   const avatar = ref('')
   const password = ref('')
-  const cowellAccount = ref('')
-  const cowellPassword = ref('')
+  const tourManager = ref('')
+  const YSRCAccount = ref('')
+  const YSRCPassword = ref('')
+  const YS168Account = ref('')
+  const YS168Password = ref('')
 
   const isLogin = computed(() => token.value.length > 0)
   const isUser = computed(() => role.value === UserRole.USER)
@@ -58,13 +66,16 @@ export const useUserStore = defineStore('user', () => {
         englishName.value = data.result.englishName
         birthDate.value = data.result.birthDate
         gender.value = data.result.gender
+        phoneNumber.value = data.result.phoneNumber
         cellphone.value = data.result.cellphone
         email.value = data.result.email
         personalEmail.value = data.result.personalEmail
         permanentAddress.value = data.result.permanentAddress
         contactAddress.value = data.result.contactAddress
         emergencyName.value = data.result.emergencyName
+        emergencyPhoneNumber.value = data.result.emergencyPhoneNumber
         emergencyCellphone.value = data.result.emergencyCellphone
+        emergencyRelationship.value = data.result.emergencyRelationship
         userId.value = data.result.userId
         company.value = data.result.company // 直接存儲完整公司資料
         department.value = data.result.department
@@ -77,6 +88,11 @@ export const useUserStore = defineStore('user', () => {
         avatar.value = data.result.avatar
         cowellAccount.value = data.result.cowellAccount
         cowellPassword.value = data.result.cowellPassword
+        tourManager.value = data.result.tourManager
+        YSRCAccount.value = data.result.YSRCAccount
+        YSRCPassword.value = data.result.YSRCPassword
+        YS168Account.value = data.result.YS168Account
+        YS168Password.value = data.result.YS168Password
         await profile()
         return '登入成功'
       }
@@ -99,13 +115,16 @@ export const useUserStore = defineStore('user', () => {
         englishName.value = response.data.result.englishName
         birthDate.value = response.data.result.birthDate
         gender.value = response.data.result.gender
+        phoneNumber.value = response.data.result.phoneNumber
         cellphone.value = response.data.result.cellphone
         email.value = response.data.result.email
         personalEmail.value = response.data.result.personalEmail
         permanentAddress.value = response.data.result.permanentAddress
         contactAddress.value = response.data.result.contactAddress
         emergencyName.value = response.data.result.emergencyName
+        emergencyPhoneNumber.value = response.data.result.emergencyPhoneNumber
         emergencyCellphone.value = response.data.result.emergencyCellphone
+        emergencyRelationship.value = response.data.result.emergencyRelationship
         userId.value = response.data.result.userId
         company.value = response.data.result.company // 直接存儲完整公司資料
         department.value = response.data.result.department
@@ -118,6 +137,11 @@ export const useUserStore = defineStore('user', () => {
         avatar.value = response.data.result.avatar
         cowellAccount.value = response.data.result.cowellAccount
         cowellPassword.value = response.data.result.cowellPassword
+        tourManager.value = response.data.result.tourManager
+        YSRCAccount.value = response.data.result.YSRCAccount
+        YSRCPassword.value = response.data.result.YSRCPassword
+        YS168Account.value = response.data.result.YS168Account
+        YS168Password.value = response.data.result.YS168Password
         return '登入成功'
       } else {
         throw new Error(response.data.message)
@@ -139,6 +163,7 @@ export const useUserStore = defineStore('user', () => {
       gender.value = data.result.gender
       name.value = data.result.name
       englishName.value = data.result.englishName
+      phoneNumber.value = data.result.phoneNumber
       cellphone.value = data.result.cellphone
       salary.value = data.result.salary
       extNumber.value = data.result.extNumber
@@ -152,12 +177,19 @@ export const useUserStore = defineStore('user', () => {
       userId.value = data.result.userId
       hireDate.value = data.result.hireDate
       emergencyName.value = data.result.emergencyName
+      emergencyPhoneNumber.value = data.result.emergencyPhoneNumber
       emergencyCellphone.value = data.result.emergencyCellphone
+      emergencyRelationship.value = data.result.emergency
       printNumber.value = data.result.printNumber
       guideLicense.value = data.result.guideLicense
       avatar.value = data.result.avatar
       cowellAccount.value = data.result.cowellAccount
       cowellPassword.value = data.result.cowellPassword
+      tourManager.value = data.result.tourManager
+      YSRCAccount.value = data.result.YSRCAccount
+      YSRCPassword.value = data.result.YSRCPassword
+      YS168Account.value = data.result.YS168Account
+      YS168Password.value = data.result.YS168Password
 
       console.log('profile', data)
     } catch (error) {
@@ -168,6 +200,7 @@ export const useUserStore = defineStore('user', () => {
       gender.value = ''
       name.value = ''
       englishName.value = ''
+      phoneNumber.value = ''
       cellphone.value = ''
       salary.value = ''
       extNumber.value = ''
@@ -181,12 +214,19 @@ export const useUserStore = defineStore('user', () => {
       userId.value = ''
       hireDate.value = ''
       emergencyName.value = ''
+      emergencyPhoneNumber.value = ''
       emergencyCellphone.value = ''
+      emergencyRelationship.value = ''
       printNumber.value = ''
       guideLicense.value = ''
       avatar.value = ''
       cowellAccount.value = ''
       cowellPassword.value = ''
+      tourManager.value = ''
+      YSRCAccount.value = ''
+      YSRCPassword.value = ''
+      YS168Account.value = ''
+      YS168Password.value = ''
     }
   }
 
@@ -243,6 +283,7 @@ export const useUserStore = defineStore('user', () => {
     gender.value = ''
     name.value = ''
     englishName.value = ''
+    phoneNumber.value = ''
     cellphone.value = ''
     salary.value = ''
     extNumber.value = ''
@@ -256,12 +297,19 @@ export const useUserStore = defineStore('user', () => {
     userId.value = ''
     hireDate.value = ''
     emergencyName.value = ''
+    emergencyPhoneNumber.value = ''
     emergencyCellphone.value = ''
+    emergencyRelationship.value = ''
     printNumber.value = ''
     guideLicense.value = ''
     avatar.value = ''
     cowellAccount.value = ''
     cowellPassword.value = ''
+    tourManager.value = ''
+    YSRCAccount.value = ''
+    YSRCPassword.value = ''
+    YS168Account.value = ''
+    YS168Password.value = ''
   }
 
   return {
@@ -272,6 +320,7 @@ export const useUserStore = defineStore('user', () => {
     gender,
     name,
     englishName,
+    phoneNumber,
     cellphone,
     salary,
     extNumber,
@@ -285,12 +334,19 @@ export const useUserStore = defineStore('user', () => {
     userId,
     hireDate,
     emergencyName,
+    emergencyPhoneNumber,
     emergencyCellphone,
+    emergencyRelationship,
     printNumber,
     guideLicense,
     avatar,
     cowellAccount,
     cowellPassword,
+    tourManager,
+    YSRCAccount,
+    YSRCPassword,
+    YS168Account,
+    YS168Password,
     isLogin,
     isUser,
     isAdmin,
