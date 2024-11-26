@@ -17,7 +17,7 @@
       <!-- 右側統計資訊，自適應寬度 -->
       <!-- 員工流動趨勢圖-->
       <v-col
-        v-if="mdAndUp"
+        v-if="lgAndUp"
         class="ps-4 py-0"
       >
         <EmployeeTurnoverChart ref="turnoverChartRef" />
@@ -32,10 +32,12 @@
       </v-col> -->
       <!-- 搜尋條件卡片 -->
       <v-col
+        cols="12"
+        lg="6"
         class="pa-0 mb-6 mb-sm-0"
       >
         <v-card
-          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-5 pb-4 pb-sm-5 "
+          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-2 pb-4 pb-sm-5 "
           elevation="4"
           rounded="xl"
           height="100%"
@@ -59,7 +61,7 @@
                   <!-- 公司選擇 -->
                   <v-col
                     cols="12"
-                    sm="6"
+                    sm="4"
                   >
                     <v-select
                       v-model="searchCriteria.companyId"
@@ -78,7 +80,7 @@
                   <!-- 部門選擇 -->
                   <v-col
                     cols="12"
-                    sm="6"
+                    sm="4"
                   >
                     <v-select
                       v-model="searchCriteria.department"
@@ -93,12 +95,10 @@
                       :disabled="!searchCriteria.companyId"
                     />
                   </v-col>
-                </v-row>
-                <v-row>
                   <!-- 身分別選擇 -->
                   <v-col
                     cols="12"
-                    sm="6"
+                    sm="4"
                   >
                     <v-select
                       v-model="searchCriteria.role"
@@ -112,10 +112,12 @@
                       clearable
                     />
                   </v-col>
+                </v-row>
+                <v-row>
                   <!-- 任職狀態選擇 -->
                   <v-col
                     cols="12"
-                    sm="6"
+                    sm="4"
                   >
                     <v-select
                       v-model="searchCriteria.employmentStatus"
@@ -129,45 +131,168 @@
                       clearable
                     />
                   </v-col>
-                </v-row>
-                <v-row>
-                  <!-- 身分別選擇 -->
                   <v-col
                     cols="12"
-                    sm="6"
+                    sm="4"
                   >
                     <v-select
-                      v-model="searchCriteria.dateType"
-                      :items="dateTypes"
-                      label="日期類型"
+                      v-model="searchCriteria.guideLicense"
+                      :items="guideLicenseOptions"
+                      label="導遊領隊證"
+                      item-title="title"
+                      item-value="value"
                       variant="outlined"
                       density="compact"
                       hide-details
                       clearable
                     />
                   </v-col>
-                  <!-- 任職狀態選擇 -->
                   <v-col
                     cols="12"
-                    sm="6"
+                    sm="4"
                   >
-                    <v-date-input
-                      v-model="searchCriteria.dateRange"
-                      label="日期區間"
+                    <v-select
+                      v-model="searchCriteria.disabilityStatus"
+                      :items="disabilityStatusSearchOptions"
+                      label="身心障礙身份"
+                      item-title="title"
+                      item-value="value"
                       variant="outlined"
                       density="compact"
                       hide-details
-                      multiple="range"
-                      prepend-icon
                       clearable
-                      persistent-placeholder
                     />
                   </v-col>
                 </v-row>
                 <v-row>
-                  <!-- 性別選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="4"
+                  >
+                    <v-select
+                      v-model="searchCriteria.formStatus"
+                      :items="formStatusSearchOptions"
+                      label="表單狀態"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                    />
+                  </v-col>
+                  <v-col>
+                    <v-row class="border rounded ">
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <v-select
+                          v-model="searchCriteria.dateType"
+                          :items="dateTypes"
+                          label="日期類型"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                          clearable
+                        />
+                      </v-col>
+                      <!-- 任職狀態選擇 -->
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <v-date-input
+                          v-model="searchCriteria.dateRange"
+                          label="日期區間"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                          multiple="range"
+                          prepend-icon
+                          clearable
+                          persistent-placeholder
+                          :ok-text="'確認'"
+                          :cancel-text="'取消'"
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-col>
+                </v-row>
+
+                <v-row>
                   <v-col
                     cols="6"
+                    sm="4"
+                    class="pe-0 py-0"
+                  >
+                    <!-- 原住民身分 v-chip-group -->
+                    <div class="d-flex flex-column gap-2">
+                      <label class="text-grey-darken-1 search-label">原住民身分</label>
+                      <v-chip-group
+                        v-model="searchCriteria.indigenousStatus"
+                        column
+                        class="custom-chip-group"
+                      >
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          color="blue-grey-darken-2"
+                          value="是"
+                          label
+                        >
+                          是
+                        </v-chip>
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          color="blue-grey-darken-2"
+                          value="否"
+                          label
+                        >
+                          否
+                        </v-chip>
+                      </v-chip-group>
+                    </div>
+                  </v-col>
+                  <v-col
+                    cols="6"
+                    sm="4"
+                    class="pe-0 py-0"
+                  >
+                    <div class="d-flex flex-column gap-2">
+                      <label class="text-grey-darken-1 search-label">旅遊經理人</label>
+                      <v-chip-group
+                        v-model="searchCriteria.tourManager"
+                        column
+                        class="custom-chip-group"
+                      >
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          color="blue-grey-darken-2"
+                          value="是"
+                          label
+                        >
+                          是
+                        </v-chip>
+                        <v-chip
+                          filter
+                          variant="outlined"
+                          color="blue-grey-darken-2"
+                          value="否"
+                          label
+                        >
+                          否
+                        </v-chip>
+                      </v-chip-group>
+                    </div>
+                  </v-col>
+
+                  <!-- 性別選擇 -->
+                  <v-col
+                    cols="12"
+                    sm="4"
                     class="pe-0 py-0"
                   >
                     <div class="d-flex flex-column gap-2">
@@ -198,40 +323,6 @@
                       </v-chip-group>
                     </div>
                   </v-col>
-
-                  <!-- 領隊證選擇 -->
-                  <!-- <v-col
-                    cols="6"
-                    class="py-0"
-                  >
-                    <div class="d-flex flex-column gap-2">
-                      <label class="text-grey-darken-1 search-label">領隊證</label>
-                      <v-chip-group
-                        v-model="searchCriteria.guideLicense"
-                        column
-                        class="custom-chip-group"
-                      >
-                        <v-chip
-                          filter
-                          variant="outlined"
-                          :value="true"
-                          color="blue-grey-darken-2"
-                          label
-                        >
-                          有
-                        </v-chip>
-                        <v-chip
-                          filter
-                          variant="outlined"
-                          :value="false"
-                          color="blue-grey-darken-2"
-                          label
-                        >
-                          無
-                        </v-chip>
-                      </v-chip-group>
-                    </div>
-                  </v-col> -->
                 </v-row>
                 <v-row>
                   <v-col
@@ -312,7 +403,7 @@
                     class="ps-lg-5"
                   >
                     <v-icon
-                      v-tooltip:start="'可搜尋員編、姓名、公司Email、手機、分機、職稱、備註'"
+                      v-tooltip:start="'可搜尋員編、姓名、個人Email、公司Email、手機、分機、職稱、地址、備註'"
                       icon="mdi-information"
                       size="small"
                       color="blue-grey-darken-2"
@@ -382,7 +473,7 @@
                     <v-menu>
                       <template #activator="{ props }">
                         <v-chip
-                          v-tooltip:start="'點擊更改表單狀態'"
+                          v-tooltip="'更改表單狀態'"
                           v-bind="props"
                           :color="getFormStatusColor(item.formStatus)"
                           variant="outlined"
@@ -465,7 +556,7 @@
         <v-btn
           color="grey"
           variant="outlined"
-          :size="buttonSize"
+          size="small"
           @click="closeResetPasswordDialog"
         >
           取消
@@ -473,7 +564,7 @@
         <v-btn
           color="teal-darken-1"
           variant="outlined"
-          :size="buttonSize"
+          size="small"
           :loading="resetPasswordDialog.loading"
           @click="sendInitialPassword"
         >
@@ -831,19 +922,26 @@
 
                 <v-col cols="12">
                   <v-row class="d-flex align-center my-2">
-                    <v-col cols="4">
+                    <v-col
+                      cols="3"
+                      sm="4"
+                    >
                       <v-divider
                         color="blue-grey-darken-2"
                         opacity="0.3"
                       />
                     </v-col>
                     <v-col
-                      cols="4"
+                      cols="6"
+                      sm="4"
                       class="text-blue-grey-darken-1 info-title"
                     >
                       緊急連絡人資訊
                     </v-col>
-                    <v-col cols="4">
+                    <v-col
+                      cols="3"
+                      sm="4"
+                    >
                       <v-divider />
                     </v-col>
                   </v-row>
@@ -1207,19 +1305,26 @@
 
                 <v-col cols="12">
                   <v-row class="d-flex align-center my-2">
-                    <v-col cols="4">
+                    <v-col
+                      cols="3"
+                      sm="4"
+                    >
                       <v-divider
                         color="blue-grey-darken-2"
                         opacity="0.3"
                       />
                     </v-col>
                     <v-col
-                      cols="4"
+                      cols="6"
+                      sm="4"
                       class="text-blue-grey-darken-1 info-title"
                     >
                       系統帳號資訊
                     </v-col>
-                    <v-col cols="4">
+                    <v-col
+                      cols="3"
+                      sm="4"
+                    >
                       <v-divider
                         color="blue-grey-darken-2"
                         opacity="0.3"
@@ -1401,7 +1506,6 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
                 >
                   <v-date-input
                     v-model="healthInsuranceStartDate.value.value"
@@ -1424,7 +1528,6 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
                 >
                   <v-date-input
                     v-model="healthInsuranceEndDate.value.value"
@@ -1447,7 +1550,6 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
                 >
                   <v-date-input
                     v-model="laborInsuranceStartDate.value.value"
@@ -1470,7 +1572,6 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
                 >
                   <v-date-input
                     v-model="laborInsuranceEndDate.value.value"
@@ -1493,7 +1594,6 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
                 >
                   <v-select
                     v-model="voluntaryPensionRate.value.value"
@@ -1513,7 +1613,6 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
                 >
                   <v-date-input
                     v-model="voluntaryPensionStartDate.value.value"
@@ -1536,7 +1635,6 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
                 >
                   <v-date-input
                     v-model="voluntaryPensionEndDate.value.value"
@@ -1570,7 +1668,6 @@
                     item-title="title"
                     item-value="value"
                     clearable
-                    :menu-props="{ maxHeight: 400 }"
                     :hint="'可輸入銀行代碼或銀行名稱搜尋'"
                     persistent-hint
                   >
@@ -1848,6 +1945,26 @@ const getFormStatusColor = (status) => {
   }
 }
 
+// 新增選項常數
+const guideLicenseOptions = [
+  { title: '華語導遊', value: 1 },
+  { title: '外語導遊', value: 2 },
+  { title: '華語領隊', value: 3 },
+  { title: '外語領隊', value: 4 }
+]
+
+const formStatusSearchOptions = [
+  { title: '尚未完成', value: '尚未完成' },
+  { title: '尚缺資料', value: '尚缺資料' },
+  { title: '已完成', value: '已完成' }
+]
+
+const disabilityStatusSearchOptions = [
+  { title: '否', value: '否' },
+  { title: '輕度', value: '輕度' },
+  { title: '中度', value: '中度' }
+]
+
 const formStatusOptions = ['尚未完成', '尚缺資料', '已完成']
 
 const bankOptions = [
@@ -1998,7 +2115,6 @@ const companies = ref([])
 
 const companyList = computed(() => {
   return [
-    { title: '全部', value: '' },
     ...[...companies.value]
       .sort((a, b) => {
         // 確保 companyId 存在
@@ -2187,7 +2303,8 @@ const userSchema = yup.object({
     )
     .default([]),
   tourManager: yup
-    .boolean(),
+    .boolean()
+    .nullable(),
   YSRCAccount: yup
     .string()
     .nullable(),
@@ -2375,7 +2492,7 @@ const tablePage = ref(1)
 const tableItems = ref([])
 const tableKey = ref(0)
 const tableHeaders = [
-  { title: '員編', align: 'left', sortable: true, key: 'userId' },
+  { title: '員工編號', align: 'left', sortable: true, key: 'userId' },
   { title: '姓名', align: 'left', sortable: true, key: 'name' },
   { title: '公司Email', align: 'left', sortable: true, key: 'email' },
   { title: '手機', align: 'left', sortable: true, key: 'cellphone' },
@@ -2393,16 +2510,7 @@ const tableItemsLength = ref(0)
 const tableSearch = ref('')
 
 // ===== 搜尋相關設定 =====
-const searchCriteria = ref({
-  role: '',
-  companyId: '',
-  department: '',
-  gender: '',
-  // guideLicense: '',
-  employmentStatus: '',
-  dateType: '',
-  dateRange: []
-})
+const searchCriteria = ref({})
 
 const quickSearchText = ref('')
 
@@ -2521,9 +2629,15 @@ const tableLoadItems = async (reset, page) => {
 // 搜尋相關函數
 const performSearch = async () => {
   tableLoading.value = true
-  console.log('Selected date range:', searchCriteria.value.dateRange)
 
   try {
+    // 將前端的 '是'/'否' 轉換成 Boolean 值
+    const convertBooleanField = (value) => {
+      if (value === '是') return true
+      if (value === '否') return false
+      return undefined
+    }
+
     const params = {
       page: tablePage.value,
       itemsPerPage: tableItemsPerPage.value,
@@ -2531,10 +2645,20 @@ const performSearch = async () => {
       sortOrder: tableSortBy.value[0]?.order || 'asc',
       quickSearch: quickSearchText.value,
       ...searchCriteria.value,
-      department: searchCriteria.value.department
+      department: searchCriteria.value.department,
+      // 修改這裡：轉換成 Boolean 值
+      indigenousStatus: convertBooleanField(searchCriteria.value.indigenousStatus),
+      tourManager: convertBooleanField(searchCriteria.value.tourManager)
     }
 
-    // 处理日期范围搜索
+    // 移除未定義的值，避免發送不必要的參數
+    Object.keys(params).forEach(key => {
+      if (params[key] === undefined) {
+        delete params[key]
+      }
+    })
+
+    // 處理日期範圍
     if (searchCriteria.value.dateType && searchCriteria.value.dateRange && searchCriteria.value.dateRange.length > 0) {
       params.dateType = searchCriteria.value.dateType
       params.startDate = searchCriteria.value.dateRange[0].toISOString()
@@ -3028,10 +3152,15 @@ const resetSearch = () => {
     companyId: '',
     department: '',
     gender: '',
-    // guideLicense: '',  // 暫時不需要
     employmentStatus: '',
     dateType: '',
-    dateRange: [] // 重置日期區間
+    dateRange: [],
+    // 新增字段的重置
+    indigenousStatus: '', // v-chip 的值重置為空
+    tourManager: '', // v-chip 的值重置為空
+    guideLicense: [],
+    disabilityStatus: '',
+    formStatus: ''
   }
 
   // 清空部門列表
@@ -3348,7 +3477,7 @@ onMounted(async () => {
   await loadCompanies()
   await loadDepartments()
   await fetchDepartments()
-  await performSearch()
+  await tableLoadItems(true) // 改用這個直接載入所有資料
 })
 
 onMounted(() => {
@@ -3392,15 +3521,6 @@ onUnmounted(() => {
 .search-label {
   font-size: 13px;
   font-weight: 500;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-
-  &::-webkit-scrollbar {     /* Chrome, Safari and Opera */
-    display: none;
-  }
 }
 
 @include sm {

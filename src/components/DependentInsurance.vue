@@ -30,7 +30,7 @@
         elevation="0"
         style="border: 1px solid #aaa;"
       >
-        <div class="d-flex justify-space-between align-center mb-4 mt-2">
+        <div class="d-flex justify-space-between align-center mb-2 mt-1">
           <h5>眷屬 {{ index + 1 }}</h5>
           <v-btn
             icon
@@ -43,7 +43,7 @@
           </v-btn>
         </div>
 
-        <v-row class="mb-2">
+        <v-row class="mb-3">
           <v-col
             cols="12"
             sm="6"

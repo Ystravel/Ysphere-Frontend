@@ -897,6 +897,62 @@ const getFieldName = (key, targetModel = '') => {
 //   return changes
 // }
 
+const formatSpecialField = (val, fieldKey) => {
+  if (val === null || val === undefined) return '(無)'
+
+  // 定義已知不是日期的欄位
+  const nonDateFields = [
+    'englishName',
+    'IDNumber',
+    'name',
+    'userId',
+    'department',
+    'phoneNumber',
+    'cellphone',
+    'extNumber',
+    'printNumber',
+    'personalEmail',
+    'email',
+    'permanentAddress',
+    'contactAddress',
+    'emergencyName',
+    'emergencyPhoneNumber',
+    'emergencyCellphone',
+    'emergencyRelationship',
+    'jobTitle',
+    'cowellAccount',
+    'cowellPassword',
+    'YSRCAccount',
+    'YSRCPassword',
+    'YS168Account',
+    'YS168Password',
+    'note',
+    'salaryBank',
+    'salaryBankBranch',
+    'salaryAccountNumber'
+  ]
+
+  // 如果是已知的非日期欄位，直接返回值
+  if (nonDateFields.includes(fieldKey)) {
+    return val.toString()
+  }
+
+  // 檢查是否為有效的日期字符串
+  const isValidDate = (dateStr) => {
+    const date = new Date(dateStr)
+    return date instanceof Date && !isNaN(date) && dateStr.includes('-')
+  }
+
+  // 如果是日期格式的字符串，進行日期格式化
+  if (typeof val === 'string' && isValidDate(val)) {
+    return formatDate(val)
+  }
+
+  // 其他情況直接返回字符串
+  return val.toString()
+}
+
+// 在 formatChanges 函數中使用
 const formatChanges = (item) => {
   if (!item?.changes) return []
 
@@ -907,49 +963,105 @@ const formatChanges = (item) => {
     if (!value || typeof value !== 'object' || (!('from' in value) && !('to' in value))) return
     if (addedKeys.has(key)) return
 
-    // 特殊欄位處理
-    const formatSpecialField = (val, fieldKey) => {
-      if (val === null || val === undefined) return '(無)'
+    // 特殊處理眷屬保險資料
+    if (key === '眷屬保險資料') {
+      const fromDeps = value.from || []
+      const toDeps = value.to || []
+      const maxDeps = Math.max(fromDeps.length, toDeps.length)
+      const depChanges = []
 
-      switch (fieldKey) {
-        case 'IDNumber':
-        case 'englishName':
-          return val.toString()
-        case 'department':
-          return val.toString()
-        default:
-          if (typeof val === 'string' && val.includes('T')) {
-            return formatDate(val)
+      if (item.action === '創建') {
+        // 處理新增的情況
+        toDeps.forEach((dep, index) => {
+          depChanges.push(`${key} - 眷屬 ${index + 1}:`)
+          depChanges.push(` - 姓名: ${dep.姓名}`)
+          depChanges.push(` - 關係: ${dep.關係 || '(無)'}`)
+          depChanges.push(` - 生日: ${dep.生日 || '(無)'}`)
+          depChanges.push(` - 身分證號: ${dep.身分證號 || '(無)'}`)
+          depChanges.push(` - 加保日期: ${dep.加保日期 || '(無)'}`)
+          depChanges.push(` - 退保日期: ${dep.退保日期 || '(無)'}`)
+        })
+      } else {
+        // 處理修改和刪除的情況
+        for (let i = 0; i < maxDeps; i++) {
+          const oldDep = fromDeps[i] || {}
+          const newDep = toDeps[i] || {}
+
+          depChanges.push(`${key} - 眷屬 ${i + 1}:`)
+
+          if (!oldDep.姓名 && !newDep.姓名) {
+            // 如果舊的和新的眷屬都不存在,跳過
+            continue
+          } else if (!oldDep.姓名 && newDep.姓名) {
+            // 如果只有新的眷屬存在,顯示為新增
+            depChanges.push(' (新增)')
+          } else if (oldDep.姓名 && !newDep.姓名) {
+            // 如果只有舊的眷屬存在,顯示為刪除
+            depChanges.push(' (刪除)')
+          } else {
+            // 如果舊的和新的眷屬都存在,比較變更
+            let hasChange = false
+
+            if (oldDep.姓名 !== newDep.姓名) {
+              depChanges.push(` - 姓名: ${oldDep.姓名 || '(無)'} → ${newDep.姓名 || '(無)'}`)
+              hasChange = true
+            }
+            if (oldDep.關係 !== newDep.關係) {
+              depChanges.push(` - 關係: ${oldDep.關係 || '(無)'} → ${newDep.關係 || '(無)'}`)
+              hasChange = true
+            }
+            if (oldDep.生日 !== newDep.生日) {
+              depChanges.push(` - 生日: ${oldDep.生日 || '(無)'} → ${newDep.生日 || '(無)'}`)
+              hasChange = true
+            }
+            if (oldDep.身分證號 !== newDep.身分證號) {
+              depChanges.push(` - 身分證號: ${oldDep.身分證號 || '(無)'} → ${newDep.身分證號 || '(無)'}`)
+              hasChange = true
+            }
+            if (oldDep.加保日期 !== newDep.加保日期) {
+              depChanges.push(` - 加保日期: ${oldDep.加保日期 || '(無)'} → ${newDep.加保日期 || '(無)'}`)
+              hasChange = true
+            }
+            if (oldDep.退保日期 !== newDep.退保日期) {
+              depChanges.push(` - 退保日期: ${oldDep.退保日期 || '(無)'} → ${newDep.退保日期 || '(無)'}`)
+              hasChange = true
+            }
+
+            if (!hasChange) {
+              depChanges.push(' (沒有變更)')
+            }
           }
-          return val
+        }
       }
+
+      if (depChanges.length > 0) {
+        changes.push(depChanges.join('\n'))
+      }
+      addedKeys.add(key)
+      return
     }
 
     const from = formatSpecialField(value.from, key)
     const to = formatSpecialField(value.to, key)
-
     const fieldName = getFieldName(key, item.targetModel)
 
     if (item.action === '創建') {
       if (to !== '(無)') {
-        // 對於創建動作，直接顯示新值
         changes.push(`${fieldName}: ${to}`)
         addedKeys.add(key)
       }
       return
     }
 
-    if (from === to) return // 忽略沒有變更的欄位
+    if (from === to) return
 
     if (fieldName) {
-      // 確保值不會被錯誤地格式化為 NaN
-      const formattedFrom = from === '(無)' ? from : from.toString()
-      const formattedTo = to === '(無)' ? to : to.toString()
-      changes.push(`${fieldName}: ${formattedFrom} → ${formattedTo}`)
+      changes.push(`${fieldName}: ${from} → ${to}`)
       addedKeys.add(key)
     }
   })
 
+  // 創建動作且沒有變更時的處理
   if (item.action === '創建' && changes.length === 0) {
     changes.push(`新增${getModelDisplay(item.targetModel)}`)
   }
@@ -1146,6 +1258,13 @@ onMounted(async () => {
     line-height: 1.2;
     white-space: pre-wrap; /* 保留換行 */
     word-break: break-word; /* 防止文字過長溢出 */
+  }
+}
+
+/* 在 data table 中的樣式 */
+:deep(.v-data-table) {
+  td {
+    white-space: pre-line;  // 添加這行
   }
 }
 

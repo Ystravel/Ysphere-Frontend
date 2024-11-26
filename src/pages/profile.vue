@@ -145,9 +145,9 @@
           </v-col>
           <v-col
             cols="12"
-            class="mt-3 mb-6 text-center text-blue-grey-darken-3"
+            class="mt-3 mb-6 text-center text-blue-grey-darken-2"
           >
-            <div class="profile-subtitle">
+            <div class="info-title">
               《 基本資料 》
             </div>
           </v-col>
@@ -422,9 +422,9 @@
             </v-row>
             <v-col
               cols="12"
-              class="mt-3 mb-6 text-center text-blue-grey-darken-3"
+              class="mt-3 mb-6 text-center text-blue-grey-darken-2"
             >
-              <div class="profile-subtitle">
+              <div class="info-title">
                 《 任職資料 》
               </div>
             </v-col>
@@ -608,14 +608,18 @@
 
               <v-col
                 cols="12"
-                class="mt-3 mb-8 mb-sm-10 text-center text-blue-grey-darken-3"
+                class="mt-3 mb-8 mb-sm-10 text-center text-blue-grey-darken-2"
               >
-                <div class="profile-subtitle">
+                <div
+                  v-if="user.cowellAccount || user.YSRCAccount || user.YS168Account"
+                  class="info-title"
+                >
                   《 系統資料 》
                 </div>
               </v-col>
 
               <v-col
+                v-if="user.cowellAccount"
                 class="py-0 mb-6"
                 cols="12"
                 sm="6"
@@ -638,12 +642,13 @@
                       density="compact"
                       hide-details
                       readonly
-                      :value="isCowellRevealed ? user.cowellAccount : '******'"
+                      :value="isSystemRevealed ? user.cowellAccount : '******'"
                     />
                   </v-col>
                 </v-row>
               </v-col>
               <v-col
+                v-if="user.cowellAccount"
                 class="py-0 mb-6"
                 cols="12"
                 sm="6"
@@ -666,12 +671,13 @@
                       density="compact"
                       hide-details
                       readonly
-                      :value="isCowellRevealed ? user.cowellPassword : '******'"
+                      :value="isSystemRevealed ? user.cowellPassword : '******'"
                     />
                   </v-col>
                 </v-row>
               </v-col>
               <v-col
+                v-if="user.YSRCAccount"
                 class="py-0 mb-6"
                 cols="12"
                 sm="6"
@@ -694,12 +700,13 @@
                       density="compact"
                       hide-details
                       readonly
-                      :value="isCowellRevealed ? user.YSRCAccount : '******'"
+                      :value="isSystemRevealed ? user.YSRCAccount : '******'"
                     />
                   </v-col>
                 </v-row>
               </v-col>
               <v-col
+                v-if="user.YSRCAccount"
                 class="py-0 mb-6"
                 cols="12"
                 sm="6"
@@ -722,7 +729,7 @@
                       density="compact"
                       hide-details
                       readonly
-                      :value="isCowellRevealed ? user.YSRCPassword : '******'"
+                      :value="isSystemRevealed ? user.YSRCPassword : '******'"
                     />
                   </v-col>
                 </v-row>
@@ -751,13 +758,13 @@
                       density="compact"
                       hide-details
                       readonly
-                      :value="isCowellRevealed ? user.YS168Account : '******'"
+                      :value="isSystemRevealed ? user.YS168Account : '******'"
                     />
                   </v-col>
                 </v-row>
               </v-col>
               <v-col
-                v-if="user.YS168Password"
+                v-if="user.YS168Account"
                 class="py-0 mb-6"
                 cols="12"
                 sm="6"
@@ -780,7 +787,7 @@
                       density="compact"
                       hide-details
                       readonly
-                      :value="isCowellRevealed ? user.YS168Password : '******'"
+                      :value="isSystemRevealed ? user.YS168Password : '******'"
                     />
                   </v-col>
                 </v-row>
@@ -805,32 +812,38 @@
           <v-text-field
             v-model="passwordForm.currentPassword"
             :error-messages="currentPasswordError"
+            :type="showCurrentPassword ? 'text' : 'password'"
+            :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
             label="當前密碼"
-            type="password"
             variant="outlined"
             density="compact"
             class="mb-4"
             @update:model-value="currentPasswordError = ''"
+            @click:append-inner="showCurrentPassword = !showCurrentPassword"
           />
           <v-text-field
             v-model="passwordForm.newPassword"
             :error-messages="newPasswordError"
+            :type="showNewPassword ? 'text' : 'password'"
+            :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
             label="新密碼"
-            type="password"
             variant="outlined"
             density="compact"
             class="mb-4"
             @update:model-value="newPasswordError = ''"
+            @click:append-inner="showNewPassword = !showNewPassword"
           />
           <v-text-field
             v-model="passwordForm.confirmPassword"
             :error-messages="confirmPasswordError"
+            :type="showConfirmPassword ? 'text' : 'password'"
+            :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
             label="確認新密碼"
-            type="password"
             variant="outlined"
             density="compact"
             class="mb-4"
             @update:model-value="confirmPasswordError = ''"
+            @click:append-inner="showConfirmPassword = !showConfirmPassword"
           />
         </v-form>
       </v-card-text>
@@ -873,29 +886,36 @@
         查看所有系統帳號與密碼
       </div>
       <v-card-text class="pb-0">
-        <v-text-field
-          v-model="cowellPassword"
-          label="輸入密碼"
-          type="password"
-          variant="outlined"
-          density="compact"
-          class="mb-4"
-        />
+        <v-form @submit.prevent="verifyCowellPassword">
+          <v-text-field
+            v-model="cowellPassword"
+            :type="showCowellPassword ? 'text' : 'password'"
+            :append-inner-icon="showCowellPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            :error-messages="passwordError"
+            label="輸入密碼"
+            variant="outlined"
+            density="compact"
+            class="mb-4"
+            @click:append-inner="showCowellPassword = !showCowellPassword"
+            @update:model-value="passwordError = ''"
+            @keyup.enter="verifyCowellPassword"
+          />
+        </v-form>
       </v-card-text>
       <v-card-actions class="me-4 mb-3">
         <v-spacer />
         <v-btn
           color="grey-darken-1"
           variant="outlined"
-          :size="buttonSize"
+          size="small"
           @click="closeCowellDialog"
         >
           取消
         </v-btn>
         <v-btn
-          color="red-darken-1"
+          color="teal-darken-1"
           variant="outlined"
-          :size="buttonSize"
+          size="small"
           :loading="isVerifyingCowell"
           @click="verifyCowellPassword"
         >
@@ -931,8 +951,13 @@ definePage({
 const showCowellDialog = ref(false)
 const cowellPassword = ref('')
 const cowellPasswordError = ref('')
-const isCowellRevealed = ref(false)
+const isSystemRevealed = ref(false)
 const isVerifyingCowell = ref(false)
+
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+const showCowellPassword = ref(false)
 
 const showPasswordDialog = ref(false)
 const isChangingPassword = ref(false)
@@ -946,6 +971,8 @@ const passwordForm = ref({
 const currentPasswordError = ref('')
 const newPasswordError = ref('')
 const confirmPasswordError = ref('')
+
+const passwordError = ref('')
 
 const user = useUserStore()
 const createSnackbar = useSnackbar()
@@ -1024,11 +1051,15 @@ const closePasswordDialog = () => {
   currentPasswordError.value = ''
   newPasswordError.value = ''
   confirmPasswordError.value = ''
+  // 重置顯示密碼的狀態
+  showCurrentPassword.value = false
+  showNewPassword.value = false
+  showConfirmPassword.value = false
 }
 
 const verifyCowellPassword = async () => {
   if (!cowellPassword.value) {
-    cowellPasswordError.value = '請輸入密碼'
+    passwordError.value = '請輸入密碼'
     return
   }
 
@@ -1036,7 +1067,7 @@ const verifyCowellPassword = async () => {
     isVerifyingCowell.value = true
 
     // 調用新 API
-    const response = await fetch(`${import.meta.env.VITE_API}/user/reveal-cowell`, {
+    const response = await fetch(`${import.meta.env.VITE_API}/user/reveal-system`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1056,7 +1087,7 @@ const verifyCowellPassword = async () => {
     }
 
     // 成功後更新顯示的科威帳號和密碼
-    isCowellRevealed.value = true
+    isSystemRevealed.value = true
     user.cowellAccount = data.result.cowellAccount
     user.cowellPassword = data.result.cowellPassword
 
@@ -1081,8 +1112,9 @@ const closeCowellDialog = () => {
   showCowellDialog.value = false
   cowellPassword.value = ''
   cowellPasswordError.value = ''
+  // 重置顯示密碼的狀態
+  showCowellPassword.value = false
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -1102,11 +1134,11 @@ const closeCowellDialog = () => {
   }
 }
 
-.profile-subtitle {
-  font-size: 14px;
-  font-weight: 600;
-  @include sm {
-    font-size: 15px;
-  }
-}
+// .profile-subtitle {
+//   font-size: 14px;
+//   font-weight: 600;
+//   @include sm {
+//     font-size: 15px;
+//   }
+// }
 </style>

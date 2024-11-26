@@ -93,7 +93,7 @@
                 cols="6"
                 md="3"
                 lg="2"
-                class="d-flex justify-end align-center"
+                class="d-flex justify-end align-center ps-0"
               >
                 <v-icon
                   v-if="smAndUp"
@@ -101,7 +101,7 @@
                   icon="mdi-information"
                   size="small"
                   color="blue-grey-darken-2"
-                  class="me-4"
+                  class="me-3"
                 />
                 <v-text-field
                   v-model="tableSearch"
@@ -130,6 +130,7 @@
               density="compact"
               :items-per-page-options="[10, 20, 50]"
               hover
+              class="rounded-ts-lg rounded-te-lg"
               @update:options="handleTableUpdate"
             >
               <template #item="{ item, index }">
@@ -362,7 +363,7 @@
               required
               variant="outlined"
               density="compact"
-              class="mb-1"
+              class="mb-2"
               :error-messages="departmentIdError"
               clearable
               @update:model-value="handleDepartmentCodeChange"
@@ -591,7 +592,7 @@ const departmentForm = ref({
   c_id: '',
   name: '',
   departmentId: '',
-  hasChanges: true
+  originalData: null
 })
 const departmentNameError = ref([])
 const departmentCompanyError = ref([])
@@ -791,39 +792,56 @@ const openDepartmentDialog = () => {
     originalData: null // 加入這行
   }
 }
+
 const closeDepartmentDialog = () => {
-  departmentDialog.value = { open: false, id: null }
+  departmentDialog.value = {
+    open: false,
+    id: null
+  }
+
+  // 重置表單到初始狀態
   departmentForm.value = {
     c_id: '',
     name: '',
     departmentId: '',
-    originalData: null,
-    hasChanges: false
+    originalData: null
   }
+
+  // 清除所有錯誤訊息
   departmentNameError.value = []
   departmentCompanyError.value = []
-  departmentIdError.value = [] // 加入這行
+  departmentIdError.value = []
 }
 
 const openEditDepartment = (department) => {
-  departmentDialog.value = { open: true, id: department._id }
+  departmentDialog.value = {
+    open: true,
+    id: department._id
+  }
 
   const companyId = department.c_id?._id || department.c_id
-  const code = department.departmentId.replace(/^[A-Z]\d+/, '')
+  const currentDepartmentId = department.departmentId
+
+  // 去除公司編號前綴以獲取純部門代碼
+  const code = currentDepartmentId.replace(/^[A-Z]\d+/, '')
 
   // 檢查是否為預設選項
   const presetOption = departmentIdOptions.find(option => option.value === code)
+  const departmentIdValue = presetOption || code
 
+  // 設置表單當前值
   departmentForm.value = {
     c_id: companyId,
     name: department.name,
-    departmentId: presetOption || code, // 如果是預設選項，使用完整的選項物件
+    departmentId: departmentIdValue,
+    // 保存原始數據，使用深拷貝避免引用問題
     originalData: {
       c_id: companyId,
       name: department.name,
-      departmentId: department.departmentId
-    },
-    hasChanges: false
+      departmentId: currentDepartmentId,
+      // 保存完整的原始部門數據以便比較
+      fullDepartmentId: currentDepartmentId
+    }
   }
 }
 
@@ -867,7 +885,15 @@ const submitDepartment = async () => {
 
   try {
     if (departmentDialog.value.id) {
-      // 編輯部門
+      // 編輯模式時檢查是否有變更
+      if (!hasFormChanges.value) {
+        createSnackbar({
+          text: '沒有變更需要儲存',
+          snackbarProps: { color: 'info' }
+        })
+        return
+      }
+
       const { data } = await apiAuth.patch(`/department/${departmentDialog.value.id}`, {
         c_id: departmentForm.value.c_id,
         name: departmentForm.value.name,
@@ -880,9 +906,8 @@ const submitDepartment = async () => {
           text: '修改部門成功',
           snackbarProps: { color: 'teal-lighten-1' }
         })
-        // 恢復先前的頁碼
         tablePage.value = currentPageNumber
-        await loadDepartments(false) // 只需要加載一次
+        await loadDepartments(false)
       }
     } else {
       // 新增部門
@@ -961,13 +986,25 @@ const deleteDepartment = async () => {
 }
 
 const hasFormChanges = computed(() => {
-  if (!departmentForm.value.originalData) return true // 新增時永遠 true
+  // 如果沒有原始數據，表示是新增模式
+  if (!departmentForm.value.originalData) return true
 
-  return (
-    departmentForm.value.c_id !== departmentForm.value.originalData.c_id ||
-    departmentForm.value.name !== departmentForm.value.originalData.name ||
-    departmentForm.value.departmentId !== departmentForm.value.originalData.departmentId
-  )
+  // 獲取當前完整的部門編號（包含公司編號）
+  const currentFullDepartmentId = previewDepartmentId.value
+
+  // 處理 departmentId 可能是物件的情況
+  let currentDepartmentId = departmentForm.value.departmentId
+  if (typeof currentDepartmentId === 'object') {
+    currentDepartmentId = currentDepartmentId.value
+  }
+
+  // 比較所有欄位
+  const hasCompanyChanged = departmentForm.value.c_id !== departmentForm.value.originalData.c_id
+  const hasNameChanged = departmentForm.value.name !== departmentForm.value.originalData.name
+  const hasDepartmentIdChanged = currentFullDepartmentId !== departmentForm.value.originalData.fullDepartmentId
+
+  // 返回是否有任何變更
+  return hasCompanyChanged || hasNameChanged || hasDepartmentIdChanged
 })
 
 const handleTableUpdate = async (options) => {

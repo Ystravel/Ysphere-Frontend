@@ -130,3 +130,28 @@ watch(() => props.modelValue, (newVal) => {
   }
 }, { deep: true })
 </script>
+
+<style lang="scss" scoped>
+@import '/src/styles/settings.scss';
+:deep(.v-input__control) {
+  .v-field {
+    padding-top: 8px;
+    padding-left: 4px;
+    padding-right: 0;
+    height: 72px;
+  }
+}
+
+@include sm {
+  :deep(.v-input__control) {
+    :deep(.v-field__input) {
+      padding-top: 0;
+    }
+    .v-field {
+      height: 48px;
+      padding-top: 4px;
+      padding-right: 8px;
+    }
+  }
+}
+</style>
