@@ -34,10 +34,11 @@
       <v-col
         cols="12"
         lg="6"
+        xl="5"
         class="pa-0 mb-6 mb-sm-0"
       >
         <v-card
-          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-2 pb-4 pb-sm-5 "
+          class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-3 pb-4 pb-sm-5 "
           elevation="4"
           rounded="xl"
           height="100%"
@@ -63,7 +64,7 @@
                     cols="12"
                     sm="4"
                   >
-                    <v-select
+                    <v-autocomplete
                       v-model="searchCriteria.companyId"
                       :items="companyList"
                       label="公司"
@@ -73,6 +74,11 @@
                       density="compact"
                       hide-details
                       clearable
+                      :filter="(item, queryText) => {
+                        const searchText = `${item.title}`.toLowerCase()
+                        const query = queryText.toLowerCase()
+                        return searchText.includes(query)
+                      }"
                       @update:model-value="handleCompanyChange"
                     />
                   </v-col>
@@ -82,17 +88,25 @@
                     cols="12"
                     sm="4"
                   >
-                    <v-select
+                    <v-autocomplete
                       v-model="searchCriteria.department"
                       :items="filteredDepartments"
                       label="部門"
-                      item-title="name"
+                      :item-title="item => item?.name && item?.departmentId ? `${item.name} (${item.departmentId})` : ''"
                       item-value="_id"
                       variant="outlined"
                       density="compact"
                       hide-details
                       clearable
                       :disabled="!searchCriteria.companyId"
+                      :loading="!filteredDepartments.length && !!searchCriteria.companyId"
+                      :filter="(item, queryText) => {
+                        const searchText = item?.name && item?.departmentId ?
+                          `${item.name} ${item.departmentId}`.toLowerCase() : ''
+                        const query = queryText.toLowerCase()
+                        return searchText.includes(query)
+                      }"
+                      no-data-text="找不到相關部門"
                     />
                   </v-col>
                   <!-- 身分別選擇 -->
@@ -164,7 +178,7 @@
                     />
                   </v-col>
                 </v-row>
-                <v-row>
+                <v-row class="d-flex align-center">
                   <v-col
                     cols="12"
                     sm="4"
@@ -186,6 +200,7 @@
                       <v-col
                         cols="12"
                         sm="6"
+                        class="pa-2"
                       >
                         <v-select
                           v-model="searchCriteria.dateType"
@@ -201,6 +216,7 @@
                       <v-col
                         cols="12"
                         sm="6"
+                        class="pa-2"
                       >
                         <v-date-input
                           v-model="searchCriteria.dateRange"
@@ -211,7 +227,6 @@
                           multiple="range"
                           prepend-icon
                           clearable
-                          persistent-placeholder
                           :ok-text="'確認'"
                           :cancel-text="'取消'"
                         />
@@ -220,7 +235,7 @@
                   </v-col>
                 </v-row>
 
-                <v-row>
+                <v-row class="mt-5">
                   <v-col
                     cols="6"
                     sm="4"
@@ -325,6 +340,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
+                  <v-spacer />
                   <v-col
                     cols="12"
                     class="d-flex justify-end gap-2"
@@ -1053,9 +1069,9 @@
                   sm="6"
                   md="4"
                   lg="3"
-                  class="pb-0"
+                  class="pb-2"
                 >
-                  <v-select
+                  <v-autocomplete
                     v-model="selectedCompany"
                     :error-messages="company.errorMessage.value"
                     :items="companyOptions"
@@ -1065,7 +1081,14 @@
                     variant="outlined"
                     density="compact"
                     clearable
+                    :hint="'可輸入公司編號、名稱搜尋'"
+                    persistent-hint
                     :error="!!company.errorMessage.value"
+                    :filter="(item, queryText) => {
+                      const searchText = `${item.title}`.toLowerCase()
+                      const query = queryText.toLowerCase()
+                      return searchText.includes(query)
+                    }"
                     @update:model-value="handleCompanyChange"
                   />
                 </v-col>
@@ -1077,16 +1100,26 @@
                   lg="3"
                   class="pb-0"
                 >
-                  <v-select
+                  <v-autocomplete
                     v-model="department.value.value"
                     :items="filteredDepartments"
                     :error-messages="department.errorMessage.value"
-                    item-title="name"
+                    :item-title="item => item?.name && item?.departmentId ? `${item.name} (${item.departmentId})` : ''"
                     item-value="_id"
                     label="*選擇部門"
                     variant="outlined"
                     density="compact"
                     clearable
+                    :hint="'可輸入部門編號、名稱搜尋'"
+                    persistent-hint
+                    :loading="!filteredDepartments.length && !!selectedCompany"
+                    :filter="(item, queryText) => {
+                      const searchText = item?.name && item?.departmentId ?
+                        `${item.name} ${item.departmentId}`.toLowerCase() : ''
+                      const query = queryText.toLowerCase()
+                      return searchText.includes(query)
+                    }"
+                    no-data-text="找不到相關部門"
                   />
                 </v-col>
 
@@ -2100,13 +2133,12 @@ const roles = ref(
 const companyOptions = computed(() => {
   return [...companies.value]
     .sort((a, b) => {
-      // 確保 companyId 存在
       const idA = a.companyId || ''
       const idB = b.companyId || ''
       return idA.localeCompare(idB)
     })
     .map(company => ({
-      title: `${company.name}`,
+      title: `${company.name} (${company.companyId})`, // 修改這裡，加入公司編號
       value: company._id
     }))
 })
@@ -2117,13 +2149,12 @@ const companyList = computed(() => {
   return [
     ...[...companies.value]
       .sort((a, b) => {
-        // 確保 companyId 存在
         const idA = a.companyId || ''
         const idB = b.companyId || ''
         return idA.localeCompare(idB)
       })
       .map(company => ({
-        title: company.name,
+        title: `${company.name} (${company.companyId})`,
         value: company._id
       }))
   ]
@@ -3158,7 +3189,7 @@ const resetSearch = () => {
     // 新增字段的重置
     indigenousStatus: '', // v-chip 的值重置為空
     tourManager: '', // v-chip 的值重置為空
-    guideLicense: [],
+    guideLicense: '',
     disabilityStatus: '',
     formStatus: ''
   }
