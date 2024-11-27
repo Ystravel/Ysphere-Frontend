@@ -3,7 +3,7 @@
     <v-row>
       <v-col cols="12">
         <v-card
-          class="mx-auto pa-8 "
+          class="mx-auto px-8 py-6"
           elevation="4"
           rounded="lg"
         >

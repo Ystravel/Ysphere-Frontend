@@ -46,7 +46,7 @@
         class="px-4 px-xl-6"
       >
         <v-card
-          class="d-flex px-4 pt-2 pt-sm-3 pb-4 pb-sm-5 "
+          class="d-flex px-6 pt-2 pt-sm-3 pb-4 pb-sm-5 "
           elevation="4"
           rounded="lg"
           height="180"
@@ -56,6 +56,29 @@
             class="ps-3 pb-6"
           >
             <h6>最新公告</h6>
+            <v-list>
+              <v-list-item class="bg-grey-lighten-4">
+                <v-chip
+                  size="small"
+                  color="teal"
+                  variant="outlined"
+                >
+                  系統
+                </v-chip>
+                <router-link
+                  to="/"
+                  class="ms-2 text-decoration-none text-blue-grey-darken-3"
+                >
+                  系統將於12/12大改版
+                </router-link>
+
+                STEVEN
+
+                IT部 (A1IT)
+
+                <span style="font-size: 12px;">2024-11-27 22:46發布</span>
+              </v-list-item>
+            </v-list>
           </v-col>
         </v-card>
       </v-col>

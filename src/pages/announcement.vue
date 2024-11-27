@@ -70,7 +70,6 @@
                 density="comfortable"
                 variant="outlined"
                 hide-details
-                @input="performSearch"
               />
             </v-col>
           </v-row>
@@ -180,15 +179,17 @@
                   />
                 </v-col>
                 <v-col
-                  v-if="formData.type === '置頂'"
                   cols="12"
                 >
+                  <!-- 修改 checkbox 綁定值為一個控制顯示的布林值 -->
                   <v-checkbox
-                    v-model="formData.deleteDate"
+                    v-model="showDeleteDatePicker"
                     label="設定自動下架時間"
                   />
+
+                  <!-- 當 checkbox 被勾選時才顯示日期選擇器 -->
                   <v-date-picker
-                    v-if="formData.deleteDate"
+                    v-if="showDeleteDatePicker"
                     v-model="formData.deleteDate"
                     class="mt-2"
                   />
@@ -274,9 +275,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { definePage } from 'vue-router/auto'
 import { useRouter } from 'vue-router'
+import { debounce } from 'lodash'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { QuillEditor } from '@vueup/vue-quill'
@@ -310,6 +312,8 @@ const totalItems = ref(0)
 const announcements = ref([])
 const formValid = ref(false)
 const submitting = ref(false)
+const departments = ref([])
+const showDeleteDatePicker = ref(false)
 
 // 計算屬性
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value))
@@ -317,6 +321,22 @@ const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.valu
 const canManageAnnouncements = computed(() => {
   return user.role >= UserRole.ADMIN || false
 })
+
+const loadDepartments = async () => {
+  try {
+    const { data } = await apiAuth.get('/department/all')
+    if (data.success) {
+      // Ensure departments.value is an array
+      departments.value = Array.isArray(data.result) ? data.result : data.result.data
+    }
+  } catch (error) {
+    console.error('載入部門失敗:', error)
+    createSnackbar({
+      text: '載入部門資料失敗',
+      snackbarProps: { color: 'error' }
+    })
+  }
+}
 
 // 篩選公告
 const filteredAnnouncements = computed(() => {
@@ -346,7 +366,7 @@ const formData = ref({
   type: '一般',
   content: '',
   attachments: [],
-  deleteDate: null
+  deleteDate: undefined // 改為 undefined
 })
 
 const editorToolbar = [
@@ -386,16 +406,24 @@ const fetchAnnouncements = async () => {
       return
     }
 
-    const { data } = await apiAuth.get('/announcement/all', { // 修改此處
-      params: {
-        page: currentPage.value,
-        limit: itemsPerPage.value,
-        type: currentTab.value === 'all' ? undefined : currentTab.value,
-        search: searchText.value
-      }
-    })
-    announcements.value = data.result.data
-    totalItems.value = data.result.total
+    // 修改這裡，確保每個參數都有值
+    const params = {
+      page: currentPage.value || 1,
+      limit: itemsPerPage.value || 10,
+      search: searchText.value || '', // 確保 search 不會是 undefined
+      ...(currentTab.value !== 'all' ? { type: currentTab.value } : {}) // 只在需要時添加 type 參數
+    }
+
+    console.log('Fetching with params:', params) // 用於除錯
+
+    const { data } = await apiAuth.get('/announcement/all', { params })
+
+    if (data.success) { // 確保後端返回成功
+      announcements.value = data.result.data
+      totalItems.value = data.result.total
+    } else {
+      throw new Error(data.message || '獲取公告失敗')
+    }
   } catch (error) {
     console.error('獲取公告失敗:', error)
     createSnackbar({
@@ -406,6 +434,7 @@ const fetchAnnouncements = async () => {
     loading.value = false
   }
 }
+
 const openDialog = (announcement = null) => {
   if (announcement) {
     dialog.value.id = announcement._id
@@ -414,7 +443,8 @@ const openDialog = (announcement = null) => {
       type: announcement.type,
       content: announcement.content,
       attachments: [],
-      deleteDate: announcement.deleteDate
+      deleteDate: announcement.deleteDate,
+      department: announcement.department?._id || '' // 添加部門
     }
   } else {
     dialog.value.id = null
@@ -423,7 +453,8 @@ const openDialog = (announcement = null) => {
       type: '一般',
       content: '',
       attachments: [],
-      deleteDate: null
+      deleteDate: null,
+      department: '' // 添加部門
     }
   }
   dialog.value.show = true
@@ -437,27 +468,34 @@ const closeDialog = () => {
     type: '一般',
     content: '',
     attachments: [],
-    deleteDate: null
+    deleteDate: null,
+    department: '' // 添加部門
   }
 }
 
 const submitAnnouncement = async () => {
   try {
     const formDataToSend = new FormData()
+
     Object.entries(formData.value).forEach(([key, value]) => {
       if (key === 'attachments') {
         value.forEach(file => {
           formDataToSend.append('attachments', file)
         })
+      } else if (key === 'deleteDate') {
+        // 只有當啟用日期選擇且有選擇日期時才發送
+        if (showDeleteDatePicker.value && value) {
+          formDataToSend.append('deleteDate', value)
+        }
       } else {
         formDataToSend.append(key, value)
       }
     })
 
     if (dialog.value.id) {
-      await apiAuth.patch(`/announcement/${dialog.value.id}`, formDataToSend) // 修改此處
+      await apiAuth.patch(`/announcement/${dialog.value.id}`, formDataToSend)
     } else {
-      await apiAuth.post('/announcement', formDataToSend) // 修改此處
+      await apiAuth.post('/announcement', formDataToSend)
     }
 
     createSnackbar({
@@ -506,10 +544,22 @@ const viewAnnouncement = (announcement) => {
 }
 
 // 修改 watch
-watch([currentTab, currentPage, searchText], () => {
+// 改為分開監聽
+watch([currentTab, currentPage], () => {
   if (user.token) {
     fetchAnnouncements()
   }
+})
+
+const debouncedQuickSearch = debounce(() => {
+  if (user.token) {
+    currentPage.value = 1
+    fetchAnnouncements()
+  }
+}, 300)
+
+watch(searchText, () => {
+  debouncedQuickSearch()
 })
 
 // 使用說明內容
@@ -539,9 +589,16 @@ const guideItems = [
 
 // 生命週期鉤子
 // 初始化
-onMounted(() => {
+// 在 onMounted 中載入部門資料
+
+onUnmounted(() => {
+  debouncedQuickSearch.cancel()
+})
+
+onMounted(async () => {
   if (user.token) {
-    fetchAnnouncements()
+    await loadDepartments() // 添加這行
+    await fetchAnnouncements()
   }
 })
 
