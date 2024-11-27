@@ -2,7 +2,7 @@
   <v-card
     class="mx-auto pa-8 pb-4 d-flex flex-column justify-center align-center"
     elevation="4"
-    rounded="xl"
+    rounded="lg"
   >
     <h6 style="font-size: 16px;">
       全公司人數分布

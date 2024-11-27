@@ -3,13 +3,11 @@
     <v-row>
       <v-col cols="12">
         <v-card
-          class="mx-auto pa-8 pb-9"
+          class="mx-auto pa-8 "
           elevation="4"
-          rounded="xl"
-          min-height="392"
+          rounded="lg"
         >
           <h6
-            style="font-size: 16px;"
             class="ps-1 mb-5 d-flex align-center"
           >
             近期壽星
@@ -210,13 +208,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.v-card {
+/* .v-card {
   transition: all 0.3s ease;
 }
 
 .v-card:hover {
   box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
-}
+} */
 
 .birthday-container {
   max-height: 280px;

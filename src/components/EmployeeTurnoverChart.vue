@@ -5,7 +5,7 @@
         <v-card
           class="mx-auto pt-8 pb-4 px-4 d-flex flex-column justify-center align-center"
           elevation="4"
-          rounded="xl"
+          rounded="lg"
         >
           <h6 style="font-size: 16px;">
             員工流動趨勢

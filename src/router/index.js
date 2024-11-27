@@ -67,9 +67,10 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // 檢查是否要導向 '/profile'
-  if (to.path === '/') {
-    next('/profile')
-  } else if (user.isLogin && ['/login'].includes(to.path)) {
+  // if (to.path === '/') {
+  //   next('/')
+  // } else
+  if (user.isLogin && ['/login'].includes(to.path)) {
     next('/')
   } else if (to.meta.login && !user.isLogin) {
     next('/login')

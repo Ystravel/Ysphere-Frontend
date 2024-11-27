@@ -4,12 +4,12 @@
   >
     <!-- 上方圖表與統計資訊區域 -->
     <v-row
-      class="rounded-xl py-0 mt-2 ma-sm-1 ma-md-6"
+      class="py-0 mt-2 ma-sm-1 ma-md-6"
     >
       <!-- 左側圖表，固定寬度 -->
       <v-col
         v-if="xlAndUp"
-        class="ps-4 py-0"
+        class="ps-4 pe-6 py-0"
       >
         <EmployeeDoughnut ref="chartRef" />
       </v-col>
@@ -18,7 +18,7 @@
       <!-- 員工流動趨勢圖-->
       <v-col
         v-if="lgAndUp"
-        class="ps-4 py-0"
+        class="ps-4 pe-6 py-0"
       >
         <EmployeeTurnoverChart ref="turnoverChartRef" />
       </v-col>
@@ -40,7 +40,7 @@
         <v-card
           class="d-flex mx-3 mx-sm-4 px-4 pt-2 pt-sm-3 pb-4 pb-sm-5 "
           elevation="4"
-          rounded="xl"
+          rounded="lg"
           height="100%"
         >
           <v-card-text class="d-flex align-center">
@@ -383,7 +383,7 @@
       </v-col>
     </v-row>
     <v-row
-      class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
+      class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <v-col
         cols="12"

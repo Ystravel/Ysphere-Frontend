@@ -4,7 +4,7 @@
   >
     <!-- 上方圖表與統計資訊區域 -->
     <v-row
-      class="rounded-xl py-0 mt-2 ma-sm-1 ma-md-6"
+      class="rounded-lg py-0 mt-2 ma-sm-1 ma-md-6"
     >
       <!-- 左側圖表，固定寬度 -->
       <v-col
@@ -276,7 +276,7 @@
       </v-col>
     </v-row>
     <v-row
-      class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
+      class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-10 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <v-col
         cols="12"

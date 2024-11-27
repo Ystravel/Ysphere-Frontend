@@ -1,19 +1,18 @@
 <template>
   <v-container max-width="2200">
-    <v-row class="pt-md-5">
+    <v-row class="py-0 ma-sm-1 ma-md-2">
       <!-- 搜尋條件區塊 -->
       <v-col
         cols="12"
-        lg="4"
-        xl="3"
+        lg="3"
       >
         <v-row>
           <v-col
             cols="12"
-            class="mt-1 px-lg-10"
+            class="mt-1 ps-lg-8 pe-lg-12"
           >
             <v-card
-              class="elevation-4 rounded-xl py-4 py-sm-8 px-4 px-sm-4 px-xl-8"
+              class="elevation-4 rounded-lg py-4 py-sm-8 px-4 px-sm-4 px-xl-8"
             >
               <v-card-title class="font-weight-bold d-flex align-center">
                 搜尋條件
@@ -159,11 +158,10 @@
       <!-- 表格區塊 -->
       <v-col
         cols="12"
-        lg="8"
-        xl="9"
+        lg="9"
         class="px-6 ps-lg-4 pe-lg-12 mb-6"
       >
-        <v-row class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-4 px-md-10 mt-1 bg-white">
+        <v-row class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-4 px-md-10 mt-1 bg-white">
           <!-- 標題和一般搜尋欄位 -->
           <v-col cols="12">
             <div class="d-flex justify-space-between align-center mb-2 mb-sm-4">

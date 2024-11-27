@@ -13,7 +13,7 @@
             class="mt-1 px-lg-10"
           >
             <v-card
-              class="elevation-4 rounded-xl py-4 py-sm-8 px-4 px-sm-4 px-xl-8"
+              class="elevation-4 rounded-lg py-4 py-sm-8 px-4 px-sm-4 px-xl-8"
             >
               <v-card-title class="font-weight-bold d-flex align-center">
                 搜尋條件
@@ -259,7 +259,7 @@
         xl="9"
         class="px-6 ps-lg-4 pe-lg-12 mb-6"
       >
-        <v-row class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-4 px-md-10 mt-1 bg-white">
+        <v-row class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-4 px-md-10 mt-1 bg-white">
           <v-col
             cols="12"
             class="ps-4 pb-sm-6"

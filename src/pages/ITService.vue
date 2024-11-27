@@ -1,7 +1,7 @@
 <template>
-  <v-container max-width="2200">
+  <v-container max-width="2000">
     <v-row
-      class="elevation-4 rounded-xl py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
+      class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white"
     >
       <!-- 頁面標題 -->
       <v-col
