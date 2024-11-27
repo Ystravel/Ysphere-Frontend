@@ -7,13 +7,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AnnouncementList: typeof import('./src/components/AnnouncementList.vue')['default']
     BirthdayReminder: typeof import('./src/components/BirthdayReminder.vue')['default']
     ConfirmDeleteDialog: typeof import('./src/components/ConfirmDeleteDialog.vue')['default']
     ConfirmDeleteDialogWithTextField: typeof import('./src/components/ConfirmDeleteDialogWithTextField.vue')['default']
     DependentInsurance: typeof import('./src/components/DependentInsurance.vue')['default']
-    EmployeeDialog: typeof import('./src/components/EmployeeDialog.vue')['default']
     EmployeeDoughnut: typeof import('./src/components/EmployeeDoughnut.vue')['default']
     EmployeeTurnoverChart: typeof import('./src/components/EmployeeTurnoverChart.vue')['default']
+    ExcelImport: typeof import('./src/components/ExcelImport.vue')['default']
     FileUploadButton: typeof import('./src/components/FileUploadButton.vue')['default']
     GuideLicenseSelection: typeof import('./src/components/GuideLicenseSelection.vue')['default']
     ResignationDateDialog: typeof import('./src/components/ResignationDateDialog.vue')['default']
