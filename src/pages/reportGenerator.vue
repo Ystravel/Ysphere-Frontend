@@ -1,6 +1,7 @@
 <template>
   <v-container
     max-width="1920"
+    height="100%"
     class="overflow-x-scroll"
   >
     <v-row>
