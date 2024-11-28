@@ -180,13 +180,13 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 @import '/src/styles/settings.scss';
 
-.v-card {
-  transition: all 0.3s ease;
-}
+// .v-card {
+//   transition: all 0.3s ease;
+// }
 
-.v-card:hover {
-  box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
-}
+// .v-card:hover {
+//   box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
+// }
 
 .chart-container {
   width: 326px;

@@ -64,5 +64,20 @@ export default defineConfig({
   },
   server: {
     port: 3000
+  },
+  optimizeDeps: {
+    include: ['pdfmake', 'pdfmake/build/vfs_fonts']
+  },
+  build: {
+    commonjsOptions: {
+      include: [/pdfmake/, /node_modules/]
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          pdfmake: ['pdfmake', 'pdfmake/build/vfs_fonts']
+        }
+      }
+    }
   }
 })

@@ -17,6 +17,7 @@ declare module 'vue' {
     ExcelImport: typeof import('./src/components/ExcelImport.vue')['default']
     FileUploadButton: typeof import('./src/components/FileUploadButton.vue')['default']
     GuideLicenseSelection: typeof import('./src/components/GuideLicenseSelection.vue')['default']
+    QuotationTemplate: typeof import('./src/components/templates/QuotationTemplate.vue')['default']
     ResignationDateDialog: typeof import('./src/components/ResignationDateDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
