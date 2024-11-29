@@ -414,7 +414,7 @@ const adminItems = [
   },
   {
     to: '/reportGenerator',
-    text: '報表產生器',
+    text: '表單報表產生器',
     icon: 'mdi-chart-box-outline',
     roles: ['SUPER_ADMIN', 'ADMIN', 'IT']
   },
