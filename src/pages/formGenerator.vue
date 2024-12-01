@@ -581,7 +581,7 @@
       max-width="800"
     >
       <v-card class="rounded-lg pa-4">
-        <div class="card-title ps-6 pt-3 pb-2 d-flex justify-space-between align-center">
+        <div class="card-title px-4 pt-3 pb-2 d-flex justify-space-between align-center">
           表單模板管理
           <v-btn
             icon="mdi-close"
@@ -591,7 +591,7 @@
             @click="closeTemplateDialog"
           />
         </div>
-        <v-card-text class="px-4 ">
+        <v-card-text class="ps-2 ">
           <v-row>
             <v-col
               cols="8"

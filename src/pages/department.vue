@@ -351,7 +351,7 @@
               required
               variant="outlined"
               density="compact"
-              class="mb-4"
+              class="mb-3"
               :error-messages="departmentCompanyError"
             />
             <v-combobox
@@ -363,7 +363,7 @@
               required
               variant="outlined"
               density="compact"
-              class="mb-2"
+              class="mb-3"
               :error-messages="departmentIdError"
               clearable
               @update:model-value="handleDepartmentCodeChange"
@@ -389,7 +389,7 @@
             </v-combobox>
             <!-- 新增部門編號預覽 -->
             <v-text-field
-              class="mb-2 text-grey-darken-1"
+              class="mb-3 text-grey-darken-1"
               variant="outlined"
               density="compact"
               readonly
@@ -406,7 +406,7 @@
               density="compact"
               :error-messages="departmentNameError"
             />
-            <v-card-actions class="pa-0 mt-4">
+            <v-card-actions class="pa-0 mt-2">
               <v-spacer />
               <v-btn
                 color="red-lighten-1"
