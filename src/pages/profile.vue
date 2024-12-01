@@ -24,7 +24,7 @@
               </v-col>
               <v-col>
                 <div
-                  class="text-h6 mb-3 opacity-90"
+                  class="name mb-3 opacity-90"
                 >
                   {{ user.name }}
                 </div>
@@ -1122,14 +1122,25 @@ const closeCowellDialog = () => {
 
 .address-style :deep(.v-field .v-field__input) {
   font-size: 10.5px;
-  @include sm {
-    font-size: 14px;
-  }
 }
 
 .v-col-sm-12 {
   font-size: 13px;
-  @media (min-width: 600px) {
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@include sm {
+  .address-style :deep(.v-field .v-field__input) {
+    font-size: 14px;
+  }
+  .name {
+    font-size: 18px;
+  }
+  .v-col-sm-12 {
     font-size: 15px;
   }
 }

@@ -160,16 +160,9 @@ const isInNextTwoWeeks = (birthDate) => {
 const loadBirthdays = async () => {
   isLoading.value = true
   try {
-    const { data } = await apiAuth.get('/user/all', {
-      params: {
-        page: 1,
-        itemsPerPage: 999999,
-        fields: 'name birthDate department employmentStatus avatar' // 加入 avatar
-      }
-    })
+    const { data } = await apiAuth.get('/user/basic-info')
 
     if (data.success) {
-      console.log('Birthday data:', data.result.data)
       birthdays.value = data.result.data
         .filter(user =>
           user.employmentStatus === '在職' &&

@@ -12,6 +12,7 @@ declare module 'vue' {
     ConfirmDeleteDialog: typeof import('./src/components/ConfirmDeleteDialog.vue')['default']
     ConfirmDeleteDialogWithTextField: typeof import('./src/components/ConfirmDeleteDialogWithTextField.vue')['default']
     DependentInsurance: typeof import('./src/components/DependentInsurance.vue')['default']
+    DynamicForm: typeof import('./src/components/DynamicForm.vue')['default']
     EmployeeDoughnut: typeof import('./src/components/EmployeeDoughnut.vue')['default']
     EmployeeTurnoverChart: typeof import('./src/components/EmployeeTurnoverChart.vue')['default']
     ExcelImport: typeof import('./src/components/ExcelImport.vue')['default']

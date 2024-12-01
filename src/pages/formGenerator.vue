@@ -8,17 +8,29 @@
       <v-col
         cols="12"
         md="5"
-        class="pe-7 pe-md-0"
+        class="pe-7 pe-md-2"
       >
-        <v-row class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-6 mt-2 mt-sm-6 mx-0 ms-sm-4 mb-4 bg-white">
+        <v-row class="elevation-4 rounded-lg py-4 py-sm-6  px-1 px-sm-6 mt-2 mt-sm-6 mx-0 ms-sm-4 mb-4 bg-white">
           <v-col
             cols="12"
-            class="pa-0"
+            class="pa-0 mb-4"
           >
             <div class="d-flex align-center justify-space-between mb-4 px-4 pt-4">
               <v-row>
-                <v-col cols="6">
-                  <h3>表單報表產生器</h3>
+                <v-col
+                  cols="6"
+                  class="d-flex align-center"
+                >
+                  <h3 class="d-inline me-2">
+                    表單產生器
+                  </h3><v-icon
+                    v-if="smAndUp"
+                    v-tooltip:top="'選擇後將出現該表單資料欄位'"
+                    icon="mdi-information"
+                    size="small"
+                    class="me-3"
+                    color="blue-grey-darken-2"
+                  />
                 </v-col>
                 <v-col
                   cols="12"
@@ -26,13 +38,14 @@
                   class="d-flex align-center justify-end gap-2"
                 >
                   <v-btn
+                    v-if="user.isAdmin || user.isSuperAdmin"
                     color="blue-grey-darken-2"
                     variant="outlined"
                     prepend-icon="mdi-file-cog"
                     :size="buttonSize"
                     @click="openTemplateDialog"
                   >
-                    表單報表模板管理
+                    表單模板管理
                   </v-btn>
                   <v-btn
                     color="blue-grey-darken-2"
@@ -42,23 +55,14 @@
                     class="ms-2"
                     @click="openHistoryDialog"
                   >
-                    表單報表歷史紀錄
+                    表單歷史紀錄
                   </v-btn>
                 </v-col>
                 <v-col cols="12">
-                  <v-row>
+                  <v-row class="mt-2">
                     <v-col
                       cols="6"
-                      class="d-flex align-center"
                     >
-                      <v-icon
-                        v-if="smAndUp"
-                        v-tooltip:start="'選擇後將出現該報表或表單資料欄位'"
-                        icon="mdi-information"
-                        size="small"
-                        class="me-3"
-                        color="blue-grey-darken-2"
-                      />
                       <!-- 公司選擇 -->
                       <v-select
                         v-model="selectedCompany"
@@ -73,11 +77,14 @@
                         class="me-2"
                       />
                     </v-col>
-                    <v-col cols="6">
+                    <v-col
+                      cols="6"
+                      class="d-flex align-center ps-0"
+                    >
                       <v-select
                         v-model="selectedTemplate"
                         :items="templateOptions"
-                        label="選擇模板報表或表單"
+                        label="選擇表單模板"
                         item-title="title"
                         item-value="value"
                         variant="outlined"
@@ -85,7 +92,9 @@
                         clearable
                         hide-details
                         :disabled="!selectedCompany"
-                        :loading="!templateOptions.length && !!selectedCompany"
+                        :loading="false"
+                        :hint="templateOptions.length === 0 ? '無可用的表單模板' : ''"
+                        persistent-hint
                         @update:model-value="handleTemplateChange"
                       />
                     </v-col>
@@ -96,18 +105,16 @@
               </v-row>
             </div>
           </v-col>
-          <v-col cols="12">
+          <v-col
+            v-if="currentTemplate && selectedTemplate"
+            cols="12"
+          >
             <v-row>
               <v-col
                 cols="12"
               >
-                <div
-                  v-if="!selectedTemplate"
-                  style="min-height: 12.94px;"
-                />
                 <!-- 報價單表單 -->
                 <v-card
-                  v-if="currentTemplate && selectedTemplate"
                   elevation="0"
                 >
                   <v-card-text>
@@ -123,7 +130,7 @@
                         >
                           <v-row>
                             <v-col cols="12">
-                              <div class="card-title text-blue-grey-darken-2">
+                              <div class="sub-title text-blue-grey-darken-2">
                                 基本資訊
                               </div>
                             </v-col>
@@ -134,7 +141,7 @@
                             >
                               <v-text-field
                                 v-model="formData.quotationNumber"
-                                label="報價單號"
+                                label="單號"
                                 variant="outlined"
                                 density="compact"
                                 clearable
@@ -164,7 +171,7 @@
                         >
                           <v-row>
                             <v-col cols="12">
-                              <div class="card-title text-blue-grey-darken-2">
+                              <div class="sub-title text-blue-grey-darken-2">
                                 客戶資訊
                               </div>
                             </v-col>
@@ -283,7 +290,7 @@
                           </v-row>
                         </v-col>
 
-                        <!-- 專案資訊 -->
+                        <!-- 案資訊 -->
                         <v-col
                           cols="12"
                           class="pa-0 mt-4"
@@ -292,7 +299,7 @@
                             <v-col cols="12">
                               <v-row>
                                 <v-col cols="12">
-                                  <div class="card-title text-blue-grey-darken-2">
+                                  <div class="sub-title text-blue-grey-darken-2">
                                     專案資訊
                                   </div>
                                 </v-col>
@@ -373,7 +380,7 @@
                                 >
                                   <v-text-field
                                     v-model="formData.delayDays"
-                                    label="延誤天數"
+                                    label="延誤天"
                                     variant="outlined"
                                     density="compact"
                                     class="mb-2"
@@ -387,8 +394,8 @@
                             <v-col cols="12">
                               <v-row>
                                 <v-col cols="12">
-                                  <div class="card-title text-blue-grey-darken-2 d-flex justify-space-between">
-                                    報價項
+                                  <div class="sub-title text-blue-grey-darken-2 d-flex justify-space-between">
+                                    報價項目
                                     <v-btn
                                       color="blue-grey-darken-2"
                                       variant="outlined"
@@ -434,7 +441,7 @@
                                         >
                                           <v-text-field
                                             v-model="item.name"
-                                            label="項目名���"
+                                            label="項目名稱"
                                             variant="outlined"
                                             density="compact"
                                             class="mb-2"
@@ -521,6 +528,7 @@
       <v-col
         clos="12"
         md="7"
+        class="ps-md-4"
       >
         <v-row
           class="elevation-4 rounded-lg py-4 py-sm-4 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-3 mb-4 bg-white"
@@ -545,9 +553,9 @@
             >
               <v-card-text
                 v-if="!previewReady"
-                class="text-center text-grey text-subtitle-2 font-weight-medium pa-0 pt-11 pb-5"
+                class="text-center text-grey text-subtitle-2 font-weight-medium pa-0 pt-9 pb-3"
               >
-                ( 請 先 選 擇 模 板 報 表 或 表 單 )
+                ( 請 先 選 擇 模 板 表 單 )
               </v-card-text>
               <v-card-text v-if="previewReady">
                 <component
@@ -566,7 +574,7 @@
 
     <!-- 主要內容區 -->
 
-    <!-- 表單報表模板管理話框 -->
+    <!-- 表單模板管理話框 -->
     <v-dialog
       v-model="templateDialog.open"
       persistent
@@ -574,7 +582,7 @@
     >
       <v-card class="rounded-lg pa-4">
         <div class="card-title ps-6 pt-3 pb-2 d-flex justify-space-between align-center">
-          表單報表模板管理
+          表單模板管理
           <v-btn
             icon="mdi-close"
             color="red-lighten-1"
@@ -591,7 +599,7 @@
             >
               <v-row>
                 <v-col class="card-subtitle text-blue-grey-darken-2">
-                  現有表單及報表
+                  現有表單
                 </v-col>
               </v-row>
               <v-row>
@@ -696,7 +704,7 @@
                   cols="12"
                   class="card-subtitle text-blue-grey-darken-2 pb-6"
                 >
-                  新增表單報表模板
+                  新增表單模板
                 </v-col>
               </v-row>
               <v-form @submit.prevent="submitTemplate">
@@ -783,14 +791,14 @@
     >
       <v-card class="rounded-lg pa-4">
         <v-card-title class="text-h6 ps-5 py-3">
-          編輯表單報表模板
+          編輯表單模板
         </v-card-title>
         <v-card-text class="px-5 pb-2">
           <v-form @submit.prevent="submitEditTemplate">
             <v-text-field
               v-model="editTemplateDialog.name"
               :error-messages="editTemplateErrors"
-              label="表單報表名稱"
+              label="表單名稱"
               required
               variant="outlined"
               density="compact"
@@ -822,22 +830,25 @@
     <!-- 刪除確認對話框 -->
     <ConfirmDeleteDialogWithTextField
       v-model="deleteTemplateDialog.open"
-      title="確認刪除表單表模板"
-      :message="`確定要刪除表單報表模「<span class='text-pink-lighten-1' style='font-weight: 800;'>${deleteTemplateDialog.name}</span>」嗎？此操作無法復原。`"
+      title="確認刪除表單模板"
+      :message="`確定要刪除表單模板「<span class='text-pink-lighten-1' style='font-weight: 800;'>${deleteTemplateDialog.name}</span>」嗎？此操作無法復原。`"
       :expected-name="deleteTemplateDialog.name"
-      input-label="表單報表模板名稱"
+      input-label="表單模板名稱"
       @confirm="deleteTemplate"
     />
 
-    <!-- 表單報表歷史紀錄對話框 -->
+    <!-- 表單歷史紀錄對話框 -->
     <v-dialog
       v-model="historyDialog.open"
-      max-width="1000"
+      max-width="1200"
     >
-      <v-card class="rounded-lg pa-4">
+      <v-card
+        class="rounded-lg pa-4"
+        min-height="891"
+      >
         <div class="d-flex justify-space-between align-center ps-6 pt-3 pb-2">
           <div class="card-title">
-            表單報表歷史紀錄
+            表單歷史紀錄
           </div>
           <v-btn
             icon
@@ -851,7 +862,10 @@
         <v-card-text>
           <!-- 搜尋條件 -->
           <v-row>
-            <v-col cols="3">
+            <v-col
+              cols="3"
+              class="pb-0"
+            >
               <v-select
                 v-model="historySearch.company"
                 :items="companyOptions"
@@ -864,7 +878,10 @@
                 @update:model-value="loadTemplateOptions"
               />
             </v-col>
-            <v-col cols="3">
+            <v-col
+              cols="3"
+              class="pb-0"
+            >
               <v-select
                 v-model="historySearch.type"
                 :items="templateTypeOptions"
@@ -877,11 +894,14 @@
                 @update:model-value="loadTemplateOptions"
               />
             </v-col>
-            <v-col cols="3">
+            <v-col
+              cols="3"
+              class="pb-0"
+            >
               <v-select
                 v-model="historySearch.formTemplate"
                 :items="historyTemplateOptions"
-                label="模報表"
+                label="表單模板"
                 item-title="title"
                 item-value="value"
                 variant="outlined"
@@ -890,7 +910,10 @@
                 :disabled="!historySearch.company && !historySearch.type"
               />
             </v-col>
-            <v-col cols="3">
+            <v-col
+              cols="3"
+              class="pb-0"
+            >
               <v-date-input
                 v-model="historySearch.date"
                 label="日期區間"
@@ -906,7 +929,7 @@
           </v-row>
 
           <!-- 按鈕 -->
-          <v-row class="mt-2">
+          <v-row class="mt-0">
             <v-col class="d-flex justify-end gap-2">
               <v-btn
                 color="blue-grey-darken-1"
@@ -916,6 +939,7 @@
                 <v-icon>mdi-refresh</v-icon>
               </v-btn>
               <v-btn
+                width="80"
                 color="cyan-darken-2"
                 :loading="isSearching"
                 :disabled="isSearching"
@@ -927,14 +951,37 @@
           </v-row>
 
           <!-- 歷紀錄列表 -->
-          <v-table>
-            <thead>
+          <v-table class="rounded-lg mt-6">
+            <thead
+              class="bg-blue-grey-darken-2"
+            >
               <tr>
-                <th>模板名稱</th>
-                <th>單號</th>
-                <th>創建日期</th>
-                <th>創建者</th>
-                <th>操作</th>
+                <th
+                  style="height: 36px;"
+                >
+                  表單模板名稱
+                </th>
+                <th
+                  style="height: 36px;"
+                >
+                  單號
+                </th>
+                <th
+                  style="height: 36px;"
+                >
+                  創建日期
+                </th>
+                <th
+                  style="height: 36px;"
+                >
+                  創建者
+                </th>
+                <th
+                  class="text-center"
+                  style="height: 36px;"
+                >
+                  操作
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -945,8 +992,8 @@
                 <td>{{ history?.formTemplate?.name || '未知模板' }}</td>
                 <td>{{ history?.formNumber || '-' }}</td>
                 <td>{{ formatDate(history?.createdAt) }}</td>
-                <td>{{ history?.creator?.name || '未知' }}</td>
-                <td>
+                <td>{{ history?.creator?.name || '未知' }} {{ history?.creator?.userId ? `(${history?.creator?.userId})` : '' }}</td>
+                <td class="text-center">
                   <v-btn
                     icon
                     variant="plain"
@@ -971,7 +1018,7 @@
                   colspan="5"
                   class="text-center"
                 >
-                  無資料
+                  沒有資料
                 </td>
               </tr>
             </tbody>
@@ -994,11 +1041,47 @@
 
     <!-- 確認刪除對話框 -->
     <ConfirmDeleteDialog
-      v-model="confirmDeleteDialog"
-      title="認刪除表單"
-      message="確定要刪除此表單嗎？此操作無法恢復。"
+      v-model="confirmDeleteDialog.open"
+      title="確認刪除表單"
+      :message="`確定要刪除表單「${confirmDeleteDialog.templateName} ${confirmDeleteDialog.formNumber}」嗎？此操作無法恢復。`"
       @confirm="confirmDelete"
     />
+
+    <!-- 在 template 最後面加入這個確認對話框 -->
+    <v-dialog
+      v-model="confirmDownloadDialog.open"
+      max-width="340"
+    >
+      <v-card class="rounded-lg pa-4">
+        <div class="card-title ps-3 py-3">
+          確認下載
+        </div>
+        <v-card-text class="ps-3 pb-2 ">
+          確定要下載 「{{ confirmDownloadDialog.templateName }} {{ confirmDownloadDialog.formNumber }}」 的 PDF 檔嗎？
+        </v-card-text>
+        <v-card-actions class="pa-3">
+          <v-spacer />
+          <v-btn
+            color="red-lighten-1"
+            variant="outlined"
+            size="small"
+            @click="confirmDownloadDialog.open = false"
+          >
+            取消
+          </v-btn>
+          <v-btn
+            color="teal-darken-1"
+            variant="outlined"
+            :loading="isDownloading"
+            class="ms-2"
+            size="small"
+            @click="confirmDownloadPDF"
+          >
+            確認
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -1009,6 +1092,7 @@ import { useApi } from '@/composables/axios'
 import html2pdf from 'html2pdf.js'
 import UserRole from '@/enums/UserRole'
 import { definePage } from 'vue-router/auto'
+import { useUserStore } from '@/stores/user'
 import { useDisplay } from 'vuetify'
 import RayHuangQuotationTemplate from '@/components/templates/RayHuangQuotationTemplate.vue'
 import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
@@ -1016,7 +1100,7 @@ import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
 
 definePage({
   meta: {
-    title: '報表產生器 | ysphere',
+    title: '表單產生器 | ysphere',
     login: true,
     roles: [UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.IT]
   }
@@ -1025,6 +1109,7 @@ definePage({
 const { smAndUp } = useDisplay()
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
+const user = useUserStore()
 
 // 基本響應式變數
 const buttonSize = computed(() => smAndUp.value ? 'default' : 'small')
@@ -1315,12 +1400,7 @@ const downloadPDF = async () => {
     console.log('上傳成功，回應:', uploadData)
 
     // 3. 儲存到資料庫
-    console.log('準備儲存到資料庫，資料:', {
-      formNumber: formData.value.quotationNumber,
-      formTemplate: selectedTemplate.value,
-      pdfUrl: uploadData.result.url,
-      cloudinaryPublicId: uploadData.result.filename
-    })
+    console.log('準備儲存到資料庫')
     const { data } = await apiAuth.post('/forms', {
       formNumber: formData.value.quotationNumber,
       formTemplate: selectedTemplate.value,
@@ -1333,8 +1413,7 @@ const downloadPDF = async () => {
       createSnackbar({
         text: 'PDF 下載並儲存成功',
         snackbarProps: {
-          color: 'teal-lighten-1',
-          timeout: 2000
+          color: 'teal-lighten-1'
         }
       })
 
@@ -1352,8 +1431,7 @@ const downloadPDF = async () => {
     createSnackbar({
       text: error.response?.data?.message || 'PDF 處理失敗',
       snackbarProps: {
-        color: 'red-lighten-1',
-        timeout: 3000
+        color: 'red-lighten-1'
       }
     })
   } finally {
@@ -1386,8 +1464,18 @@ const loadTemplatesByCompany = async (companyId) => {
       formTemplates.value = data.result
       templateOptions.value = data.result.map(template => ({
         title: template.name,
-        value: template._id // 用 _id 作為 value
+        value: template._id
       }))
+
+      // 如果沒有模板，顯示提示訊息
+      if (templateOptions.value.length === 0) {
+        createSnackbar({
+          text: '此公司目前沒有任何表單模板',
+          snackbarProps: {
+            color: 'warning'
+          }
+        })
+      }
     }
   } catch (error) {
     console.error('載入表單模板失敗:', error)
@@ -1395,7 +1483,9 @@ const loadTemplatesByCompany = async (companyId) => {
       text: '載入表單模板失敗',
       snackbarProps: { color: 'red-lighten-1' }
     })
-    templateOptions.value = []
+  } finally {
+    // 確保無論如何都清空 loading 狀態
+    templateOptions.value = templateOptions.value || []
   }
 }
 
@@ -1495,7 +1585,7 @@ const submitTemplate = async () => {
     hasError = true
   }
   if (!templateForm.value.name) {
-    templateErrors.value.name = '請輸入表單報表名稱'
+    templateErrors.value.name = '請輸入表單名稱'
     hasError = true
   }
   if (!templateForm.value.componentName) {
@@ -1510,7 +1600,7 @@ const submitTemplate = async () => {
     const { data } = await apiAuth.post('/formTemplates', templateForm.value)
     if (data.success) {
       createSnackbar({
-        text: '新增表單報表模板成功',
+        text: '新增表單模板成功',
         snackbarProps: { color: 'teal-lighten-1' }
       })
       // 重置表單
@@ -1550,7 +1640,7 @@ const submitTemplate = async () => {
 
 const submitEditTemplate = async () => {
   if (!editTemplateDialog.value.name) {
-    editTemplateErrors.value = ['請輸入表單報表模板名稱']
+    editTemplateErrors.value = ['請輸入表單模板名稱']
     return
   }
 
@@ -1561,7 +1651,7 @@ const submitEditTemplate = async () => {
     })
     if (data.success) {
       createSnackbar({
-        text: '修改表單報表模板成功',
+        text: '修改表單模板成功',
         snackbarProps: { color: 'teal-lighten-1' }
       })
       closeEditTemplateDialog()
@@ -1581,7 +1671,7 @@ const deleteTemplate = async () => {
     const { data } = await apiAuth.delete(`/formTemplates/${deleteTemplateDialog.value.id}`)
     if (data.success) {
       createSnackbar({
-        text: '刪除表單報表模板成功',
+        text: '刪除表單模板成功',
         snackbarProps: { color: 'teal-lighten-1' }
       })
       // 從本地列表中移除被刪除的模板
@@ -1624,7 +1714,7 @@ const loadDialogTemplates = async () => {
       itemsPerPage: templateItemsPerPage.value
     }
 
-    // 載入所有表單模板
+    // 載入所有表單板
     const { data } = await apiAuth.get('/formTemplates/all', { params })
     if (data.success) {
       formTemplates.value = data.result.data
@@ -1806,7 +1896,7 @@ const loadTemplateOptions = async () => {
     historyTemplateOptions.value = []
     historySearch.value.formTemplate = ''
 
-    // 只有當公司和類型都有選擇時��載入模板
+    // 只有當公司和類型都有選擇時載入模板
     if (historySearch.value.company && historySearch.value.type) {
       const params = {
         company: historySearch.value.company,
@@ -1865,11 +1955,19 @@ const openHistoryDialog = async () => {
 }
 
 const formToDelete = ref(null)
-const confirmDeleteDialog = ref(false)
+const confirmDeleteDialog = ref({
+  open: false,
+  templateName: '',
+  formNumber: ''
+})
 
 const deleteHistory = async (history) => {
   formToDelete.value = history
-  confirmDeleteDialog.value = true
+  confirmDeleteDialog.value = {
+    open: true,
+    templateName: history.formTemplate?.name || '未知模板',
+    formNumber: history.formNumber || ''
+  }
 }
 
 const confirmDelete = async () => {
@@ -1926,29 +2024,57 @@ const downloadHistoryPDF = async (history) => {
       return
     }
 
-    // 使用 window.open 在新分頁開啟 PDF
-    window.open(history.pdfUrl, '_blank')
-
-    createSnackbar({
-      text: 'PDF 開啟成功',
-      snackbarProps: {
-        color: 'teal-lighten-1',
-        timeout: 2000
-      }
-    })
+    // 開啟確認對話框
+    confirmDownloadDialog.value = {
+      open: true,
+      templateName: history.formTemplate?.name || '未知模板',
+      formNumber: history.formNumber || '',
+      url: history.pdfUrl
+    }
   } catch (error) {
     console.error('下載 PDF 失敗:', error)
     createSnackbar({
       text: '下載 PDF 失敗',
-      snackbarProps: {
-        color: 'red-lighten-1',
-        timeout: 3000
-      }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   }
 }
-</script>
 
+// 確認下載對話框的狀態
+const confirmDownloadDialog = ref({
+  open: false,
+  templateName: '',
+  formNumber: ''
+})
+
+// 確認下載 PDF
+const confirmDownloadPDF = async () => {
+  try {
+    // 如果是歷史記錄的 PDF 下載
+    if (confirmDownloadDialog.value.url) {
+      window.open(confirmDownloadDialog.value.url, '_blank')
+      createSnackbar({
+        text: 'PDF 開啟成功',
+        snackbarProps: {
+          color: 'teal-lighten-1',
+          timeout: 2000
+        }
+      })
+    } else {
+      // 如果是新生成的 PDF 下載
+      await downloadPDF()
+    }
+  } catch (error) {
+    console.error('PDF 下載失敗:', error)
+    createSnackbar({
+      text: 'PDF 下載失敗',
+      snackbarProps: { color: 'red-lighten-1' }
+    })
+  } finally {
+    confirmDownloadDialog.value.open = false
+  }
+}
+</script>
 <style lang="scss" scoped>
 // .preview-content {
 //   background: white;

@@ -413,10 +413,10 @@ const adminItems = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'IT']
   },
   {
-    to: '/reportGenerator',
-    text: '表單報表產生器',
+    to: '/formGenerator',
+    text: '表單產生器',
     icon: 'mdi-chart-box-outline',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'IT']
+    roles: ['SUPER_ADMIN', 'ADMIN', 'IT', 'HR', 'MANAGER']
   },
   {
     to: '/auditLog',

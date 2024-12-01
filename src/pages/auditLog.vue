@@ -299,6 +299,7 @@
                   <td
                     v-if="lgAndUp"
                     class="py-3"
+                    style="max-width: 420px; overflow-wrap: break-word;"
                   >
                     <div
                       v-for="(change, idx) in formatChanges(item)"
@@ -510,7 +511,9 @@ const modelOptions = [
   { title: '員工資料', value: 'users' },
   { title: '部門資料', value: 'departments' },
   { title: '設備資料', value: 'assets' },
-  { title: '招聘資料', value: 'tempUsers' }
+  { title: '招聘資料', value: 'tempUsers' },
+  { title: '表單資料', value: 'forms' },
+  { title: '表單模板', value: 'formTemplates' }
 ]
 
 const getModelDisplay = (model) => {
@@ -518,7 +521,9 @@ const getModelDisplay = (model) => {
     users: '員工資料',
     departments: '部門資料',
     assets: '資產資料',
-    tempUsers: '招聘資料'
+    tempUsers: '招聘資料',
+    forms: '表單資料',
+    formTemplates: '表單模板'
   }
   return modelMap[model] || model
 }
