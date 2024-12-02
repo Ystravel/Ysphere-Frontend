@@ -19,6 +19,8 @@
               <v-row>
                 <v-col
                   cols="6"
+                  md="12"
+                  lg="6"
                   class="d-flex align-center"
                 >
                   <h3 class="d-inline me-2">
@@ -33,7 +35,8 @@
                   />
                 </v-col>
                 <v-col
-                  cols="12"
+                  cols="6"
+                  md="12"
                   lg="6"
                   class="d-flex align-center justify-end gap-2"
                 >
@@ -45,7 +48,7 @@
                     :size="buttonSize"
                     @click="openTemplateDialog"
                   >
-                    表單模板管理
+                    模板管理
                   </v-btn>
                   <v-btn
                     color="blue-grey-darken-2"
@@ -55,7 +58,7 @@
                     class="ms-2"
                     @click="openHistoryDialog"
                   >
-                    表單歷史紀錄
+                    表單紀錄
                   </v-btn>
                 </v-col>
                 <v-col cols="12">
@@ -465,7 +468,10 @@
 
                                         <v-col cols="12">
                                           <v-row>
-                                            <v-col cols="3">
+                                            <v-col
+                                              cols="6"
+                                              md="3"
+                                            >
                                               <v-text-field
                                                 v-model="item.workDays"
                                                 label="工作天"
@@ -475,7 +481,10 @@
                                                 clearable
                                               />
                                             </v-col>
-                                            <v-col cols="3">
+                                            <v-col
+                                              cols="6"
+                                              md="3"
+                                            >
                                               <v-text-field
                                                 v-model.number="item.quantity"
                                                 label="數量"
@@ -485,7 +494,10 @@
                                                 clearable
                                               />
                                             </v-col>
-                                            <v-col cols="3">
+                                            <v-col
+                                              cols="6"
+                                              md="3"
+                                            >
                                               <v-text-field
                                                 v-model="item.unit"
                                                 label="單位"
@@ -494,7 +506,10 @@
                                                 clearable
                                               />
                                             </v-col>
-                                            <v-col cols="3">
+                                            <v-col
+                                              cols="6"
+                                              md="3"
+                                            >
                                               <v-text-field
                                                 v-model.number="item.price"
                                                 label="單價"
@@ -581,7 +596,7 @@
       max-width="800"
     >
       <v-card class="rounded-lg pa-4">
-        <div class="card-title px-4 pt-3 pb-2 d-flex justify-space-between align-center">
+        <div class="card-title px-4  pb-2 d-flex justify-space-between align-center">
           表單模板管理
           <v-btn
             icon="mdi-close"
@@ -702,7 +717,7 @@
               <v-row>
                 <v-col
                   cols="12"
-                  class="card-subtitle text-blue-grey-darken-2 pb-6"
+                  class="card-subtitle text-blue-grey-darken-2 pb-5"
                 >
                   新增表單模板
                 </v-col>
@@ -721,6 +736,7 @@
                       item-value="value"
                       :error-messages="templateErrors.company"
                       variant="outlined"
+                      clearable
                       density="compact"
                     />
                   </v-col>
@@ -769,7 +785,7 @@
                     color="teal-darken-1"
                     variant="outlined"
                     type="submit"
-                    :size="buttonSize"
+                    size="small"
                     :loading="isSubmitting"
                     class="ms-2"
                   >
@@ -843,10 +859,10 @@
       max-width="1200"
     >
       <v-card
-        class="rounded-lg pa-4"
-        min-height="891"
+        class="rounded-lg pa-4 "
+        min-height="870"
       >
-        <div class="d-flex justify-space-between align-center ps-6 pt-3 pb-2">
+        <div class="d-flex justify-space-between align-center ps-6  pb-2">
           <div class="card-title">
             表單歷史紀錄
           </div>

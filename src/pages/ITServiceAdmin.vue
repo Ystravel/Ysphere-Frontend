@@ -12,7 +12,7 @@
             class="mt-1 ps-lg-8 pe-lg-12"
           >
             <v-card
-              class="elevation-4 rounded-lg py-4 py-sm-8 px-4 px-sm-4 px-xl-8"
+              class="elevation-4 rounded-lg py-4 py-sm-6 px-4 px-sm-4 px-xl-8"
             >
               <v-card-title class="font-weight-bold d-flex align-center">
                 搜尋條件

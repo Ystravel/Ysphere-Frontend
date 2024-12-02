@@ -203,7 +203,7 @@ const googleLoginCallback = async (response) => {
         text: '登入成功',
         snackbarProps: { color: 'teal-lighten-1' }
       })
-      router.push('/profile')
+      router.push('/')
     } else {
       createSnackbar({
         text: result,
@@ -241,7 +241,7 @@ const submit = handleSubmit(async (values) => {
         color: 'teal-lighten-1'
       }
     })
-    router.push('/profile')
+    router.push('/')
   } else if (result === '首次登入,請修改密碼') {
     // 如果是首次登入,導向到修改密碼頁面
     router.push('/first-time-login')

@@ -523,7 +523,8 @@ const getModelDisplay = (model) => {
     assets: '資產資料',
     tempUsers: '招聘資料',
     forms: '表單資料',
-    formTemplates: '表單模板'
+    formTemplates: '表單模板',
+    companies: '公司資料'
   }
   return modelMap[model] || model
 }
