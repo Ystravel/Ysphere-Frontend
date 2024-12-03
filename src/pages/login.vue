@@ -78,6 +78,7 @@
               color="blue-grey-darken-2"
               type="submit"
               :loading="isSubmitting"
+              :disabled="isSubmitting"
             >
               Login
             </v-btn>
@@ -117,6 +118,8 @@
                 block
                 elevation="2"
                 color="cyan-darken-3"
+                :loading="isSubmitting"
+                :disabled="isSubmitting"
               >
                 <v-icon
                   icon="mdi-google-plus"
@@ -190,6 +193,9 @@ const googleClientId = '890205288379-2bm447qt1rj7jkooc7luqej83if9inp4.apps.googl
 // Google 登入回調
 const googleLoginCallback = async (response) => {
   try {
+    // 開始loading
+    isSubmitting.value = true
+
     // 檢查是否收到 code
     if (!response.code) {
       throw new Error('未收到 Google 授權碼')
@@ -223,6 +229,9 @@ const googleLoginCallback = async (response) => {
         snackbarProps: { color: 'red-lighten-1' }
       })
     }
+  } finally {
+    // 結束loading
+    isSubmitting.value = false
   }
 }
 
