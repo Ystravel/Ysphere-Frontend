@@ -259,7 +259,7 @@ export const useUserStore = defineStore('user', () => {
       if (!data.success) {
         throw new Error(data.message || '頭像更新失敗')
       }
-      avatar.value = data.result
+      avatar.value = `${data.result}?t=${new Date().getTime()}`
       return {
         success: true,
         message: '頭像更新成功'

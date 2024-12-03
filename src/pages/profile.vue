@@ -928,7 +928,7 @@
 
 <script setup>
 import { definePage } from 'vue-router/auto'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { useDisplay } from 'vuetify'
@@ -1115,6 +1115,14 @@ const closeCowellDialog = () => {
   // 重置顯示密碼的狀態
   showCowellPassword.value = false
 }
+
+watch(() => user.avatar, (newAvatar) => {
+  if (newAvatar) {
+    // 強制更新圖片
+    const img = new Image()
+    img.src = newAvatar
+  }
+}, { immediate: true })
 </script>
 
 <style lang="scss" scoped>

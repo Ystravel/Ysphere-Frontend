@@ -85,11 +85,17 @@ const handleFileChange = async (event) => {
   try {
     isUploading.value = true
     await user.updateAvatar(formData)
+
+    // 添加時間戳強制更新圖片
+    const timestamp = new Date().getTime()
+    user.avatar = `${user.avatar}?t=${timestamp}`
+
     createSnackbar({
       text: '大頭貼更新成功',
       snackbarProps: { color: 'success' }
     })
   } catch (error) {
+    console.error('Upload error:', error)
     createSnackbar({
       text: error.message || '上傳失敗',
       snackbarProps: { color: 'error' }
