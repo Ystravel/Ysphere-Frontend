@@ -1,8 +1,6 @@
-<!-- eslint-disable vue/no-v-html -->
-<!-- eslint-disable vue/no-v-text-v-html-on-component -->
 <template>
   <v-container max-width="2000">
-    <template v-if="user.token">
+    <template v-if="isAuthenticated">
       <v-row class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white">
         <!-- 頁面標題區 -->
         <v-col
@@ -22,7 +20,7 @@
             </v-btn>
           </div>
           <v-btn
-            v-if="canManageAnnouncements"
+            v-if="canCreateAnnouncement"
             prepend-icon="mdi-plus"
             color="blue-grey-darken-2"
             variant="outlined"
@@ -80,13 +78,49 @@
           <v-window v-model="currentTab">
             <!-- 全部公告 -->
             <v-window-item value="all">
-              <announcement-list
-                :announcements="filteredAnnouncements"
+              <v-data-table
+                :headers="headers"
+                :items="filteredAnnouncements"
                 :loading="loading"
-                @view="viewAnnouncement"
-                @edit="openDialog"
-                @delete="confirmDelete"
-              />
+                hover
+                @click:row="viewAnnouncement"
+              >
+                <template #[`item.type`]="{ item }">
+                  <v-chip
+                    :color="getTypeColor(item.type)"
+                    :text-color="getTypeTextColor(item.type)"
+                    size="small"
+                  >
+                    {{ item.type }}
+                  </v-chip>
+                </template>
+
+                <template #[`item.department`]="{ item }">
+                  {{ item.department?.name }} ({{ item.department?.departmentId }})
+                </template>
+
+                <template #[`item.createdAt`]="{ item }">
+                  {{ formatDate(item.createdAt) }}
+                </template>
+
+                <template #[`item.actions`]="{ item }">
+                  <v-btn
+                    v-if="canManageAnnouncement(item)"
+                    icon="mdi-pencil"
+                    size="small"
+                    color="primary"
+                    class="me-2"
+                    @click.stop="openDialog(item)"
+                  />
+                  <v-btn
+                    v-if="canManageAnnouncement(item)"
+                    icon="mdi-delete"
+                    size="small"
+                    color="error"
+                    @click.stop="confirmDelete(item)"
+                  />
+                </template>
+              </v-data-table>
             </v-window-item>
 
             <!-- 分類公告 -->
@@ -95,13 +129,49 @@
               :key="type"
               :value="type"
             >
-              <announcement-list
-                :announcements="getAnnouncementsByType(type)"
+              <v-data-table
+                :headers="headers"
+                :items="getAnnouncementsByType(type)"
                 :loading="loading"
-                @view="viewAnnouncement"
-                @edit="openDialog"
-                @delete="confirmDelete"
-              />
+                hover
+                @click:row="viewAnnouncement"
+              >
+                <template #[`item.type`]="{ item }">
+                  <v-chip
+                    :color="getTypeColor(item.type)"
+                    :text-color="getTypeTextColor(item.type)"
+                    size="small"
+                  >
+                    {{ item.type }}
+                  </v-chip>
+                </template>
+
+                <template #[`item.department`]="{ item }">
+                  {{ item.department?.name }} ({{ item.department?.departmentId }})
+                </template>
+
+                <template #[`item.createdAt`]="{ item }">
+                  {{ formatDate(item.createdAt) }}
+                </template>
+
+                <template #[`item.actions`]="{ item }">
+                  <v-btn
+                    v-if="canManageAnnouncement(item)"
+                    icon="mdi-pencil"
+                    size="small"
+                    color="primary"
+                    class="me-2"
+                    @click.stop="openDialog(item)"
+                  />
+                  <v-btn
+                    v-if="canManageAnnouncement(item)"
+                    icon="mdi-delete"
+                    size="small"
+                    color="error"
+                    @click.stop="confirmDelete(item)"
+                  />
+                </template>
+              </v-data-table>
             </v-window-item>
           </v-window>
 
@@ -156,16 +226,34 @@
                   />
                 </v-col>
                 <v-col cols="12">
-                  <!-- 使用 Quill 編輯器 -->
                   <div class="text-subtitle-1 mb-2">
                     公告內容
                   </div>
-                  <quill-editor
+                  <QuillEditor
                     v-model:content="formData.content"
                     content-type="html"
-                    :toolbar="editorToolbar"
-                    :editor-config="editorConfig"
+                    toolbar="full"
                     theme="snow"
+                    :options="{
+                      modules: {
+                        toolbar: [
+                          ['bold', 'italic', 'underline', 'strike'],
+                          ['blockquote', 'code-block'],
+                          [{ 'header': 1 }, { 'header': 2 }],
+                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                          [{ 'script': 'sub'}, { 'script': 'super' }],
+                          [{ 'indent': '-1'}, { 'indent': '+1' }],
+                          [{ 'direction': 'rtl' }],
+                          [{ 'size': ['small', false, 'large', 'huge'] }],
+                          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                          [{ 'color': [] }, { 'background': [] }],
+                          [{ 'font': [] }],
+                          [{ 'align': [] }],
+                          ['clean'],
+                          ['link', 'image']
+                        ]
+                      }
+                    }"
                   />
                 </v-col>
                 <v-col cols="12">
@@ -174,25 +262,41 @@
                     label="附件上傳"
                     multiple
                     show-size
-                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+                    counter
                     :rules="attachmentRules"
+                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                >
-                  <!-- 修改 checkbox 綁定值為一個控制顯示的布林值 -->
+                <v-col cols="12">
                   <v-checkbox
-                    v-model="showDeleteDatePicker"
+                    v-model="showExpiryDatePicker"
                     label="設定自動下架時間"
                   />
-
-                  <!-- 當 checkbox 被勾選時才顯示日期選擇器 -->
-                  <v-date-picker
-                    v-if="showDeleteDatePicker"
-                    v-model="formData.deleteDate"
-                    class="mt-2"
-                  />
+                  <v-menu
+                    v-if="showExpiryDatePicker"
+                    v-model="menu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template #activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="formData.expiryDate"
+                        label="自動下架時間"
+                        readonly
+                        v-bind="attrs"
+                        clearable
+                        v-on="on"
+                        @click:clear="formData.expiryDate = null"
+                      />
+                    </template>
+                    <v-date-picker
+                      v-model="formData.expiryDate"
+                      :min="tomorrow"
+                      @change="menu = false"
+                    />
+                  </v-menu>
                 </v-col>
               </v-row>
             </v-form>
@@ -209,9 +313,10 @@
             <v-btn
               color="primary"
               :loading="submitting"
+              :disabled="!formValid || submitting"
               @click="submitAnnouncement"
             >
-              確認
+              {{ dialog.id ? '更新' : '發布' }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -233,11 +338,10 @@
                 :key="i"
                 :prepend-icon="item.icon"
               >
-                <v-list-item-title v-html="item.title" />
-                <v-list-item-subtitle
-                  class="mt-1"
-                  v-html="item.content"
-                />
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+                <v-list-item-subtitle class="mt-1">
+                  {{ item.content }}
+                </v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </v-card-text>
@@ -255,12 +359,36 @@
       </v-dialog>
 
       <!-- 確認刪除對話框 -->
-      <ConfirmDeleteDialog
+      <v-dialog
         v-model="confirmDialog.show"
-        :title="'確認刪除公告'"
-        :message="'確定要刪除此公告嗎？此操作無法復原。'"
-        @confirm="deleteAnnouncement"
-      />
+        max-width="400px"
+      >
+        <v-card>
+          <v-card-title class="text-h5">
+            確認刪除
+          </v-card-title>
+          <v-card-text>
+            確定要刪除此公告嗎？此操作無法復原。
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="grey"
+              variant="text"
+              @click="confirmDialog.show = false"
+            >
+              取消
+            </v-btn>
+            <v-btn
+              color="error"
+              variant="text"
+              @click="deleteAnnouncement"
+            >
+              確認刪除
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
     <div
       v-else
@@ -275,72 +403,130 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
-import { definePage } from 'vue-router/auto'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { debounce } from 'lodash'
-import { useApi } from '@/composables/axios'
-import { useSnackbar } from 'vuetify-use-dialog'
+import { useUserStore } from '@/stores/user'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { useUserStore } from '@/stores/user'
+import { useApi } from '@/composables/axios'
+import { useSnackbar } from 'vuetify-use-dialog'
+import { storeToRefs } from 'pinia'
 import UserRole from '@/enums/UserRole'
-import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
-import AnnouncementList from '@/components/AnnouncementList.vue'
 
-definePage({
-  meta: {
-    title: '所有公告 | ysphere',
-    login: true
-  }
-})
-
-// 路由配置
 const router = useRouter()
+const userStore = useUserStore()
+const { token, role } = storeToRefs(userStore)
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
-const user = useUserStore()
 
-// 基礎資料
-const announcementTypes = ['置頂', '重要', '活動', '系統', '一般']
+// 證使用者是否已登入
+const isAuthenticated = computed(() => token.value?.length > 0)
+
+// 表格設定
+const headers = [
+  { title: '類型', key: 'type', align: 'start', sortable: false },
+  { title: '標題', key: 'title', align: 'start' },
+  { title: '作者', key: 'author.name', align: 'start' },
+  { title: '部門', key: 'department', align: 'start' },
+  { title: '發布時間', key: 'createdAt', align: 'start' },
+  { title: '操作', key: 'actions', align: 'end', sortable: false }
+]
+
+// 資料狀態
+const loading = ref(false)
+const announcements = ref([])
 const currentTab = ref('all')
 const searchText = ref('')
-const loading = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
-const announcements = ref([])
+const showGuide = ref(false)
+
+// 對話框狀態
+const dialog = ref({
+  show: false,
+  id: null
+})
+const confirmDialog = ref({
+  show: false,
+  announcement: null
+})
+const menu = ref(false)
+const showExpiryDatePicker = ref(false)
+
+// 表單相關
+const form = ref(null)
 const formValid = ref(false)
 const submitting = ref(false)
-const departments = ref([])
-const showDeleteDatePicker = ref(false)
+const formData = ref({
+  title: '',
+  content: '',
+  type: '一般',
+  attachments: [],
+  expiryDate: null
+})
+
+// 驗證規則
+const titleRules = [
+  v => !!v || '請輸入標題',
+  v => (v && v.length <= 100) || '標題不能超過100個字'
+]
+
+const attachmentRules = [
+  files => !files || !files.length || files.length <= 10 || '最多只能上傳10個檔案',
+  files => !files || !files.some(file => file.size > 10 * 1024 * 1024) || '檔案大小不能超過10MB'
+]
+
+// 公告類型
+const announcementTypes = ['置頂', '重要', '活動', '系統', '一般']
+
+// 明天的日期（用於日期選擇器的最小值）
+const tomorrow = computed(() => {
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  return date.toISOString().split('T')[0]
+})
+
+// 權限檢查
+const canCreateAnnouncement = computed(() => {
+  const allowedRoles = [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.HR, UserRole.MANAGER] // 2, 1, 3, 4
+  return role.value && allowedRoles.includes(Number(role.value))
+})
+
+const canManageAnnouncement = (announcement) => {
+  if (!role.value) return false
+  if ([UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(Number(role.value))) return true
+  return announcement.author?._id === userStore.userId
+}
+
+// 類型顏色映射
+const typeColors = {
+  置頂: 'red',
+  重要: 'orange',
+  活動: 'green',
+  系統: 'blue',
+  一般: 'grey'
+}
+
+const getTypeColor = (type) => typeColors[type] || 'grey'
+const getTypeTextColor = (type) => type === '一般' ? 'black' : 'white'
+
+// 格式化日期
+const formatDate = (date) => {
+  return new Date(date).toLocaleString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 // 計算屬性
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value))
 
-const canManageAnnouncements = computed(() => {
-  return user.role >= UserRole.ADMIN || false
-})
-
-const loadDepartments = async () => {
-  try {
-    const { data } = await apiAuth.get('/department/all')
-    if (data.success) {
-      // Ensure departments.value is an array
-      departments.value = Array.isArray(data.result) ? data.result : data.result.data
-    }
-  } catch (error) {
-    console.error('載入部門失敗:', error)
-    createSnackbar({
-      text: '載入部門資料失敗',
-      snackbarProps: { color: 'error' }
-    })
-  }
-}
-
-// 篩選公告
 const filteredAnnouncements = computed(() => {
-  let filtered = announcements.value
+  let filtered = announcements.value || []
   if (searchText.value) {
     const search = searchText.value.toLowerCase()
     filtered = filtered.filter(a =>
@@ -351,76 +537,34 @@ const filteredAnnouncements = computed(() => {
   return filtered
 })
 
+// 方法
 const getAnnouncementsByType = (type) => {
-  return announcements.value.filter(a => a.type === type)
+  return (announcements.value || []).filter(a => a.type === type)
 }
 
-// 表單相關
-const dialog = ref({
-  show: false,
-  id: null
-})
-
-const formData = ref({
-  title: '',
-  type: '一般',
-  content: '',
-  attachments: [],
-  deleteDate: undefined // 改為 undefined
-})
-
-const editorToolbar = [
-  ['bold', 'italic', 'underline', 'strike'],
-  ['blockquote', 'code-block'],
-  [{ header: 1 }, { header: 2 }],
-  [{ list: 'ordered' }, { list: 'bullet' }],
-  [{ color: [] }, { background: [] }],
-  ['link'],
-  ['clean']
-]
-
-const editorConfig = {
-  placeholder: '請輸入公告內容...',
-  modules: {
-    toolbar: editorToolbar
-  }
-}
-
-// 驗證規則
-const titleRules = [
-  v => !!v || '請輸入公告標題',
-  v => v.length <= 100 || '標題不可超過100字'
-]
-
-const attachmentRules = [
-  files => !files || files.length <= 10 || '最多只能上傳10個附件',
-  files => !files || !files.some(f => f.size > 10 * 1024 * 1024) || '單個檔案不可超過10MB'
-]
-
-// 操作方法
 const fetchAnnouncements = async () => {
+  if (!isAuthenticated.value) return
+
   loading.value = true
   try {
-    if (!user.token) {
-      console.warn('User not loaded yet')
-      return
-    }
-
-    // 修改這裡，確保每個參數都有值
-    const params = {
-      page: currentPage.value || 1,
-      limit: itemsPerPage.value || 10,
-      search: searchText.value || '', // 確保 search 不會是 undefined
-      ...(currentTab.value !== 'all' ? { type: currentTab.value } : {}) // 只在需要時添加 type 參數
-    }
-
-    console.log('Fetching with params:', params) // 用於除錯
-
-    const { data } = await apiAuth.get('/announcement/all', { params })
-
-    if (data.success) { // 確保後端返回成功
-      announcements.value = data.result.data
-      totalItems.value = data.result.total
+    const { data } = await apiAuth.get('/announcement/all', {
+      params: {
+        page: currentPage.value,
+        limit: itemsPerPage.value,
+        search: searchText.value,
+        type: currentTab.value === 'all' ? undefined : currentTab.value
+      }
+    })
+    console.log('Fetched announcements:', data)
+    if (data.success) {
+      // 檢查返回的數據結構
+      if (data.result && typeof data.result === 'object') {
+        announcements.value = data.result.data || []
+        totalItems.value = data.result.total || 0
+      } else {
+        announcements.value = []
+        totalItems.value = 0
+      }
     } else {
       throw new Error(data.message || '獲取公告失敗')
     }
@@ -436,27 +580,23 @@ const fetchAnnouncements = async () => {
 }
 
 const openDialog = (announcement = null) => {
-  if (announcement) {
-    dialog.value.id = announcement._id
-    formData.value = {
-      title: announcement.title,
-      type: announcement.type,
-      content: announcement.content,
-      attachments: [],
-      deleteDate: announcement.deleteDate,
-      department: announcement.department?._id || '' // 添加部門
-    }
-  } else {
-    dialog.value.id = null
-    formData.value = {
-      title: '',
-      type: '一般',
-      content: '',
-      attachments: [],
-      deleteDate: null,
-      department: '' // 添加部門
-    }
-  }
+  dialog.value.id = announcement?._id || null
+  formData.value = announcement
+    ? {
+        title: announcement.title,
+        content: announcement.content,
+        type: announcement.type,
+        attachments: [],
+        expiryDate: announcement.expiryDate
+      }
+    : {
+        title: '',
+        content: '',
+        type: '一般',
+        attachments: [],
+        expiryDate: null
+      }
+  showExpiryDatePicker.value = !!announcement?.expiryDate
   dialog.value.show = true
 }
 
@@ -465,51 +605,58 @@ const closeDialog = () => {
   dialog.value.id = null
   formData.value = {
     title: '',
-    type: '一般',
     content: '',
+    type: '一般',
     attachments: [],
-    deleteDate: null,
-    department: '' // 添加部門
+    expiryDate: null
+  }
+  showExpiryDatePicker.value = false
+  if (form.value) {
+    form.value.reset()
+  }
+}
+
+const resetForm = () => {
+  formData.value = {
+    title: '',
+    content: '',
+    type: '一般',
+    attachments: [],
+    expiryDate: null
+  }
+  showExpiryDatePicker.value = false
+  if (form.value) {
+    form.value.reset()
   }
 }
 
 const submitAnnouncement = async () => {
+  if (!formValid.value) return
+  submitting.value = true
+
   try {
-    const formDataToSend = new FormData()
+    const { data } = dialog.value.id
+      ? await apiAuth.patch(`/announcement/${dialog.value.id}`, formData.value)
+      : await apiAuth.post('/announcement', formData.value)
 
-    Object.entries(formData.value).forEach(([key, value]) => {
-      if (key === 'attachments') {
-        value.forEach(file => {
-          formDataToSend.append('attachments', file)
-        })
-      } else if (key === 'deleteDate') {
-        // 只有當啟用日期選擇且有選擇日期時才發送
-        if (showDeleteDatePicker.value && value) {
-          formDataToSend.append('deleteDate', value)
-        }
-      } else {
-        formDataToSend.append(key, value)
-      }
-    })
-
-    if (dialog.value.id) {
-      await apiAuth.patch(`/announcement/${dialog.value.id}`, formDataToSend)
-    } else {
-      await apiAuth.post('/announcement', formDataToSend)
+    if (data.success) {
+      createSnackbar({
+        text: `公告${dialog.value.id ? '編輯' : '新增'}成功`,
+        snackbarProps: { color: 'success' }
+      })
+      dialog.value.show = false
+      resetForm()
+      currentPage.value = 1
+      await fetchAnnouncements()
     }
-
-    createSnackbar({
-      text: `公告${dialog.value.id ? '更新' : '新增'}成功`,
-      snackbarProps: { color: 'success' }
-    })
-    closeDialog()
-    fetchAnnouncements()
   } catch (error) {
     console.error('提交公告失敗:', error)
     createSnackbar({
-      text: error?.response?.data?.message || '操作失敗',
+      text: error?.response?.data?.message || '提交失敗',
       snackbarProps: { color: 'error' }
     })
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -522,12 +669,14 @@ const confirmDelete = (announcement) => {
 
 const deleteAnnouncement = async () => {
   try {
-    await apiAuth.delete(`/announcement/${confirmDialog.value.announcement._id}`)
-    createSnackbar({
-      text: '公告刪除成功',
-      snackbarProps: { color: 'success' }
-    })
-    fetchAnnouncements()
+    const { data } = await apiAuth.delete(`/announcement/${confirmDialog.value.announcement._id}`)
+    if (data.success) {
+      createSnackbar({
+        text: '公告刪除成功',
+        snackbarProps: { color: 'success' }
+      })
+      fetchAnnouncements()
+    }
   } catch (error) {
     console.error('刪除公告失敗:', error)
     createSnackbar({
@@ -543,27 +692,7 @@ const viewAnnouncement = (announcement) => {
   router.push(`/announcement/${announcement._id}`)
 }
 
-// 修改 watch
-// 改為分開監聽
-watch([currentTab, currentPage], () => {
-  if (user.token) {
-    fetchAnnouncements()
-  }
-})
-
-const debouncedQuickSearch = debounce(() => {
-  if (user.token) {
-    currentPage.value = 1
-    fetchAnnouncements()
-  }
-}, 300)
-
-watch(searchText, () => {
-  debouncedQuickSearch()
-})
-
 // 使用說明內容
-const showGuide = ref(false)
 const guideItems = [
   {
     icon: 'mdi-format-list-text',
@@ -583,62 +712,37 @@ const guideItems = [
   {
     icon: 'mdi-clock-outline',
     title: '自動下架',
-    content: '置頂公告可以設定自動下架時間，到期後會自動變更為一般公告。'
+    content: '可以設定自動下架時間，到期後公告會自動下架。'
   }
 ]
 
-// 生命週期鉤子
-// 初始化
-// 在 onMounted 中載入部門資料
-
-onUnmounted(() => {
-  debouncedQuickSearch.cancel()
-})
-
-onMounted(async () => {
-  if (user.token) {
-    await loadDepartments() // 添加這行
-    await fetchAnnouncements()
+// 監聽變化
+watch([currentTab, currentPage, searchText], () => {
+  if (isAuthenticated.value) {
+    currentPage.value = 1
+    fetchAnnouncements()
   }
-})
+}, { immediate: true })
 
-const confirmDialog = ref({
-  show: false,
-  announcement: null
+onMounted(() => {
+  if (isAuthenticated.value) {
+    fetchAnnouncements()
+  }
 })
 </script>
 
-<style lang="scss" scoped>
+<style>
 .ql-editor {
   min-height: 200px;
-  max-height: 400px;
-  overflow-y: auto;
 }
 
-.pinned-notice {
-  border-left: 4px solid #FF5252;
+.announcement-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 16px 0;
 }
 
-.v-tabs {
-  .v-tab {
-    text-transform: none;
-  }
-}
-
-:deep(.ql-container) {
-  font-size: 16px;
-
-  .ql-editor {
-    padding: 12px 20px;
-  }
-}
-
-:deep(.v-card) {
-  transition: transform 0.2s, box-shadow 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12) !important;
-  }
+.v-data-table :deep(tbody tr:hover) {
+  cursor: pointer;
 }
 </style>
