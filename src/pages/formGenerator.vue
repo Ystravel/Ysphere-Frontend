@@ -27,7 +27,7 @@
                     表單產生器
                   </h3><v-icon
                     v-if="smAndUp"
-                    v-tooltip:top="'選擇後將出現該表單資料欄位'"
+                    v-tooltip:top="'選擇公司及表單模板後，將出現該表單資料欄位'"
                     icon="mdi-information"
                     size="small"
                     class="me-3"
@@ -109,7 +109,7 @@
             </div>
           </v-col>
           <v-col
-            v-if="currentTemplate && selectedTemplate"
+            v-if="currentTemplate && selectedTemplate && currentTemplate === templateComponents.RayHuangQuotationTemplate"
             cols="12"
           >
             <v-row>
@@ -568,9 +568,10 @@
             >
               <v-card-text
                 v-if="!previewReady"
-                class="text-center text-grey text-subtitle-2 font-weight-medium pa-0 pt-9 pb-3"
+                style="font-size: 15px; font-weight: 600;"
+                class="text-center text-grey font-weight-medium pa-0 pt-9 pb-3"
               >
-                ( 請 先 選 擇 模 板 表 單 )
+                ( 請 先 選 擇 表 單 模 版 )
               </v-card-text>
               <v-card-text v-if="previewReady">
                 <component
@@ -799,7 +800,7 @@
       </v-card>
     </v-dialog>
 
-    <!-- 編輯表單表模板對話框 -->
+    <!-- 編輯表單模板對話框 -->
     <v-dialog
       v-model="editTemplateDialog.open"
       persistent
@@ -811,13 +812,47 @@
         </v-card-title>
         <v-card-text class="px-5 pb-2">
           <v-form @submit.prevent="submitEditTemplate">
+            <v-select
+              v-model="editTemplateDialog.company"
+              :items="companyOptions"
+              label="選擇公司*"
+              item-title="title"
+              item-value="value"
+              :error-messages="editTemplateErrors.company"
+              variant="outlined"
+              density="compact"
+              class="mb-4"
+              clearable
+            />
+            <v-select
+              v-model="editTemplateDialog.type"
+              :items="templateTypeOptions"
+              label="表單類型*"
+              item-title="title"
+              item-value="value"
+              :error-messages="editTemplateErrors.type"
+              variant="outlined"
+              density="compact"
+              class="mb-4"
+              clearable
+            />
             <v-text-field
               v-model="editTemplateDialog.name"
-              :error-messages="editTemplateErrors"
-              label="表單名稱"
+              :error-messages="editTemplateErrors.name"
+              label="表單名稱*"
               required
               variant="outlined"
               density="compact"
+              class="mb-4"
+            />
+            <v-text-field
+              v-model="editTemplateDialog.componentName"
+              :error-messages="editTemplateErrors.componentName"
+              label="組件名稱*"
+              required
+              variant="outlined"
+              density="compact"
+              class="mb-4"
             />
             <v-card-actions class="pa-0 mt-4">
               <v-spacer />
@@ -1023,6 +1058,8 @@
                     icon
                     variant="plain"
                     color="red-lighten-1"
+                    :loading="deletingFormId === history._id"
+                    :disabled="deletingFormId === history._id"
                     @click="deleteHistory(history)"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -1136,6 +1173,7 @@ const templateRef = ref(null)
 const companies = ref([])
 const form = ref(null)
 const valid = ref(false)
+const deletingFormId = ref('')
 
 // 模板相關
 const currentTemplate = shallowRef(null)
@@ -1144,7 +1182,7 @@ const previewReady = ref(false)
 // 模板組映射
 const templateComponents = {
   RayHuangQuotationTemplate
-  // 未來可以繼續添加其他模板
+  // 未來可以繼續添���其他模板
   // HiMaxQuotationTemplate: HiMaxQuotationTemplate
 }
 
@@ -1193,7 +1231,10 @@ const templateDialog = ref({
 const editTemplateDialog = ref({
   open: false,
   id: '',
-  name: ''
+  name: '',
+  company: '',
+  type: '',
+  componentName: ''
 })
 
 const deleteTemplateDialog = ref({
@@ -1216,7 +1257,13 @@ const templateErrors = ref({
   componentName: ''
 })
 
-const editTemplateErrors = ref([])
+const editTemplateErrors = ref({
+  name: '',
+  company: '',
+  type: '',
+  componentName: ''
+})
+
 const isSubmitting = ref(false)
 const formTemplates = ref([])
 
@@ -1408,22 +1455,17 @@ const downloadPDF = async () => {
     console.log('PDF 生成成功:', pdfBlob)
 
     // 2. 傳到 Cloudinary
-    console.log('準備上傳到 Cloudinary')
     const formDataForUpload = new FormData()
     formDataForUpload.append('pdf', new File([pdfBlob], 'document.pdf', { type: 'application/pdf' }))
-    console.log('FormData 準備完成:', formDataForUpload)
     const { data: uploadData } = await apiAuth.post('/forms/upload/pdf', formDataForUpload)
-    console.log('上傳成功，回應:', uploadData)
 
     // 3. 儲存到資料庫
-    console.log('準備儲存到資料庫')
     const { data } = await apiAuth.post('/forms', {
       formNumber: formData.value.quotationNumber,
       formTemplate: selectedTemplate.value,
-      pdfUrl: uploadData.result.url,
-      cloudinaryPublicId: uploadData.result.filename
+      pdfUrl: uploadData.result.url
+      // cloudinaryPublicId: uploadData.result.filename
     })
-    console.log('儲存成功，回應:', data)
 
     if (data.success) {
       createSnackbar({
@@ -1559,18 +1601,34 @@ const openEditTemplate = (template) => {
   editTemplateDialog.value = {
     open: true,
     id: template._id,
-    name: template.name
+    name: template.name,
+    company: template.company._id,
+    type: template.type,
+    componentName: template.componentName
   }
-  editTemplateErrors.value = []
+  editTemplateErrors.value = {
+    name: '',
+    company: '',
+    type: '',
+    componentName: ''
+  }
 }
 
 const closeEditTemplateDialog = () => {
   editTemplateDialog.value = {
     open: false,
     id: '',
-    name: ''
+    name: '',
+    company: '',
+    type: '',
+    componentName: ''
   }
-  editTemplateErrors.value = []
+  editTemplateErrors.value = {
+    name: '',
+    company: '',
+    type: '',
+    componentName: ''
+  }
 }
 
 const confirmDeleteTemplate = (template) => {
@@ -1655,16 +1713,34 @@ const submitTemplate = async () => {
 }
 
 const submitEditTemplate = async () => {
-  if (!editTemplateDialog.value.name) {
-    editTemplateErrors.value = ['請輸入表單模板名稱']
+  // 驗證所有必填欄位
+  const errors = {
+    name: '',
+    company: '',
+    type: '',
+    componentName: ''
+  }
+
+  if (!editTemplateDialog.value.name) errors.name = '請輸入表單名稱'
+  if (!editTemplateDialog.value.company) errors.company = '請選擇公司'
+  if (!editTemplateDialog.value.type) errors.type = '請選擇表單類型'
+  if (!editTemplateDialog.value.componentName) errors.componentName = '請輸入組件名稱'
+
+  // 如果有任何錯誤
+  if (Object.values(errors).some(error => error)) {
+    editTemplateErrors.value = errors
     return
   }
 
   isSubmitting.value = true
   try {
     const { data } = await apiAuth.patch(`/formTemplates/${editTemplateDialog.value.id}`, {
-      name: editTemplateDialog.value.name
+      name: editTemplateDialog.value.name,
+      company: editTemplateDialog.value.company,
+      type: editTemplateDialog.value.type,
+      componentName: editTemplateDialog.value.componentName
     })
+
     if (data.success) {
       createSnackbar({
         text: '修改表單模板成功',
@@ -1676,7 +1752,12 @@ const submitEditTemplate = async () => {
       }
     }
   } catch (error) {
-    editTemplateErrors.value = [error.response?.data?.message || '修改失敗']
+    editTemplateErrors.value = {
+      name: error.response?.data?.message || '修改失敗',
+      company: '',
+      type: '',
+      componentName: ''
+    }
   } finally {
     isSubmitting.value = false
   }
@@ -1988,6 +2069,7 @@ const deleteHistory = async (history) => {
 
 const confirmDelete = async () => {
   try {
+    deletingFormId.value = formToDelete.value._id
     const { data } = await apiAuth.delete(`/forms/${formToDelete.value._id}`)
     if (data.success) {
       createSnackbar({
@@ -2001,8 +2083,11 @@ const confirmDelete = async () => {
       text: error.response?.data?.message || '刪除失敗',
       snackbarProps: { color: 'red-lighten-1' }
     })
+  } finally {
+    deletingFormId.value = ''
+    formToDelete.value = null
+    confirmDeleteDialog.value.open = false
   }
-  formToDelete.value = null
 }
 
 // 日期格式化

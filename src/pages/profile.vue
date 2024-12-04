@@ -17,8 +17,15 @@
                 <v-avatar
                   size="100"
                 >
+                  <v-skeleton-loader
+                    v-if="!isProfileAvatarLoaded"
+                    width="100"
+                    height="100"
+                  />
                   <v-img
+                    v-show="isProfileAvatarLoaded"
                     :src="user.avatar"
+                    @load="handleProfileAvatarLoad"
                   />
                 </v-avatar>
               </v-col>
@@ -1116,10 +1123,21 @@ const closeCowellDialog = () => {
   showCowellPassword.value = false
 }
 
+const isProfileAvatarLoaded = ref(false)
+
+const handleProfileAvatarLoad = () => {
+  setTimeout(() => {
+    isProfileAvatarLoaded.value = true
+  }, 100)
+}
+
 watch(() => user.avatar, (newAvatar) => {
   if (newAvatar) {
-    // 強制更新圖片
+    isProfileAvatarLoaded.value = false
     const img = new Image()
+    img.onload = () => {
+      handleProfileAvatarLoad()
+    }
     img.src = newAvatar
   }
 }, { immediate: true })

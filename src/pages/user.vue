@@ -1929,7 +1929,7 @@ const updateTableFormStatus = async (userId, newStatus) => {
     console.error('更新表單狀態失敗:', error)
     createSnackbar({
       text: error.response?.data?.message || '更新表單狀態失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   } finally {
     updatingStatusId.value = ''
@@ -2087,7 +2087,7 @@ const updateFormStatus = async (newStatus) => {
     console.error('更新表單狀態失敗:', error)
     createSnackbar({
       text: error.response?.data?.message || '更新表單狀態失敗',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   } finally {
     formStatusLoading.value = false
@@ -2709,7 +2709,7 @@ const performSearch = async () => {
     console.error('搜索失败:', error)
     createSnackbar({
       text: error?.response?.data?.message || '搜索失败',
-      snackbarProps: { color: 'error' }
+      snackbarProps: { color: 'red-lighten-1' }
     })
   } finally {
     tableLoading.value = false

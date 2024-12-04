@@ -87,8 +87,14 @@
                   size="48"
                   style="box-shadow: 0 0 10px rgba(255,255,255,1);"
                 >
+                  <v-skeleton-loader
+                    v-if="!isAvatarLoaded"
+                    type="avatar"
+                  />
                   <v-img
+                    v-show="isAvatarLoaded"
                     :src="user.avatar"
+                    @load="handleAvatarLoad"
                   />
                 </v-avatar>
               </v-card-title>
@@ -228,8 +234,14 @@
                   size="48"
                   style="box-shadow: 0 0 10px rgba(255,255,255,1);"
                 >
+                  <v-skeleton-loader
+                    v-if="!isAvatarLoaded"
+                    type="avatar"
+                  />
                   <v-img
+                    v-show="isAvatarLoaded"
                     :src="user.avatar"
+                    @load="handleAvatarLoad"
                   />
                 </v-avatar>
               </v-card-title>
@@ -363,8 +375,15 @@ const route = useRoute()
 
 const openedGroups = ref([])
 const isBackgroundLoaded = ref(false)
+const isAvatarLoaded = ref(false)
 const handleImageLoad = () => {
   isBackgroundLoaded.value = true
+}
+
+const handleAvatarLoad = () => {
+  setTimeout(() => {
+    isAvatarLoaded.value = true
+  }, 100)
 }
 
 const toggleGroup = (group) => {
@@ -416,7 +435,7 @@ const adminItems = [
     to: '/formGenerator',
     text: '表單產生器',
     icon: 'mdi-chart-box-outline',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'IT', 'HR', 'MANAGER']
+    roles: ['SUPER_ADMIN', 'ADMIN', 'IT', 'MANAGER']
   },
   {
     to: '/auditLog',
@@ -526,6 +545,18 @@ const logout = async () => {
 
   router.push('/login')
 }
+
+// 監聽 avatar 變化時重置 loading 狀態
+watch(() => user.avatar, (newAvatar) => {
+  if (newAvatar) {
+    isAvatarLoaded.value = false
+    const img = new Image()
+    img.onload = () => {
+      handleAvatarLoad()
+    }
+    img.src = newAvatar
+  }
+}, { immediate: true })
 </script>
 
 <style lang="scss" scoped>
