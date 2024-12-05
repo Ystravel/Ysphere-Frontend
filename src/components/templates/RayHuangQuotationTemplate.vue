@@ -115,7 +115,7 @@
           >
           <p>台北市中山區松江路 220 號 9 樓 907 室</p>
           <p><span style="font-weight: bold;">統編</span> 83213438</p>
-          <p><span style="font-weight: bold;">聯絡人</span> 陳淑貞 02-2508-0789#2701</p>
+          <p><span style="font-weight: bold;">聯絡人</span> 陳淑貞 0937-826735</p>
           <p>poppy.grdesign@gmail.com</p>
         </div>
       </div>
@@ -310,7 +310,7 @@ const totalAmount = computed(() => {
 }
 
 .title-content {
-  border-bottom: 4px solid #663399;
+  border-bottom: 3px solid #663399;
 }
 
 .title h2 {
@@ -401,8 +401,8 @@ const totalAmount = computed(() => {
 }
 
 .data-tbody {
-  border-top: 4px solid #663399 !important;
-  border-bottom: 4px solid #663399 !important;
+  border-top: 3px solid #663399 !important;
+  border-bottom: 3px solid #663399 !important;
   tr:not(:last-child) {
     border-bottom: 1px solid #000;
   }
@@ -458,7 +458,6 @@ const totalAmount = computed(() => {
 
 .stamp-box,
 .signature-box {
-  border: 1px solid #000;
   width: 150px;
   height: 80px;
   margin: 5px 0;

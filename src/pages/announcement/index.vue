@@ -1,7 +1,7 @@
 <template>
   <v-container max-width="2000">
     <template v-if="isAuthenticated">
-      <v-row class="elevation-4 rounded-lg py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 bg-white">
+      <v-row class="py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4">
         <!-- 頁面標題區 -->
         <v-col
           cols="12"
@@ -78,49 +78,66 @@
           <v-window v-model="currentTab">
             <!-- 全部公告 -->
             <v-window-item value="all">
-              <v-data-table
-                :headers="headers"
-                :items="filteredAnnouncements"
-                :loading="loading"
-                hover
-                @click:row="viewAnnouncement"
+              <!-- 載入中顯示 -->
+              <v-row
+                v-if="loading"
+                justify="center"
+                align="center"
+                style="height: 200px;"
               >
-                <template #[`item.type`]="{ item }">
-                  <v-chip
-                    :color="getTypeColor(item.type)"
-                    :text-color="getTypeTextColor(item.type)"
-                    size="small"
-                  >
-                    {{ item.type }}
-                  </v-chip>
-                </template>
-
-                <template #[`item.department`]="{ item }">
-                  {{ item.department?.name }} ({{ item.department?.departmentId }})
-                </template>
-
-                <template #[`item.createdAt`]="{ item }">
-                  {{ formatDate(item.createdAt) }}
-                </template>
-
-                <template #[`item.actions`]="{ item }">
-                  <v-btn
-                    v-if="canManageAnnouncement(item)"
-                    icon="mdi-pencil"
-                    size="small"
+                <v-col
+                  cols="12"
+                  class="text-center"
+                >
+                  <v-progress-circular
+                    indeterminate
                     color="primary"
-                    class="me-2"
-                    @click.stop="openDialog(item)"
+                    size="64"
                   />
-                  <v-btn
-                    v-if="canManageAnnouncement(item)"
-                    icon="mdi-delete"
-                    size="small"
-                    color="error"
-                    @click.stop="confirmDelete(item)"
-                  />
-                </template>
-              </v-data-table>
+                </v-col>
+              </v-row>
+
+              <!-- 公告卡片列表 -->
+              <template v-else>
+                <v-row v-if="filteredAnnouncements.length > 0">
+                  <v-col
+                    v-for="announcement in filteredAnnouncements"
+                    :key="announcement._id"
+                    cols="12"
+                    sm="6"
+                    lg="4"
+                    xl="3"
+                    class="mb-4"
+                  >
+                    <AnnouncementCard v-bind="announcement" />
+                  </v-col>
+                </v-row>
+
+                <!-- 無資料顯示 -->
+                <v-row v-else>
+                  <v-col
+                    cols="12"
+                    class="text-center"
+                  >
+                    <p>沒有找到相關公告</p>
+                  </v-col>
+                </v-row>
+
+                <!-- 分頁控制 -->
+                <v-row v-if="totalPages > 1">
+                  <v-col cols="12">
+                    <v-pagination
+                      v-model="currentPage"
+                      :length="totalPages"
+                      rounded="circle"
+                      density="comfortable"
+                      :total-visible="7"
+                      color="blue-grey"
+                      @update:model-value="onPageChange"
+                    />
+                  </v-col>
+                </v-row>
+              </template>
             </v-window-item>
 
             <!-- 分類公告 -->
@@ -129,60 +146,9 @@
               :key="type"
               :value="type"
             >
-              <v-data-table
-                :headers="headers"
-                :items="getAnnouncementsByType(type)"
-                :loading="loading"
-                hover
-                @click:row="viewAnnouncement"
-              >
-                <template #[`item.type`]="{ item }">
-                  <v-chip
-                    :color="getTypeColor(item.type)"
-                    :text-color="getTypeTextColor(item.type)"
-                    size="small"
-                  >
-                    {{ item.type }}
-                  </v-chip>
-                </template>
-
-                <template #[`item.department`]="{ item }">
-                  {{ item.department?.name }} ({{ item.department?.departmentId }})
-                </template>
-
-                <template #[`item.createdAt`]="{ item }">
-                  {{ formatDate(item.createdAt) }}
-                </template>
-
-                <template #[`item.actions`]="{ item }">
-                  <v-btn
-                    v-if="canManageAnnouncement(item)"
-                    icon="mdi-pencil"
-                    size="small"
-                    color="primary"
-                    class="me-2"
-                    @click.stop="openDialog(item)"
-                  />
-                  <v-btn
-                    v-if="canManageAnnouncement(item)"
-                    icon="mdi-delete"
-                    size="small"
-                    color="error"
-                    @click.stop="confirmDelete(item)"
-                  />
-                </template>
-              </v-data-table>
+              <!-- 使用相同的卡片顯示邏輯 -->
             </v-window-item>
           </v-window>
-
-          <!-- 分頁控制 -->
-          <div class="d-flex justify-center mt-6">
-            <v-pagination
-              v-model="currentPage"
-              :length="totalPages"
-              :total-visible="7"
-            />
-          </div>
         </v-col>
       </v-row>
 
@@ -191,8 +157,9 @@
         v-model="dialog.show"
         persistent
         max-width="900px"
+        height="100%"
       >
-        <v-card class="pa-4">
+        <v-card class="pa-4 h-100">
           <v-card-title class="text-h5 pb-4">
             {{ dialog.id ? '編輯公告' : '新增公告' }}
           </v-card-title>
@@ -226,11 +193,14 @@
                   />
                 </v-col>
                 <v-col cols="12">
-                  <div class="text-subtitle-1 mb-2">
+                  <div
+                    class="text-subtitle-1 mb-2"
+                  >
                     公告內容
                   </div>
                   <QuillEditor
                     v-model:content="formData.content"
+                    style="min-height: 640px;"
                     content-type="html"
                     toolbar="full"
                     theme="snow"
@@ -256,13 +226,17 @@
                     }"
                   />
                 </v-col>
-                <v-col cols="12">
+                <v-col
+                  cols="12"
+                  class="px-9"
+                >
                   <v-file-input
                     v-model="formData.attachments"
                     label="附件上傳"
                     multiple
                     show-size
                     counter
+                    variant="underlined"
                     :rules="attachmentRules"
                     accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
                   />
@@ -270,33 +244,20 @@
                 <v-col cols="12">
                   <v-checkbox
                     v-model="showExpiryDatePicker"
-                    label="設定自動下架時間"
+                    label="設定下架時間"
                   />
-                  <v-menu
+                  <v-date-input
                     v-if="showExpiryDatePicker"
-                    v-model="menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template #activator="{ on, attrs }">
-                      <v-text-field
-                        v-model="formData.expiryDate"
-                        label="自動下架時間"
-                        readonly
-                        v-bind="attrs"
-                        clearable
-                        v-on="on"
-                        @click:clear="formData.expiryDate = null"
-                      />
-                    </template>
-                    <v-date-picker
-                      v-model="formData.expiryDate"
-                      :min="tomorrow"
-                      @change="menu = false"
-                    />
-                  </v-menu>
+                    v-model="formData.expiryDate"
+                    label="自動下架時間"
+                    :min="tomorrow"
+                    variant="outlined"
+                    density="comfortable"
+                    clearable
+                    :ok-text="'確認'"
+                    :cancel-text="'取消'"
+                    @click:clear="formData.expiryDate = null"
+                  />
                 </v-col>
               </v-row>
             </v-form>
@@ -404,7 +365,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
@@ -412,25 +372,23 @@ import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
 import { storeToRefs } from 'pinia'
 import UserRole from '@/enums/UserRole'
+import { definePage } from 'vue-router/auto'
+import AnnouncementCard from '@/components/AnnouncementCard.vue'
 
-const router = useRouter()
+definePage({
+  meta: {
+    title: '所有公告 | ysphere',
+    login: true
+  }
+})
+
 const userStore = useUserStore()
 const { token, role } = storeToRefs(userStore)
 const { apiAuth } = useApi()
 const createSnackbar = useSnackbar()
 
-// 證使用者是否已登入
+// 證使是登入
 const isAuthenticated = computed(() => token.value?.length > 0)
-
-// 表格設定
-const headers = [
-  { title: '類型', key: 'type', align: 'start', sortable: false },
-  { title: '標題', key: 'title', align: 'start' },
-  { title: '作者', key: 'author.name', align: 'start' },
-  { title: '部門', key: 'department', align: 'start' },
-  { title: '發布時間', key: 'createdAt', align: 'start' },
-  { title: '操作', key: 'actions', align: 'end', sortable: false }
-]
 
 // 資料狀態
 const loading = ref(false)
@@ -438,7 +396,7 @@ const announcements = ref([])
 const currentTab = ref('all')
 const searchText = ref('')
 const currentPage = ref(1)
-const itemsPerPage = ref(10)
+const itemsPerPage = ref(12)
 const totalItems = ref(0)
 const showGuide = ref(false)
 
@@ -451,7 +409,6 @@ const confirmDialog = ref({
   show: false,
   announcement: null
 })
-const menu = ref(false)
 const showExpiryDatePicker = ref(false)
 
 // 表單相關
@@ -480,7 +437,7 @@ const attachmentRules = [
 // 公告類型
 const announcementTypes = ['置頂', '重要', '活動', '系統', '一般']
 
-// 明天的日期（用於日期選擇器的最小值）
+// 明天的日期（用於日期選擇器的最值）
 const tomorrow = computed(() => {
   const date = new Date()
   date.setDate(date.getDate() + 1)
@@ -493,34 +450,25 @@ const canCreateAnnouncement = computed(() => {
   return role.value && allowedRoles.includes(Number(role.value))
 })
 
-const canManageAnnouncement = (announcement) => {
-  if (!role.value) return false
-  if ([UserRole.SUPER_ADMIN, UserRole.ADMIN].includes(Number(role.value))) return true
-  return announcement.author?._id === userStore.userId
-}
-
-// 類型顏色映射
-const typeColors = {
-  置頂: 'red',
-  重要: 'orange',
-  活動: 'green',
-  系統: 'blue',
-  一般: 'grey'
-}
-
-const getTypeColor = (type) => typeColors[type] || 'grey'
-const getTypeTextColor = (type) => type === '一般' ? 'black' : 'white'
+// // 類型顏色映射
+// const typeColors = {
+//   置頂: 'red',
+//   重要: 'orange',
+//   活動: 'green',
+//   系統: 'blue',
+//   一般: 'grey'
+// }
 
 // 格式化日期
-const formatDate = (date) => {
-  return new Date(date).toLocaleString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+// const formatDate = (date) => {
+//   return new Date(date).toLocaleString('zh-TW', {
+//     year: 'numeric',
+//     month: '2-digit',
+//     day: '2-digit',
+//     hour: '2-digit',
+//     minute: '2-digit'
+//   })
+// }
 
 // 計算屬性
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value))
@@ -538,9 +486,6 @@ const filteredAnnouncements = computed(() => {
 })
 
 // 方法
-const getAnnouncementsByType = (type) => {
-  return (announcements.value || []).filter(a => a.type === type)
-}
 
 const fetchAnnouncements = async () => {
   if (!isAuthenticated.value) return
@@ -555,18 +500,12 @@ const fetchAnnouncements = async () => {
         type: currentTab.value === 'all' ? undefined : currentTab.value
       }
     })
-    console.log('Fetched announcements:', data)
+
     if (data.success) {
-      // 檢查返回的數據結構
       if (data.result && typeof data.result === 'object') {
         announcements.value = data.result.data || []
         totalItems.value = data.result.total || 0
-      } else {
-        announcements.value = []
-        totalItems.value = 0
       }
-    } else {
-      throw new Error(data.message || '獲取公告失敗')
     }
   } catch (error) {
     console.error('獲取公告失敗:', error)
@@ -660,13 +599,6 @@ const submitAnnouncement = async () => {
   }
 }
 
-const confirmDelete = (announcement) => {
-  confirmDialog.value = {
-    show: true,
-    announcement
-  }
-}
-
 const deleteAnnouncement = async () => {
   try {
     const { data } = await apiAuth.delete(`/announcement/${confirmDialog.value.announcement._id}`)
@@ -688,16 +620,12 @@ const deleteAnnouncement = async () => {
   }
 }
 
-const viewAnnouncement = (announcement) => {
-  router.push(`/announcement/${announcement._id}`)
-}
-
-// 使用說明內容
+// 使用說內容
 const guideItems = [
   {
     icon: 'mdi-format-list-text',
     title: '公告分類',
-    content: '公告分為：置頂、重要、活動、系統、一般五種類型。置頂公告會顯示在最上方。'
+    content: '公告分為置頂、重要、活動、系統、一般五種類型。置頂公告會顯示在最上方。'
   },
   {
     icon: 'mdi-text-search',
@@ -729,9 +657,15 @@ onMounted(() => {
     fetchAnnouncements()
   }
 })
+
+// 新增頁面變化處理函數
+const onPageChange = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  fetchAnnouncements()
+}
 </script>
 
-<style>
+<style lang="scss" scoped>
 .ql-editor {
   min-height: 200px;
 }
@@ -742,7 +676,17 @@ onMounted(() => {
   margin: 16px 0;
 }
 
+.v-data-table :deep(th) {
+  background-color: #455a64;
+  color: white;
+}
+
+.v-data-table :deep(tbody tr) {
+  height: 56px;
+}
+
 .v-data-table :deep(tbody tr:hover) {
   cursor: pointer;
+
 }
 </style>

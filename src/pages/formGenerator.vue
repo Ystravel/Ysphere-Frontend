@@ -102,12 +102,12 @@
                       />
                     </v-col>
                   </v-row>
-
-                  <!-- 模板選擇 -->
                 </v-col>
               </v-row>
             </div>
           </v-col>
+          <!-- 表單欄位區域 -->
+          <!-- 報價單表單 -->
           <v-col
             v-if="currentTemplate && selectedTemplate && currentTemplate === templateComponents.RayHuangQuotationTemplate"
             cols="12"
@@ -355,12 +355,17 @@
                                 >
                                   <v-text-field
                                     v-model="formData.specialNote"
-                                    label="特殊備註"
+                                    label="特殊備註 ( 報價項目下方呈現 )"
                                     variant="outlined"
                                     density="compact"
                                     class="mb-2"
                                     clearable
                                   />
+                                </v-col>
+                                <v-col cols="12">
+                                  <div class="sub-title text-blue-grey-darken-2">
+                                    注意事
+                                  </div>
                                 </v-col>
                                 <v-col
                                   cols="12"
@@ -383,7 +388,7 @@
                                 >
                                   <v-text-field
                                     v-model="formData.delayDays"
-                                    label="延誤天"
+                                    label="延誤天數"
                                     variant="outlined"
                                     density="compact"
                                     class="mb-2"
@@ -590,7 +595,7 @@
 
     <!-- 主要內容區 -->
 
-    <!-- 表單模板管理話框 -->
+    <!-- 單模板管理話框 -->
     <v-dialog
       v-model="templateDialog.open"
       persistent
@@ -882,7 +887,7 @@
     <ConfirmDeleteDialogWithTextField
       v-model="deleteTemplateDialog.open"
       title="確認刪除表單模板"
-      :message="`確定要刪除表單模板「<span class='text-pink-lighten-1' style='font-weight: 800;'>${deleteTemplateDialog.name}</span>」嗎？此操作無法復原。`"
+      :message="`確定要刪除表單模板「<span class='text-pink-lighten-1' style='font-weight: 800;'>${deleteTemplateDialog.name}</span>」嗎？此操作無法復原`"
       :expected-name="deleteTemplateDialog.name"
       input-label="表單模板名稱"
       @confirm="deleteTemplate"
@@ -911,120 +916,139 @@
           </v-btn>
         </div>
         <v-card-text>
-          <!-- 搜尋條件 -->
+          <!-- 在原有搜尋條件的上方添加快速搜尋 -->
+
+          <div class="border rounded-lg px-4 py-4">
+            <v-row>
+              <v-col
+                cols="12"
+              >
+                <!-- 原有的搜尋條件保持不變 -->
+                <v-row>
+                  <v-col cols="3">
+                    <v-select
+                      v-model="historySearch.company"
+                      :items="companyOptions"
+                      label="選擇公司"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      @update:model-value="loadTemplateOptions"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="3"
+                    class="pb-0"
+                  >
+                    <v-select
+                      v-model="historySearch.type"
+                      :items="templateTypeOptions"
+                      label="表單類型"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      @update:model-value="loadTemplateOptions"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="3"
+                    class="pb-0"
+                  >
+                    <v-select
+                      v-model="historySearch.formTemplate"
+                      :items="historyTemplateOptions"
+                      label="表單模板"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      :disabled="!historySearch.company && !historySearch.type"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="3"
+                    class="pb-0"
+                  >
+                    <v-date-input
+                      v-model="historySearch.date"
+                      label="日期區間"
+                      variant="outlined"
+                      density="compact"
+                      prepend-icon
+                      clearable
+                      multiple="range"
+                      :ok-text="'確認'"
+                      :cancel-text="'取消'"
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+
+            <!-- 按鈕 -->
+            <v-row class="mt-0">
+              <v-col class="d-flex justify-end gap-2">
+                <v-btn
+                  color="blue-grey-darken-1"
+                  class="me-3"
+                  @click="resetHistorySearch"
+                >
+                  <v-icon>mdi-refresh</v-icon>
+                </v-btn>
+                <v-btn
+                  width="80"
+                  color="cyan-darken-2"
+                  :loading="isSearching"
+                  :disabled="isSearching"
+                  @click="searchHistory"
+                >
+                  搜尋
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
           <v-row>
             <v-col
-              cols="3"
-              class="pb-0"
+              cols="12"
+              sm="4"
+              lg="3"
+              class="ms-auto mt-6"
             >
-              <v-select
-                v-model="historySearch.company"
-                :items="companyOptions"
-                label="選擇公司"
-                item-title="title"
-                item-value="value"
+              <v-text-field
+                v-model="historyQuickSearch"
+                label="搜尋單號 / 客戶名稱"
+                append-inner-icon="mdi-magnify"
                 variant="outlined"
                 density="compact"
+                hide-details
                 clearable
-                @update:model-value="loadTemplateOptions"
-              />
-            </v-col>
-            <v-col
-              cols="3"
-              class="pb-0"
-            >
-              <v-select
-                v-model="historySearch.type"
-                :items="templateTypeOptions"
-                label="表單類型"
-                item-title="title"
-                item-value="value"
-                variant="outlined"
-                density="compact"
-                clearable
-                @update:model-value="loadTemplateOptions"
-              />
-            </v-col>
-            <v-col
-              cols="3"
-              class="pb-0"
-            >
-              <v-select
-                v-model="historySearch.formTemplate"
-                :items="historyTemplateOptions"
-                label="表單模板"
-                item-title="title"
-                item-value="value"
-                variant="outlined"
-                density="compact"
-                clearable
-                :disabled="!historySearch.company && !historySearch.type"
-              />
-            </v-col>
-            <v-col
-              cols="3"
-              class="pb-0"
-            >
-              <v-date-input
-                v-model="historySearch.date"
-                label="日期區間"
-                variant="outlined"
-                density="compact"
-                prepend-icon
-                clearable
-                multiple="range"
-                :ok-text="'確認'"
-                :cancel-text="'取消'"
               />
             </v-col>
           </v-row>
-
-          <!-- 按鈕 -->
-          <v-row class="mt-0">
-            <v-col class="d-flex justify-end gap-2">
-              <v-btn
-                color="blue-grey-darken-1"
-                class="me-3"
-                @click="resetHistorySearch"
-              >
-                <v-icon>mdi-refresh</v-icon>
-              </v-btn>
-              <v-btn
-                width="80"
-                color="cyan-darken-2"
-                :loading="isSearching"
-                :disabled="isSearching"
-                @click="searchHistory"
-              >
-                搜尋
-              </v-btn>
-            </v-col>
-          </v-row>
-
           <!-- 歷紀錄列表 -->
           <v-table class="rounded-lg mt-6">
             <thead
               class="bg-blue-grey-darken-2"
             >
               <tr>
-                <th
-                  style="height: 36px;"
-                >
+                <th style="height: 36px;">
                   表單模板名稱
                 </th>
-                <th
-                  style="height: 36px;"
-                >
+                <th style="height: 36px;">
                   單號
                 </th>
-                <th
-                  style="height: 36px;"
-                >
+                <th style="height: 36px;">
+                  客戶名稱
+                </th>
+                <th style="height: 36px;">
                   創建日期
                 </th>
-                <th
-                  style="height: 36px;"
-                >
+                <th style="height: 36px;">
                   創建者
                 </th>
                 <th
@@ -1042,6 +1066,7 @@
               >
                 <td>{{ history?.formTemplate?.name || '未知模板' }}</td>
                 <td>{{ history?.formNumber || '-' }}</td>
+                <td>{{ history?.clientName || '-' }}</td>
                 <td>{{ formatDate(history?.createdAt) }}</td>
                 <td>{{ history?.creator?.name || '未知' }} {{ history?.creator?.userId ? `(${history?.creator?.userId})` : '' }}</td>
                 <td class="text-center">
@@ -1068,7 +1093,7 @@
               </tr>
               <tr v-if="!histories.length">
                 <td
-                  colspan="5"
+                  colspan="6"
                   class="text-center"
                 >
                   沒有資料
@@ -1150,6 +1175,7 @@ import { useDisplay } from 'vuetify'
 import RayHuangQuotationTemplate from '@/components/templates/RayHuangQuotationTemplate.vue'
 import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue'
+import { debounce } from 'lodash'
 
 definePage({
   meta: {
@@ -1182,7 +1208,7 @@ const previewReady = ref(false)
 // 模板組映射
 const templateComponents = {
   RayHuangQuotationTemplate
-  // 未來可以繼續添���其他模板
+  // 未來可以繼續添其他模板
   // HiMaxQuotationTemplate: HiMaxQuotationTemplate
 }
 
@@ -1209,8 +1235,8 @@ const formData = ref({
   projectName: '',
   workDays: '',
   specialNote: '',
-  validityDays: '0',
-  delayDays: '0',
+  validityDays: '',
+  delayDays: '',
   items: [
     {
       name: '',
@@ -1218,7 +1244,7 @@ const formData = ref({
       workDays: '',
       quantity: 1,
       unit: '份',
-      price: 0
+      price: ''
     }
   ]
 })
@@ -1371,13 +1397,16 @@ const removeItem = (index) => {
 const isSearching = ref(false)
 const isDownloading = ref(false)
 
-// 添加分頁相關的響應式變數
+// 添加分頁相關���響應式變數
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value))
 
-// 修改尋方法
+// 添加新的響應式變數
+const historyQuickSearch = ref('')
+
+// 修改 searchHistory 方法，整合快速搜尋
 const searchHistory = async () => {
   if (isSearching.value) return
   isSearching.value = true
@@ -1385,9 +1414,17 @@ const searchHistory = async () => {
   try {
     const params = {
       page: currentPage.value,
-      itemsPerPage: itemsPerPage.value
+      itemsPerPage: itemsPerPage.value,
+      sort: 'formNumber',
+      order: 'desc'
     }
 
+    // 添加快速搜尋參數
+    if (historyQuickSearch.value) {
+      params.quickSearch = historyQuickSearch.value
+    }
+
+    // 添加原有的搜尋條件
     if (historySearch.value.company) {
       params.company = historySearch.value.company
     }
@@ -1408,7 +1445,7 @@ const searchHistory = async () => {
       currentPage.value = data.result.currentPage
     }
   } catch (error) {
-    console.error('搜尋敗，完整錯:', error)
+    console.error('搜尋失敗:', error)
     createSnackbar({
       text: '載入歷史紀錄失敗',
       snackbarProps: { color: 'red-lighten-1' }
@@ -1418,29 +1455,32 @@ const searchHistory = async () => {
   }
 }
 
-// 處理頁碼變更
-const handlePageChange = () => {
+// 添加防抖的快速搜尋處理
+const debouncedHistorySearch = debounce((value) => {
+  currentPage.value = 1
   searchHistory()
-}
+}, 300)
 
-// 修改重置方法
+// 監聽快速搜尋的變化
+watch(historyQuickSearch, (newVal) => {
+  debouncedHistorySearch(newVal)
+})
+
+// 修改重置搜尋方法，加入快速搜尋的重置
 const resetHistorySearch = async () => {
-  // 清空所有搜尋條件
   historySearch.value = {
     company: '',
     type: '',
     formTemplate: '',
     date: []
   }
-  // 清空模板選項
+  historyQuickSearch.value = '' // 重置快速搜尋
   historyTemplateOptions.value = []
-  // 重置頁碼
   currentPage.value = 1
-  // 重新搜尋
   await searchHistory()
 }
 
-// 修改 downloadPDF 方法
+// 修改 downloadPDF 方法，加入 clientName
 const downloadPDF = async () => {
   if (isDownloading.value) return
   isDownloading.value = true
@@ -1449,39 +1489,50 @@ const downloadPDF = async () => {
     const element = templateRef.value?.$el
     if (!element) return
 
-    // 1. 生成 PDF 並下載
+    // 1. 生成 PDF
     console.log('開始生成 PDF')
     const pdfBlob = await generatePDF(element)
     console.log('PDF 生成成功:', pdfBlob)
 
-    // 2. 傳到 Cloudinary
+    // 2. 上傳 PDF
     const formDataForUpload = new FormData()
     formDataForUpload.append('pdf', new File([pdfBlob], 'document.pdf', { type: 'application/pdf' }))
     const { data: uploadData } = await apiAuth.post('/forms/upload/pdf', formDataForUpload)
 
     // 3. 儲存到資料庫
-    const { data } = await apiAuth.post('/forms', {
-      formNumber: formData.value.quotationNumber,
-      formTemplate: selectedTemplate.value,
-      pdfUrl: uploadData.result.url
-      // cloudinaryPublicId: uploadData.result.filename
-    })
-
-    if (data.success) {
-      createSnackbar({
-        text: 'PDF 下載並儲存成功',
-        snackbarProps: {
-          color: 'teal-lighten-1'
-        }
+    try {
+      const { data } = await apiAuth.post('/forms', {
+        formNumber: formData.value.quotationNumber,
+        clientName: formData.value.customerName,
+        formTemplate: selectedTemplate.value,
+        pdfUrl: uploadData.result.url
       })
 
-      // 下載 PDF
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(pdfBlob)
-      link.download = `報價單_${formData.value.quotationNumber}_${new Date().getTime()}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      if (data.success) {
+        createSnackbar({
+          text: 'PDF 下載並儲存成功',
+          snackbarProps: {
+            color: 'teal-lighten-1'
+          }
+        })
+
+        // 4. 下載 PDF
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(pdfBlob)
+        link.download = `報價單_${formData.value.quotationNumber}_${new Date().getTime()}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    } catch (error) {
+      if (error.response?.status === 409) {
+        createSnackbar({
+          text: '單號重複，請重新取得單號',
+          snackbarProps: { color: 'red-lighten-1' }
+        })
+      } else {
+        throw error
+      }
     }
   } catch (error) {
     console.error('PDF 處理失敗，詳細錯誤:', error)
@@ -1779,7 +1830,7 @@ const deleteTemplate = async () => {
       if (selectedTemplate.value === deleteTemplateDialog.value.id) {
         selectedTemplate.value = null
       }
-      // 如果有選擇公司，重新載入該公司的模板列表
+      // 如果有選擇公司，重新入該公司的模板列表
       if (selectedCompany.value) {
         await loadTemplatesByCompany(selectedCompany.value)
       }
@@ -2040,7 +2091,7 @@ const openHistoryDialog = async () => {
     historyTemplateOptions.value = []
     currentPage.value = 1
 
-    // 載入第一頁資料
+    // ��入第一頁資料
     await searchHistory()
   } catch (error) {
     console.error('開啟歷史紀錄對話框失敗:', error)

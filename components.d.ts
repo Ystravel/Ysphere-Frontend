@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AnnouncementCard: typeof import('./src/components/AnnouncementCard.vue')['default']
     AnnouncementList: typeof import('./src/components/AnnouncementList.vue')['default']
     BirthdayReminder: typeof import('./src/components/BirthdayReminder.vue')['default']
     ConfirmDeleteDialog: typeof import('./src/components/ConfirmDeleteDialog.vue')['default']

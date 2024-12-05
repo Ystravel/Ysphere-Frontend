@@ -60,6 +60,7 @@
         <div>
           <v-card
             v-show="!rail"
+            v-tooltip="'個人資料管理'"
             elevation="0"
             rounded="0"
             height="172"
@@ -82,7 +83,9 @@
               @load="handleImageLoad"
             >
             <div class="card-blur pt-2 pb-4 px-2">
-              <v-card-title class="ps-5 pb-3">
+              <v-card-title
+                class="ps-5 pb-3 d-flex justify-space-between pe-2"
+              >
                 <v-avatar
                   size="48"
                   style="box-shadow: 0 0 10px rgba(255,255,255,1);"
@@ -215,6 +218,7 @@
       <v-list class="h-100 pa-0 overflow-auto">
         <div>
           <v-card
+            v-tooltip="'個人資料管理'"
             elevation="0"
             rounded="0"
             height="172"
@@ -395,7 +399,7 @@ const toggleGroup = (group) => {
 }
 
 const userItems = [
-  { to: '/profile', text: '個人資料管理', icon: 'mdi-account' },
+  { to: '/announcement', text: '所有公告', icon: 'mdi-bullhorn' },
   { to: '/ITService', text: 'IT 維修服務', icon: 'mdi-wrench' }
 ]
 
