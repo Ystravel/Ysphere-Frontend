@@ -1,364 +1,377 @@
 <template>
-  <v-container max-width="2000">
-    <template v-if="isAuthenticated">
-      <v-row class="py-4 py-sm-8 px-1 px-sm-10 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4">
-        <!-- 頁面標題區 -->
-        <v-col
-          cols="12"
-          class="ps-3 d-flex justify-space-between align-center"
+  <v-container
+    max-width="1400"
+    height="100%"
+  >
+    <div
+      class="bg-white rounded-lg mx-10"
+      style="min-height: 85vh"
+    >
+      <template v-if="isAuthenticated">
+        <v-row
+          class="py-4 py-sm-8 px-1 px-sm-4 mt-2 mt-sm-6 mx-0 mx-sm-4 mx-md-10 mb-4 overflow-visible"
         >
-          <div class="d-flex align-center">
-            <h3>所有公告</h3>
+          <!-- 頁面標題區 -->
+          <v-col
+            cols="12"
+            class="ps-3 d-flex justify-space-between align-center"
+          >
+            <div class="d-flex align-center">
+              <h3>所有公告</h3>
+              <v-btn
+                size="x-small"
+                color="grey-darken-1"
+                class="ms-4"
+                elevation="1"
+                @click="showGuide = true"
+              >
+                使用說明
+              </v-btn>
+            </div>
             <v-btn
-              size="x-small"
-              color="grey-darken-1"
-              class="ms-4"
-              elevation="1"
-              @click="showGuide = true"
+              v-if="canCreateAnnouncement"
+              prepend-icon="mdi-plus"
+              color="blue-grey-darken-2"
+              variant="outlined"
+              @click="openDialog(null)"
             >
-              使用說明
+              新增公告
             </v-btn>
-          </div>
-          <v-btn
-            v-if="canCreateAnnouncement"
-            prepend-icon="mdi-plus"
-            color="blue-grey-darken-2"
-            variant="outlined"
-            @click="openDialog(null)"
-          >
-            新增公告
-          </v-btn>
-        </v-col>
+          </v-col>
 
-        <!-- 分類標籤和搜尋區 -->
-        <v-col cols="12">
-          <v-row
-            align="center"
-            class="py-4"
-          >
-            <v-col
-              cols="12"
-              md="8"
+          <!-- 分類標籤和搜尋區 -->
+          <v-col cols="12">
+            <v-row
+              align="center"
+              class="py-4"
             >
-              <v-tabs
-                v-model="currentTab"
-                color="blue-grey-darken-2"
-                align-tabs="start"
+              <v-col
+                cols="12"
+                md="8"
               >
-                <v-tab value="all">
-                  全部
-                </v-tab>
-                <v-tab
-                  v-for="type in announcementTypes"
-                  :key="type"
-                  :value="type"
+                <v-tabs
+                  v-model="currentTab"
+                  color="blue-grey-darken-2"
+                  align-tabs="start"
                 >
-                  {{ type }}
-                </v-tab>
-              </v-tabs>
-            </v-col>
-            <v-col
-              cols="12"
-              md="4"
-            >
-              <v-text-field
-                v-model="searchText"
-                label="搜尋公告"
-                append-inner-icon="mdi-magnify"
-                density="comfortable"
-                variant="outlined"
-                hide-details
-              />
-            </v-col>
-          </v-row>
-        </v-col>
-
-        <!-- 公告列表區域 -->
-        <v-col cols="12">
-          <v-window v-model="currentTab">
-            <!-- 全部公告 -->
-            <v-window-item value="all">
-              <!-- 載入中顯示 -->
-              <v-row
-                v-if="loading"
-                justify="center"
-                align="center"
-                style="height: 200px;"
-              >
-                <v-col
-                  cols="12"
-                  class="text-center"
-                >
-                  <v-progress-circular
-                    indeterminate
-                    color="primary"
-                    size="64"
-                  />
-                </v-col>
-              </v-row>
-
-              <!-- 公告卡片列表 -->
-              <template v-else>
-                <v-row v-if="filteredAnnouncements.length > 0">
-                  <v-col
-                    v-for="announcement in filteredAnnouncements"
-                    :key="announcement._id"
-                    cols="12"
-                    sm="6"
-                    lg="4"
-                    xl="3"
-                    class="mb-4"
+                  <v-tab value="all">
+                    全部
+                  </v-tab>
+                  <v-tab
+                    v-for="type in announcementTypes"
+                    :key="type"
+                    :value="type"
                   >
-                    <AnnouncementCard v-bind="announcement" />
-                  </v-col>
-                </v-row>
+                    {{ type }}
+                  </v-tab>
+                </v-tabs>
+              </v-col>
+              <v-col
+                cols="12"
+                md="4"
+              >
+                <v-text-field
+                  v-model="searchText"
+                  label="搜尋公告"
+                  append-inner-icon="mdi-magnify"
+                  density="comfortable"
+                  variant="outlined"
+                  hide-details
+                />
+              </v-col>
+            </v-row>
+          </v-col>
 
-                <!-- 無資料顯示 -->
-                <v-row v-else>
+          <!-- 公告列表區域 -->
+          <v-col
+            cols="12"
+          >
+            <v-window
+              v-model="currentTab"
+              class="overflow-visible"
+            >
+              <!-- 全部公告 -->
+              <v-window-item value="all">
+                <!-- 載入中顯示 -->
+                <v-row
+                  v-if="loading"
+                  justify="center"
+                  align="center"
+                  style="height: 200px;"
+                >
                   <v-col
                     cols="12"
                     class="text-center"
                   >
-                    <p>沒有找到相關公告</p>
-                  </v-col>
-                </v-row>
-
-                <!-- 分頁控制 -->
-                <v-row v-if="totalPages > 1">
-                  <v-col cols="12">
-                    <v-pagination
-                      v-model="currentPage"
-                      :length="totalPages"
-                      rounded="circle"
-                      density="comfortable"
-                      :total-visible="7"
-                      color="blue-grey"
-                      @update:model-value="onPageChange"
+                    <v-progress-circular
+                      indeterminate
+                      color="primary"
+                      size="64"
                     />
                   </v-col>
                 </v-row>
-              </template>
-            </v-window-item>
 
-            <!-- 分類公告 -->
-            <v-window-item
-              v-for="type in announcementTypes"
-              :key="type"
-              :value="type"
-            >
-              <!-- 使用相同的卡片顯示邏輯 -->
-            </v-window-item>
-          </v-window>
-        </v-col>
-      </v-row>
+                <!-- 公告卡片列表 -->
+                <template v-else>
+                  <v-row v-if="filteredAnnouncements.length > 0">
+                    <v-col
+                      v-for="announcement in filteredAnnouncements"
+                      :key="announcement._id"
+                      cols="12"
+                      sm="6"
+                      class="mb-4"
+                    >
+                      <AnnouncementCard v-bind="announcement" />
+                    </v-col>
+                  </v-row>
 
-      <!-- 新增/編輯公告對話框 -->
-      <v-dialog
-        v-model="dialog.show"
-        persistent
-        max-width="900px"
-        height="100%"
-      >
-        <v-card class="pa-4 h-100">
-          <v-card-title class="text-h5 pb-4">
-            {{ dialog.id ? '編輯公告' : '新增公告' }}
-          </v-card-title>
-          <v-card-text>
-            <v-form
-              ref="form"
-              v-model="formValid"
-              @submit.prevent="submitAnnouncement"
-            >
-              <v-row>
-                <v-col
-                  cols="12"
-                  sm="8"
-                >
-                  <v-text-field
-                    v-model="formData.title"
-                    label="公告標題"
-                    :rules="titleRules"
-                    required
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  sm="4"
-                >
-                  <v-select
-                    v-model="formData.type"
-                    :items="announcementTypes"
-                    label="公告類型"
-                    required
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <div
-                    class="text-subtitle-1 mb-2"
-                  >
-                    公告內容
-                  </div>
-                  <QuillEditor
-                    v-model:content="formData.content"
-                    style="min-height: 640px;"
-                    content-type="html"
-                    toolbar="full"
-                    theme="snow"
-                    :options="{
-                      modules: {
-                        toolbar: [
-                          ['bold', 'italic', 'underline', 'strike'],
-                          ['blockquote', 'code-block'],
-                          [{ 'header': 1 }, { 'header': 2 }],
-                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                          [{ 'script': 'sub'}, { 'script': 'super' }],
-                          [{ 'indent': '-1'}, { 'indent': '+1' }],
-                          [{ 'direction': 'rtl' }],
-                          [{ 'size': ['small', false, 'large', 'huge'] }],
-                          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                          [{ 'color': [] }, { 'background': [] }],
-                          [{ 'font': [] }],
-                          [{ 'align': [] }],
-                          ['clean'],
-                          ['link', 'image']
-                        ]
-                      }
-                    }"
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  class="px-9"
-                >
-                  <v-file-input
-                    v-model="formData.attachments"
-                    label="附件上傳"
-                    multiple
-                    show-size
-                    counter
-                    variant="underlined"
-                    :rules="attachmentRules"
-                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <v-checkbox
-                    v-model="showExpiryDatePicker"
-                    label="設定下架時間"
-                  />
-                  <v-date-input
-                    v-if="showExpiryDatePicker"
-                    v-model="formData.expiryDate"
-                    label="自動下架時間"
-                    :min="tomorrow"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    :ok-text="'確認'"
-                    :cancel-text="'取消'"
-                    @click:clear="formData.expiryDate = null"
-                  />
-                </v-col>
-              </v-row>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              color="grey"
-              variant="text"
-              @click="closeDialog"
-            >
-              取消
-            </v-btn>
-            <v-btn
-              color="primary"
-              :loading="submitting"
-              :disabled="!formValid || submitting"
-              @click="submitAnnouncement"
-            >
-              {{ dialog.id ? '更新' : '發布' }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+                  <!-- 無資料顯示 -->
+                  <v-row v-else>
+                    <v-col
+                      cols="12"
+                      class="text-center"
+                    >
+                      <p>沒有找到相關公告</p>
+                    </v-col>
+                  </v-row>
 
-      <!-- 使用說明對話框 -->
-      <v-dialog
-        v-model="showGuide"
-        max-width="600px"
-      >
-        <v-card class="pa-4">
-          <v-card-title class="text-h5">
-            公告系統使用說明
-          </v-card-title>
-          <v-card-text class="pt-4">
-            <v-list>
-              <v-list-item
-                v-for="(item, i) in guideItems"
-                :key="i"
-                :prepend-icon="item.icon"
+                  <!-- 分頁控制 -->
+                  <v-row v-if="totalPages > 1">
+                    <v-col cols="12">
+                      <v-pagination
+                        v-model="currentPage"
+                        :length="totalPages"
+                        rounded="circle"
+                        density="comfortable"
+                        :total-visible="7"
+                        color="blue-grey"
+                        @update:model-value="onPageChange"
+                      />
+                    </v-col>
+                  </v-row>
+                </template>
+              </v-window-item>
+
+              <!-- 分類公告 -->
+              <v-window-item
+                v-for="type in announcementTypes"
+                :key="type"
+                :value="type"
               >
-                <v-list-item-title>{{ item.title }}</v-list-item-title>
-                <v-list-item-subtitle class="mt-1">
-                  {{ item.content }}
-                </v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              color="primary"
-              variant="text"
-              @click="showGuide = false"
-            >
-              關閉
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+              <!-- 使用相同的卡片顯示邏輯 -->
+              </v-window-item>
+            </v-window>
+          </v-col>
+        </v-row>
 
-      <!-- 確認刪除對話框 -->
-      <v-dialog
-        v-model="confirmDialog.show"
-        max-width="400px"
-      >
-        <v-card>
-          <v-card-title class="text-h5">
-            確認刪除
-          </v-card-title>
-          <v-card-text>
-            確定要刪除此公告嗎？此操作無法復原。
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              color="grey"
-              variant="text"
-              @click="confirmDialog.show = false"
-            >
-              取消
-            </v-btn>
-            <v-btn
-              color="error"
-              variant="text"
-              @click="deleteAnnouncement"
-            >
+        <!-- 新增/編輯公告對話框 -->
+        <v-dialog
+          v-model="dialog.show"
+          persistent
+          max-width="900px"
+          height="100%"
+        >
+          <v-card class="pa-4 h-100">
+            <v-card-title class="text-h5 pb-4">
+              {{ dialog.id ? '編輯公告' : '新增公告' }}
+            </v-card-title>
+            <v-card-text>
+              <v-form
+                ref="form"
+                v-model="formValid"
+                @submit.prevent="submitAnnouncement"
+              >
+                <v-row>
+                  <v-col
+                    cols="12"
+                    sm="8"
+                  >
+                    <v-text-field
+                      v-model="formData.title"
+                      label="公告標題"
+                      :rules="titleRules"
+                      required
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="4"
+                  >
+                    <v-select
+                      v-model="formData.type"
+                      :items="announcementTypes"
+                      label="公告類型"
+                      required
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <div
+                      class="text-subtitle-1 mb-2"
+                    >
+                      公告內容
+                    </div>
+                    <QuillEditor
+                      v-model:content="formData.content"
+                      style="min-height: 640px;"
+                      content-type="html"
+                      toolbar="full"
+                      theme="snow"
+                      :options="{
+                        modules: {
+                          toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            ['blockquote', 'code-block'],
+                            [{ 'header': 1 }, { 'header': 2 }],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'script': 'sub'}, { 'script': 'super' }],
+                            [{ 'indent': '-1'}, { 'indent': '+1' }],
+                            [{ 'direction': 'rtl' }],
+                            [{ 'size': ['small', false, 'large', 'huge'] }],
+                            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'font': [] }],
+                            [{ 'align': [] }],
+                            ['clean'],
+                            ['link', 'image']
+                          ]
+                        }
+                      }"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    class="px-9"
+                  >
+                    <v-file-input
+                      v-model="formData.attachments"
+                      label="附件上傳"
+                      multiple
+                      show-size
+                      counter
+                      variant="underlined"
+                      :rules="attachmentRules"
+                      accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-checkbox
+                      v-model="showExpiryDatePicker"
+                      label="設定下架時間"
+                    />
+                    <v-date-input
+                      v-if="showExpiryDatePicker"
+                      v-model="formData.expiryDate"
+                      label="自動下架時間"
+                      :min="tomorrow"
+                      variant="outlined"
+                      density="comfortable"
+                      clearable
+                      :ok-text="'確認'"
+                      :cancel-text="'取消'"
+                      @click:clear="formData.expiryDate = null"
+                    />
+                  </v-col>
+                </v-row>
+              </v-form>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                color="grey"
+                variant="text"
+                @click="closeDialog"
+              >
+                取消
+              </v-btn>
+              <v-btn
+                color="primary"
+                :loading="submitting"
+                :disabled="!formValid || submitting"
+                @click="submitAnnouncement"
+              >
+                {{ dialog.id ? '更新' : '發布' }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- 使用說明對話框 -->
+        <v-dialog
+          v-model="showGuide"
+          max-width="600px"
+        >
+          <v-card class="pa-4">
+            <v-card-title class="text-h5">
+              公告系統使用說明
+            </v-card-title>
+            <v-card-text class="pt-4">
+              <v-list>
+                <v-list-item
+                  v-for="(item, i) in guideItems"
+                  :key="i"
+                  :prepend-icon="item.icon"
+                >
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                  <v-list-item-subtitle class="mt-1">
+                    {{ item.content }}
+                  </v-list-item-subtitle>
+                </v-list-item>
+              </v-list>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                color="primary"
+                variant="text"
+                @click="showGuide = false"
+              >
+                關閉
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- 確認刪除對話框 -->
+        <v-dialog
+          v-model="confirmDialog.show"
+          max-width="400px"
+        >
+          <v-card>
+            <v-card-title class="text-h5">
               確認刪除
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </template>
-    <div
-      v-else
-      class="d-flex justify-center align-center py-12"
-    >
-      <v-progress-circular
-        indeterminate
-        color="primary"
-      />
+            </v-card-title>
+            <v-card-text>
+              確定要刪除此公告嗎？此操作無法復原。
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                color="grey"
+                variant="text"
+                @click="confirmDialog.show = false"
+              >
+                取消
+              </v-btn>
+              <v-btn
+                color="error"
+                variant="text"
+                @click="deleteAnnouncement"
+              >
+                確認刪除
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </template>
+      <div
+        v-else
+        class="d-flex justify-center align-center py-12"
+      >
+        <v-progress-circular
+          indeterminate
+          color="primary"
+        />
+      </div>
     </div>
   </v-container>
 </template>

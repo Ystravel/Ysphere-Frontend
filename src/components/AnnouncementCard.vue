@@ -10,7 +10,7 @@
       <!-- 左側圖片區域 -->
       <v-col
         cols="12"
-        sm="5"
+        sm="4"
       >
         <v-img
           v-if="firstImage"
@@ -35,7 +35,7 @@
       <!-- 右側內容區域 -->
       <v-col
         cols="12"
-        sm="7"
+        sm="8"
       >
         <v-card-text class="d-flex flex-column justify-space-between h-100 py-0">
           <!-- 標題和類型 -->
@@ -44,6 +44,9 @@
               <v-chip
                 :color="getTypeColor(props.type)"
                 :text-color="getTypeTextColor(props.type)"
+                label
+                variant="elevated"
+                elevation="0"
                 size="small"
                 class="me-2"
               >
@@ -69,7 +72,7 @@
               >
                 mdi-account
               </v-icon>
-              <span class="text-grey text-caption">{{ props.author?.name }}</span>
+              <span class="text-grey text-caption">{{ props.author?.name }} ( {{ props.author?.userId }})</span>
             </div>
             <div class="d-flex align-center">
               <v-icon
@@ -116,10 +119,10 @@ const contentPreview = computed(() => {
 
 // 類型顏色映射
 const typeColors = {
-  置頂: 'red',
-  重要: 'orange',
-  活動: 'green',
-  系統: 'blue',
+  置頂: 'blue-grey-darken-2',
+  重要: 'red-darken-3',
+  活動: 'teal-lighten-1',
+  系統: 'light-blue-darken-1',
   一般: 'grey'
 }
 
@@ -142,12 +145,18 @@ const formatDate = (date) => {
 .custom-card {
   margin: 0;
   padding: 16px;
+  border: 1px solid #e0e0e0;
   border-radius: 12px;
-  transition: transform 0.2s;
+  transition: transform 0.3s;
   cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+  --card-bg: white;
 
   &:hover {
+    background: #f3f5f7;
     transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --card-bg: #f3f5f7;
   }
 
   .announcement-img {
@@ -170,7 +179,7 @@ const formatDate = (date) => {
       bottom: 0;
       right: 0;
       padding-left: 1em;
-      background: linear-gradient(to right, transparent, white 50%);
+      background: linear-gradient(to right, transparent, var(--card-bg) 50%);
     }
   }
 
