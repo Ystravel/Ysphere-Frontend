@@ -507,7 +507,7 @@ watch(() => route.path, () => {
 })
 
 // 監聽螢幕尺寸變化
-watch(() => breakpoint.value, (newBreakpoint) => {
+watch(() => breakpoint.value, () => {
   if (xlAndUp.value) {
     // XL 以上，預設展開
     rail.value = false
