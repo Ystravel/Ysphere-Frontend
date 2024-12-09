@@ -3409,11 +3409,11 @@ const handleCompanyChange = async (selectedCompanyId) => {
   }
 }
 
-const debouncedSearch = debounce((value) => {
+const debouncedSearch = debounce(() => {
   tableLoadItems(true)
 }, 300)
 
-const debouncedQuickSearch = debounce((value) => {
+const debouncedQuickSearch = debounce(() => {
   tablePage.value = 1
   performSearch(true)
 }, 300)

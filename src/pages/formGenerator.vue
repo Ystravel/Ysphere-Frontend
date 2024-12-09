@@ -364,7 +364,7 @@
                                 </v-col>
                                 <v-col cols="12">
                                   <div class="sub-title text-blue-grey-darken-2">
-                                    注意事
+                                    注意事項
                                   </div>
                                 </v-col>
                                 <v-col
@@ -900,7 +900,7 @@
     >
       <v-card
         class="rounded-lg pa-4 "
-        min-height="870"
+        min-height="973.59"
       >
         <div class="d-flex justify-space-between align-center ps-6  pb-2">
           <div class="card-title">
@@ -1292,6 +1292,11 @@ const editTemplateErrors = ref({
 
 const isSubmitting = ref(false)
 const formTemplates = ref([])
+
+const handlePageChange = (newPage) => {
+  currentPage.value = newPage
+  searchHistory()
+}
 
 // 修改公司選項計算屬性
 const companyOptions = computed(() => {
