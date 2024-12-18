@@ -19,22 +19,23 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
+    '/admin/': RouteRecordInfo<'/admin/', '/admin', Record<never, never>, Record<never, never>>,
     '/announcement/': RouteRecordInfo<'/announcement/', '/announcement', Record<never, never>, Record<never, never>>,
     'announcement-id': RouteRecordInfo<'announcement-id', '/announcement/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/announcementAdmin': RouteRecordInfo<'/announcementAdmin', '/announcementAdmin', Record<never, never>, Record<never, never>>,
     '/asset': RouteRecordInfo<'/asset', '/asset', Record<never, never>, Record<never, never>>,
     '/auditLog': RouteRecordInfo<'/auditLog', '/auditLog', Record<never, never>, Record<never, never>>,
-    '/department': RouteRecordInfo<'/department', '/department', Record<never, never>, Record<never, never>>,
     'first-time-login': RouteRecordInfo<'first-time-login', '/first-time-login', Record<never, never>, Record<never, never>>,
     '/forgotPassword': RouteRecordInfo<'/forgotPassword', '/forgotPassword', Record<never, never>, Record<never, never>>,
-    '/formGenerator': RouteRecordInfo<'/formGenerator', '/formGenerator', Record<never, never>, Record<never, never>>,
+    '/hrms/': RouteRecordInfo<'/hrms/', '/hrms', Record<never, never>, Record<never, never>>,
+    '/hrms/department': RouteRecordInfo<'/hrms/department', '/hrms/department', Record<never, never>, Record<never, never>>,
+    '/hrms/tempUser': RouteRecordInfo<'/hrms/tempUser', '/hrms/tempUser', Record<never, never>, Record<never, never>>,
+    '/hrms/user': RouteRecordInfo<'/hrms/user', '/hrms/user', Record<never, never>, Record<never, never>>,
     '/ITService': RouteRecordInfo<'/ITService', '/ITService', Record<never, never>, Record<never, never>>,
     '/ITServiceAdmin': RouteRecordInfo<'/ITServiceAdmin', '/ITServiceAdmin', Record<never, never>, Record<never, never>>,
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
     '/profile': RouteRecordInfo<'/profile', '/profile', Record<never, never>, Record<never, never>>,
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password/:token', Record<never, never>, Record<never, never>>,
-    '/tempUser': RouteRecordInfo<'/tempUser', '/tempUser', Record<never, never>, Record<never, never>>,
-    '/user': RouteRecordInfo<'/user', '/user', Record<never, never>, Record<never, never>>,
     '/userOriginal': RouteRecordInfo<'/userOriginal', '/userOriginal', Record<never, never>, Record<never, never>>,
   }
 }

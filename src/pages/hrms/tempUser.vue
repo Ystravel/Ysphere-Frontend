@@ -1471,3 +1471,8 @@ watch(company.value, (newVal) => {
   }
 }
 </style>
+
+<route lang="yaml">
+  meta:
+    layout: hrms
+  </route>

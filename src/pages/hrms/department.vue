@@ -1086,3 +1086,8 @@ onUnmounted(() => {
   background-color: rgb(247, 253, 255);
 }
 </style>
+
+<route lang="yaml">
+  meta:
+    layout: hrms
+  </route>

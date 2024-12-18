@@ -14,21 +14,11 @@
       />
       <router-link
         to="/"
-        class="d-flex"
+        class="d-flex title"
       >
-        <v-img
-          src="/src/assets/image/logo_horizontal.png"
-          width="170"
-          class="ms-2 ms-sm-4"
-        />
+        後臺管理
       </router-link>
       <v-spacer />
-      <v-icon
-        icon="mdi-email-outline"
-        size="22"
-        color="blue-grey-darken-3"
-        class="me-6"
-      />
       <v-icon
         icon="mdi-bell-outline"
         size="22"
@@ -42,9 +32,9 @@
         rounded="0"
         color="blue-grey-darken-2"
         class="me-6"
-        to="/hrms/user"
+        to="/"
       >
-        人事系統
+        EIP 首頁
       </v-btn>
       <v-btn
         v-if="user.isLogin && mdAndUp"
@@ -136,29 +126,9 @@
               </v-card-text>
             </div>
           </v-card>
-          <template v-if="user.isLogin">
-            <v-list-item
-              v-for="userItem in userItems"
-              :key="userItem.to"
-              class="mt-2"
-              color="blue-grey-darken-3"
-              :to="userItem.to"
-            >
-              <template #prepend>
-                <v-icon>{{ userItem.icon }}</v-icon>
-              </template>
-              <v-list-item-title>{{ userItem.text }}</v-list-item-title>
-            </v-list-item>
-          </template>
-          <v-divider
-            v-if="!user.isUser"
-            color="blue-grey-darken-4"
-            opacity="0.3"
-            class="my-2"
-          />
           <template v-if="!user.isUser">
             <template
-              v-for="item in filteredAdminItems"
+              v-for="item in filteredHrmsItems"
               :key="item.text"
             >
               <!-- 有子選單的項目 -->
@@ -237,12 +207,6 @@
             :class="{ 'loaded': isBackgroundLoaded }"
             to="/profile"
           >
-            <!-- 添加 skeleton
-            <v-skeleton-loader
-              v-if="!isBackgroundLoaded"
-              class="position-absolute w-100 h-100 pa-0 ma-0"
-            /> -->
-
             <div class="card-blur pt-2 pb-4 px-2">
               <v-card-title class="ps-5 pb-3">
                 <v-avatar
@@ -284,24 +248,6 @@
               </v-card-text>
             </div>
           </v-card>
-          <template v-if="user.isLogin">
-            <v-list-item
-              v-for="userItem in userItems"
-              :key="userItem.to"
-              :to="userItem.to"
-              color="blue-grey-darken-3"
-              class="mt-4"
-            >
-              <template #prepend>
-                <v-icon>{{ userItem.icon }}</v-icon>
-              </template>
-              <v-list-item-title>{{ userItem.text }}</v-list-item-title>
-            </v-list-item>
-          </template>
-          <v-divider
-            v-if="!user.isUser"
-            class="mt-4"
-          />
           <template v-if="!user.isUser">
             <template
               v-for="item in filteredAdminItems"
@@ -409,29 +355,37 @@ const toggleGroup = (group) => {
   }
 }
 
-const userItems = [
-  { to: '/announcement', text: '所有公告', icon: 'mdi-bullhorn' },
-  { to: '/ITService', text: 'IT 維修服務', icon: 'mdi-wrench' }
-]
-
-const adminItems = [
+const hrmsItems = [
   {
-    to: '/ITServiceAdmin',
-    text: 'IT 維修服務管理',
-    icon: 'mdi-wrench-cog',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'IT']
+    text: '人事管理',
+    icon: 'mdi-account-group',
+    roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT'],
+    children: [
+      {
+        to: '/hrms/user',
+        text: '員工管理',
+        icon: 'mdi-account-cog',
+        roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT']
+      },
+      {
+        to: '/hrms/tempUser',
+        text: '招聘資料管理',
+        icon: 'mdi-account-clock',
+        roles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'ACCOUNTANT']
+      }
+    ]
   },
   {
-    to: '/auditLog',
-    text: '異動紀錄',
-    icon: 'mdi-history',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'IT']
+    to: '/hrms/department',
+    text: '公司部門管理',
+    icon: 'mdi-office-building-cog',
+    roles: ['SUPER_ADMIN', 'ADMIN', 'HR']
   }
 ]
 
 // 新增一個計算屬性來過濾可見的選單項目
-const filteredAdminItems = computed(() => {
-  return adminItems.filter(item => {
+const filteredHrmsItems = computed(() => {
+  return hrmsItems.filter(item => {
     const hasPermission = item.roles.some(role => {
       switch (role) {
         case 'SUPER_ADMIN':
@@ -545,12 +499,12 @@ watch(() => user.avatar, (newAvatar) => {
 
 <style lang="scss" scoped>
 .card-bg {
-  background: url(/src/assets/image/bg_profile_robot.png);
+  background: url(/src/assets/image/bg_profile.jpg);
   background-size: cover;
   transition: opacity 0.3s ease;
 
 }
 .card-blur {
-  background: linear-gradient(135deg, #37474F 20%, rgba(255,255,255,0));
+  background: linear-gradient(135deg, #fd7a00 20%, rgba(255,255,255,0));
 }
 </style>

@@ -1836,10 +1836,10 @@ import { useUserStore } from '@/stores/user'
 import UserRole, { roleNames } from '@/enums/UserRole'
 import { useApi } from '@/composables/axios'
 import { useSnackbar } from 'vuetify-use-dialog'
-import EmployeeDoughnut from '../components/EmployeeDoughnut.vue'
-import ResignationDateDialog from '../components/ResignationDateDialog.vue'
+import EmployeeDoughnut from '@/components/EmployeeDoughnut.vue'
+import ResignationDateDialog from '@/components/ResignationDateDialog.vue'
 import ConfirmDeleteDialogWithTextField from '@/components/ConfirmDeleteDialogWithTextField.vue'
-import EmployeeTurnoverChart from '../components/EmployeeTurnoverChart.vue'
+import EmployeeTurnoverChart from '@/components/EmployeeTurnoverChart.vue'
 import { useROCDate } from '@/composables/useROCDate'
 import GuideLicenseSelection from '@/components/GuideLicenseSelection.vue'
 import DependentInsurance from '@/components/DependentInsurance.vue'
@@ -3563,3 +3563,8 @@ onUnmounted(() => {
 }
 }
 </style>
+
+<route lang="yaml">
+  meta:
+    layout: hrms
+  </route>
